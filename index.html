@@ -2241,6 +2241,18 @@
     background:var(--night);
     color:var(--rind);
   }
+  /* Option text (and the closed select) use the achievement's difficulty color. */
+  .edit-featured-select option.diff-easy,
+  .edit-featured-select.diff-easy{ color:var(--melon-light); }
+  .edit-featured-select option.diff-medium,
+  .edit-featured-select.diff-medium{ color:var(--zap); }
+  .edit-featured-select option.diff-hard,
+  .edit-featured-select.diff-hard{ color:var(--pow); }
+  .edit-featured-select option.diff-extreme,
+  .edit-featured-select.diff-extreme{ color:#ff5c5c; }
+  .edit-featured-select option.diff-special,
+  .edit-featured-select.diff-special{ color:#b47cff; }
+  .edit-featured-select option.diff-none{ color:var(--rind); }
   .public-profile-featured{
     display:none;
     flex-direction:column;
@@ -4757,6 +4769,398 @@
   .shop-card:hover{
     transform:translate(-1px,-2px);
   }
+
+  /* ---------- SHOP ICONS ---------- */
+  .shop-icon{
+    flex-shrink:0;
+    width:42px;
+    height:42px;
+    border-radius:12px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    color:#fff;
+    background:var(--shop-icon-color);
+    background-image:linear-gradient(160deg, rgba(255,255,255,0.28), rgba(255,255,255,0) 60%);
+    border:2px solid var(--ink);
+    box-shadow:var(--pop-sm);
+  }
+  .shop-icon svg{
+    width:24px;
+    height:24px;
+    display:block;
+    filter:drop-shadow(0 1px 0 rgba(0,0,0,0.25));
+  }
+  .shop-card:hover .shop-icon{
+    transform:rotate(-6deg) scale(1.06);
+  }
+  .shop-icon{ transition:transform .15s ease; }
+  /* Auto Clicker speed tiers: colored per tier. */
+  .speed-upgrade-btn{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:5px;
+    color:#fff;
+    background:var(--speed-color);
+    background-image:linear-gradient(160deg, rgba(255,255,255,0.25), rgba(255,255,255,0) 60%);
+    text-shadow:0 1px 0 rgba(0,0,0,0.3);
+  }
+  .speed-upgrade-btn svg{
+    width:14px;
+    height:14px;
+    flex-shrink:0;
+  }
+  .bulk-buy-panel:has(.speed-upgrade-btn){
+    max-width:480px;
+  }
+  .speed-upgrade-btn{
+    font-size:10.5px;
+    padding:8px 6px;
+    line-height:1.3;
+  }
+  .speed-upgrade-btn.owned{
+    opacity:0.6;
+  }
+  @media (max-width:480px){
+    .shop-icon{ width:38px; height:38px; border-radius:11px; }
+    .shop-icon svg{ width:21px; height:21px; }
+  }
+
+  /* ---------- NEW MOD DIALOG TABS ---------- */
+  .new-mod-tabs{
+    display:flex;
+    gap:5px;
+    padding:5px;
+    margin:0 0 16px;
+    background:var(--night);
+    border:2px solid var(--ink);
+    border-radius:14px;
+  }
+  .new-mod-tab{
+    flex:1;
+    font-family:'Fredoka One', cursive;
+    font-size:13px;
+    color:var(--muted);
+    background:transparent;
+    border:2px solid transparent;
+    border-radius:10px;
+    padding:9px 8px;
+    cursor:pointer;
+  }
+  .new-mod-tab:hover{ color:var(--rind); background:var(--card-hover); }
+  .new-mod-tab.active{
+    color:var(--night);
+    background:var(--brand-gradient);
+    border-color:var(--ink);
+    box-shadow:2px 2px 0 var(--ink);
+  }
+  .auth-btn:disabled{
+    opacity:0.5;
+    cursor:not-allowed;
+  }
+
+  /* ---------- MOD EDITOR ---------- */
+  .mod-editor{
+    max-width:1180px;
+    margin:0 auto;
+  }
+  .mod-editor-top{
+    display:flex;
+    align-items:center;
+    flex-wrap:wrap;
+    gap:8px 14px;
+    margin-bottom:16px;
+  }
+  .mod-editor-back{
+    background:var(--card);
+    color:var(--rind);
+  }
+  .mod-editor-title{
+    font-family:'Fredoka One', cursive;
+    font-size:22px;
+    color:var(--rind);
+    margin:0;
+  }
+  .mod-editor-top .mio-side-note{ margin:0; }
+  .mod-editor-grid{
+    display:grid;
+    grid-template-columns:minmax(0, 1fr) 300px;
+    gap:20px;
+    align-items:start;
+  }
+  .mod-editor-main{
+    display:flex;
+    flex-direction:column;
+    gap:16px;
+    min-width:0;
+  }
+  .mod-editor-side{
+    position:sticky;
+    top:0;
+    display:flex;
+    flex-direction:column;
+    gap:16px;
+  }
+  .mod-editor-details{
+    display:flex;
+    gap:20px;
+    align-items:flex-start;
+  }
+  .mod-editor-icon-pick{
+    flex-shrink:0;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:8px;
+    width:128px;
+  }
+  .mod-editor-icon-box{
+    width:112px;
+    height:112px;
+    border-radius:18px;
+    border:2px dashed var(--muted);
+    background:var(--night);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    overflow:hidden;
+    color:var(--muted);
+    font-family:'Fredoka One', cursive;
+    font-size:40px;
+  }
+  .mod-editor-icon-box img{
+    width:100%;
+    height:100%;
+    object-fit:cover;
+  }
+  .mod-editor-icon-box:has(img){
+    border:2px solid var(--ink);
+    box-shadow:var(--pop-sm);
+  }
+  .mod-editor-fields{
+    flex:1;
+    min-width:0;
+    text-align:left;
+  }
+  .mod-editor-fields .workshop-upload-label{ text-align:left; }
+  .mod-editor-inline{
+    display:grid;
+    grid-template-columns:minmax(0, 2fr) minmax(0, 1fr) minmax(0, 1fr);
+    gap:10px;
+  }
+  .mod-editor-upload-btn{
+    position:relative;
+    overflow:hidden;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    white-space:nowrap;
+    cursor:pointer;
+  }
+  .mod-editor-upload-btn input[type="file"]{
+    position:absolute;
+    inset:0;
+    opacity:0;
+    cursor:pointer;
+    font-size:0;
+  }
+  .mod-editor-upload-btn:focus-within{
+    outline:3px solid var(--zap);
+    outline-offset:2px;
+  }
+  .mod-editor-text-btn{
+    background:none;
+    border:none;
+    color:var(--muted);
+    font-family:'Poppins', sans-serif;
+    font-size:11.5px;
+    text-decoration:underline;
+    cursor:pointer;
+  }
+  .mod-editor-section-head{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+  }
+  .mod-editor-section-head .mio-panel-heading{ margin:0; }
+  .mod-editor-count{
+    display:inline-block;
+    min-width:22px;
+    text-align:center;
+    font-family:'Poppins', sans-serif;
+    font-size:11px;
+    font-weight:600;
+    padding:1px 7px;
+    margin-left:4px;
+    border-radius:999px;
+    background:var(--night);
+    color:var(--muted);
+    vertical-align:middle;
+  }
+  .mod-editor-section .mio-side-note{
+    margin:4px 0 12px;
+    text-align:left;
+  }
+  .mod-editor-files{
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+    margin-bottom:10px;
+  }
+  .mod-editor-empty{
+    font-size:12.5px;
+    color:var(--muted);
+    border:2px dashed var(--line);
+    border-radius:10px;
+    padding:14px;
+    text-align:center;
+  }
+  .mod-editor-file{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    background:var(--night);
+    border:2px solid var(--line);
+    border-radius:12px;
+    padding:8px;
+  }
+  .mod-editor-file-preview{
+    flex-shrink:0;
+    width:52px;
+    height:52px;
+    border-radius:10px;
+    overflow:hidden;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    color:#fff;
+    background:var(--card);
+    border:2px solid var(--ink);
+  }
+  .mod-editor-file-preview.is-music{ background:#ec4899; }
+  .mod-editor-file-preview img{
+    width:100%;
+    height:100%;
+    object-fit:cover;
+  }
+  .mod-editor-file-preview.is-cursor{
+    background:
+      conic-gradient(rgba(255,255,255,0.12) 25%, transparent 0 50%, rgba(255,255,255,0.12) 0 75%, transparent 0) 0 0 / 12px 12px,
+      var(--card);
+  }
+  .mod-editor-file-preview.is-cursor img{
+    width:32px;
+    height:32px;
+    object-fit:contain;
+    image-rendering:pixelated;
+  }
+  .mod-editor-file-preview svg{ width:24px; height:24px; }
+  .mod-editor-file-main{
+    flex:1;
+    min-width:0;
+    display:flex;
+    flex-direction:column;
+    gap:4px;
+    text-align:left;
+  }
+  .mod-editor-file-main .auth-input{
+    margin:0;
+    padding:7px 10px;
+    font-size:13px;
+  }
+  .mod-editor-file-src{
+    font-size:11px;
+    color:var(--muted);
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+  }
+  .mod-editor-file-main audio{
+    width:100%;
+    height:32px;
+  }
+  .mod-editor-remove{
+    flex-shrink:0;
+    width:30px;
+    height:30px;
+    border-radius:50%;
+    border:2px solid var(--ink);
+    background:var(--card);
+    color:var(--rind);
+    font-size:18px;
+    line-height:1;
+    cursor:pointer;
+  }
+  .mod-editor-remove:hover{
+    background:#ff5c5c;
+    color:#fff;
+  }
+  .mod-editor-link-row{
+    display:flex;
+    gap:8px;
+  }
+  .mod-editor-link-row .auth-input{
+    flex:1;
+    min-width:0;
+    margin:0;
+    padding:8px 12px;
+    font-size:13px;
+  }
+  .mod-editor-link-row .workshop-icon-btn{
+    flex-shrink:0;
+    background:var(--card);
+    color:var(--rind);
+  }
+  .mod-editor-side #mod-editor-preview .workshop-item-card{
+    cursor:default;
+  }
+  .mod-editor-side #mod-editor-preview .workshop-item-card:hover{
+    transform:none;
+    box-shadow:var(--pop-sm);
+  }
+  .mod-editor-publish{
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+  }
+  .mod-editor-publish .auth-btn{ margin:0; }
+  .mod-editor-publish .mio-side-note{ margin:0; }
+  .mod-editor-meter{ margin-bottom:6px; }
+  .mod-editor-meter-head{
+    display:flex;
+    justify-content:space-between;
+    font-size:12px;
+    color:var(--muted);
+  }
+  .mod-editor-meter-bar{
+    background:var(--night);
+  }
+  .mod-editor-meter-bar span{
+    transition:width .2s ease;
+  }
+  .mod-editor-status{
+    font-size:12px;
+    color:var(--moneys-green);
+    margin:0;
+    min-height:1em;
+    text-align:center;
+  }
+  .mod-editor-status.error{ color:#ff6b6b; }
+
+  @media (max-width:860px){
+    .mod-editor-grid{ grid-template-columns:minmax(0, 1fr); }
+    .mod-editor-side{ position:static; }
+  }
+  @media (max-width:600px){
+    .mod-editor-details{ flex-direction:column; align-items:stretch; }
+    .mod-editor-icon-pick{ width:auto; flex-direction:row; flex-wrap:wrap; }
+    .mod-editor-icon-box{ width:72px; height:72px; font-size:28px; }
+    .mod-editor-inline{ grid-template-columns:minmax(0, 1fr) minmax(0, 1fr); }
+    .mod-editor-inline > div:first-child{ grid-column:1 / -1; }
+    .mod-editor-section-head{ flex-wrap:wrap; }
+  }
 </style>
 </head>
 <body>
@@ -4950,7 +5354,7 @@
           <img id="workshop-profile-btn-img" src="profile.png" alt="">
           <span id="workshop-profile-btn-name">Profile</span>
         </button>
-        <button class="workshop-icon-btn" id="workshop-upload-btn" title="Upload a Mod">+ Upload Mod</button>
+        <button class="workshop-icon-btn" id="workshop-upload-btn" title="Create or upload a mod">+ New Mod</button>
       </div>
     </div>
     <div class="workshop-refresh-banner" id="workshop-refresh-banner">
@@ -5695,7 +6099,9 @@
   function autoSpeedPanelHTML(){
     const btns = AUTO_SPEED_LEVELS.slice(1).map((lvl, i) => {
       const level = i + 1;
-      return `<button class="bulk-buy-btn" id="buy-autospeed-${level}" data-speed-level="${level}" ${canBuyAutoSpeed(level) ? '' : 'disabled'}>${autoSpeedButtonLabel(level)}</button>`;
+      const icon = AUTO_SPEED_ICONS[level];
+      const owned = level <= autoSpeedLevel();
+      return `<button class="bulk-buy-btn speed-upgrade-btn${owned ? ' owned' : ''}" style="--speed-color:${icon ? icon.color : 'var(--melon)'}" id="buy-autospeed-${level}" data-speed-level="${level}" ${canBuyAutoSpeed(level) ? '' : 'disabled'}>${icon ? `<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">${icon.svg}</svg>` : ''}<span>${autoSpeedButtonLabel(level)}</span></button>`;
     }).join('');
     const note = (game.autoClickerOwned || 0) < 1 ? '<p class="workshop-settings-status" style="width:100%;margin:0 0 4px;">Buy an Auto Clicker first.</p>' : '';
     return `<div class="bulk-buy-panel" style="flex-wrap:wrap;">${note}${btns}</div>`;
@@ -5809,6 +6215,49 @@
     options[0].buy();
   }, 5000);
 
+  /* ---------- SHOP ICONS ---------- */
+  // One SVG per shop item, drawn in white on a colored tile (see .shop-icon).
+  // `color` is the tile color. Same 24x24 style as the tab icons.
+  const SHOP_ICONS = {
+    'Click Boost': { color:'#57ab46', svg:'<path d="M6 3l12 7.5-5.2 1.3L10 17z"/><path d="M17 14v6M14 17h6" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/>' },
+    'Auto Clicker': { color:'#3b82f6', svg:'<circle cx="12" cy="13.5" r="7.5" fill="none" stroke="currentColor" stroke-width="2.2"/><path d="M12 9.5v4.5l3 2" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M9.5 2.5h5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>' },
+    'DVD Logo': { color:'#8b5cf6', svg:'<path fill-rule="evenodd" d="M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zm0 6a3 3 0 1 1 0 6 3 3 0 0 1 0-6z"/><path d="M12 6a6 6 0 0 1 5.2 3" fill="none" stroke="#000" stroke-opacity=".3" stroke-width="1.6" stroke-linecap="round"/>' },
+    'DVD Layer': { color:'#6366f1', svg:'<path d="M12 3l9 4.5-9 4.5-9-4.5z"/><path d="M3 12l9 4.5 9-4.5M3 16.5L12 21l9-4.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>' },
+    'Amogus': { color:'#ef4444', svg:'<rect x="5" y="3.5" width="14" height="17" rx="2.5" fill="none" stroke="currentColor" stroke-width="2.2"/><path d="M9 3.5h6v2.5H9z"/><path d="M8.5 11l1.6 1.6 3-3M8.5 16l1.6 1.6 3-3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>' },
+    'Roblox Noob': { color:'#f59e0b', svg:'<rect x="8" y="2.5" width="8" height="7" rx="1.2"/><rect x="7" y="10.5" width="10" height="6.5" rx="1"/><rect x="3" y="10.5" width="3" height="6.5" rx="1"/><rect x="18" y="10.5" width="3" height="6.5" rx="1"/><rect x="7.5" y="18" width="4" height="4" rx="1"/><rect x="12.5" y="18" width="4" height="4" rx="1"/>' },
+    'Custom Cursors': { color:'#0ea5e9', svg:'<path d="M5 2.5l13.5 10-5.8 1 3.3 6.4-2.6 1.3-3.3-6.4L6 19z"/>' },
+    'Background Switcher': { color:'#14b8a6', svg:'<rect x="2.5" y="4" width="19" height="16" rx="2.5" fill="none" stroke="currentColor" stroke-width="2.2"/><circle cx="8.5" cy="9.5" r="2"/><path d="M3.5 18l5.5-5.5 3.5 3.5 3-3 5 5z"/>' },
+    'Music Player': { color:'#ec4899', svg:'<path d="M9 17.5V5l11-2.5v12.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/><circle cx="6.5" cy="17.5" r="3"/><circle cx="17.5" cy="15" r="3"/>' },
+    'Icon Modifier': { color:'#eab308', svg:'<circle cx="12" cy="12" r="9.5"/><circle cx="8.8" cy="10" r="1.4" fill="#000" fill-opacity=".45"/><circle cx="15.2" cy="10" r="1.4" fill="#000" fill-opacity=".45"/><path d="M8 14.2a4.6 4.6 0 0 0 8 0" fill="none" stroke="#000" stroke-opacity=".45" stroke-width="1.8" stroke-linecap="round"/>' },
+    'Click Effects': { color:'#d946ef', svg:'<path d="M12 2l1.9 6.1L20 10l-6.1 1.9L12 18l-1.9-6.1L4 10l6.1-1.9z"/><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z"/><path d="M5 16l.6 1.4L7 18l-1.4.6L5 20l-.6-1.4L3 18l1.4-.6z"/>' },
+    'Font Manager': { color:'#64748b', svg:'<path d="M2.5 20L8 4h2.5L16 20h-3l-1.3-4H6.8l-1.3 4zm5.2-7h3.1L9.2 8z"/><path d="M17 20v-6.5a2.6 2.6 0 0 1 4.5-1.8" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><path d="M15.5 15.5h5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>' },
+    'Auto Kill': { color:'#dc2626', svg:'<circle cx="12" cy="12" r="7.5" fill="none" stroke="currentColor" stroke-width="2.2"/><circle cx="12" cy="12" r="2.5"/><path d="M12 1.5v5M12 17.5v5M1.5 12h5M17.5 12h5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>' },
+    'Offline Earnings': { color:'#4f46e5', svg:'<path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5z"/><path d="M16 3l.6 1.6 1.6.6-1.6.6L16 7.4l-.6-1.6-1.6-.6 1.6-.6zM20 7.5l.4 1 1 .4-1 .4-.4 1-.4-1-1-.4 1-.4z"/>' },
+    'Mega Click Boost': { color:'#16a34a', svg:'<path d="M12 3l8 8h-5v4H9v-4H4z"/><path d="M9 17.5h6M9 20.5h6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>' },
+    'Turbo Clicker': { color:'#f97316', svg:'<path d="M3.5 17a8.5 8.5 0 1 1 17 0" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/><path d="M12 17l5-6.5" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/><circle cx="12" cy="17" r="2.2"/><path d="M5.5 10.5l1.4 1M12 6v1.8M18.5 10.5l-1.4 1" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>' },
+    'Lucky Charm': { color:'#22c55e', svg:'<circle cx="8.5" cy="8.5" r="4"/><circle cx="15.5" cy="8.5" r="4"/><circle cx="8.5" cy="15.5" r="4"/><circle cx="15.5" cy="15.5" r="4"/><path d="M12 12l5.5 9.5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>' },
+    'Prestige': { color:'#a855f7', svg:'<path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4l-5.9 3.1 1.2-6.5-4.8-4.6 6.6-.9z"/>' },
+    'Boost': { color:'#c026d3', svg:'<path d="M3 20h18" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><path d="M4 16l5-5 3.5 3.5L19 8" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/><path d="M14.5 6.5H20V12z"/>' },
+    'Head Start': { color:'#7c3aed', svg:'<path d="M5 21.5V3" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/><path d="M5 3.5h13l-3 4.5 3 4.5H5z"/>' },
+    'Prestige Multiplier': { color:'#9333ea', svg:'<path d="M3 18.5L2 7l5.5 4.5L12 4l4.5 7.5L22 7l-1 11.5z"/><path d="M3 21h18" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>' },
+    'Auto Buyer': { color:'#db2777', svg:'<path d="M2 3.5h3l2.4 11h11l2.1-8H6.4" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="9" cy="19" r="2"/><circle cx="17" cy="19" r="2"/><path d="M11 10.5h6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>' }
+  };
+
+  function shopIconHTML(name){
+    const icon = SHOP_ICONS[name];
+    if (!icon) return '';
+    return `<div class="shop-icon" style="--shop-icon-color:${icon.color}" aria-hidden="true"><svg viewBox="0 0 24 24" fill="currentColor">${icon.svg}</svg></div>`;
+  }
+
+  // Auto Clicker speed upgrades: each tier has its own icon and color.
+  const AUTO_SPEED_ICONS = [
+    null,
+    { color:'#22c55e', svg:'<path d="M5 12h11M12 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>' },
+    { color:'#eab308', svg:'<path d="M3 6l6 6-6 6M11 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>' },
+    { color:'#f97316', svg:'<path d="M12 2c1 3.5 5.5 5.5 5.5 11a5.5 5.5 0 0 1-11 0c0-2.5 1.3-4 2.5-5 0 2 .8 3 2 3.5C10.5 8.5 11 5 12 2z"/>' },
+    { color:'#ef4444', svg:'<path d="M13.5 2L4.5 13.5h6L9.5 22l9-11.5h-6z"/>' }
+  ];
+
   const SHOP_CATEGORIES = [
     { id: 'all', label: 'All' },
     { id: 'visuals', label: 'Visuals' },
@@ -5823,6 +6272,7 @@
     const cards = [
       { category: 'plain', html: `
       <div class="shop-card clickboost-card">
+        ${shopIconHTML('Click Boost')}
         <div class="shop-info">
           <h3>Click Boost</h3>
           <p>Increases the value of every single tap. Each click is currently worth ${game.clickPower}. <span class="owned">Owned: ${game.clickBoostOwned}</span></p>
@@ -5838,6 +6288,7 @@
       </div>` : ''}` },
       { category: 'plain', html: `
       <div class="shop-card">
+        ${shopIconHTML('Auto Clicker')}
         <div class="shop-info">
           <h3>Auto Clicker</h3>
           <p>Automatically clicks the main button for you once every ${AUTO_SPEED_LEVELS[autoSpeedLevel()].interval === '1s' ? 'second' : AUTO_SPEED_LEVELS[autoSpeedLevel()].interval}, earning income even when you aren't tapping. Open the dropdown for speed upgrades. <span class="owned">Owned: ${game.autoClickerOwned} &middot; Speed: ${AUTO_SPEED_LEVELS[autoSpeedLevel()].label}</span></p>
@@ -5848,6 +6299,7 @@
       ${autoClickerExpanded ? autoSpeedPanelHTML() : ''}` },
       { category: 'visuals', html: `
       <div class="shop-card">
+        ${shopIconHTML('DVD Logo')}
         <div class="shop-info">
           <h3>DVD Logo</h3>
           <p>Spawns a bouncing logo that changes color on every wall bounce. <span class="owned">Owned: ${game.dvdOwned}</span></p>
@@ -5856,6 +6308,7 @@
       </div>` },
       { category: 'visuals', html: `
       <div class="shop-card">
+        ${shopIconHTML('DVD Layer')}
         <div class="shop-info">
           <h3>DVD Layer</h3>
           <p>Send the DVD logos behind the page, or bring them back to the front.</p>
@@ -5864,6 +6317,7 @@
       </div>` },
       { category: 'visuals', html: `
       <div class="shop-card">
+        ${shopIconHTML('Amogus')}
         <div class="shop-info">
           <h3>Amogus</h3>
           <p>Spawns a crewmate who does 5 tasks, then wanders. Click him for 100 (or 200 once tasks are done). <span class="owned" id="amogus-owned-count">Owned: ${game.amogusAlive}</span></p>
@@ -5872,6 +6326,7 @@
       </div>` },
       { category: 'visuals', html: `
       <div class="shop-card">
+        ${shopIconHTML('Roblox Noob')}
         <div class="shop-info">
           <h3>Roblox Noob</h3>
           <p>Spawns a noob who walks, jumps, dances, and chats. Pays out like a DVD logo every time he bounces off a wall. <span class="owned">Owned: ${game.noobOwned}</span></p>
@@ -5880,6 +6335,7 @@
       </div>` },
       { category: 'customization', html: `
       <div class="shop-card">
+        ${shopIconHTML('Custom Cursors')}
         <div class="shop-info">
           <h3>Custom Cursors</h3>
           <p>One-time buy. Adds a cursor picker to the top of the page.</p>
@@ -5888,6 +6344,7 @@
       </div>` },
       { category: 'customization', html: `
       <div class="shop-card">
+        ${shopIconHTML('Background Switcher')}
         <div class="shop-info">
           <h3>Background Switcher</h3>
           <p>One-time buy. Adds a background picker to the top of the page.</p>
@@ -5896,6 +6353,7 @@
       </div>` },
       { category: 'customization', html: `
       <div class="shop-card">
+        ${shopIconHTML('Music Player')}
         <div class="shop-info">
           <h3>Music Player</h3>
           <p>One-time buy. Adds a song picker to the top of the page.</p>
@@ -5904,6 +6362,7 @@
       </div>` },
       { category: 'customization', html: `
       <div class="shop-card">
+        ${shopIconHTML('Icon Modifier')}
         <div class="shop-info">
           <h3>Icon Modifier</h3>
           <p>One-time buy. Adds a picker to swap the clicker avatar and the browser tab icon.</p>
@@ -5912,6 +6371,7 @@
       </div>` },
       { category: 'customization', html: `
       <div class="shop-card">
+        ${shopIconHTML('Click Effects')}
         <div class="shop-info">
           <h3>Click Effects</h3>
           <p>One-time buy. Adds a picker to choose an effect that plays on every click. Default: None.</p>
@@ -5920,6 +6380,7 @@
       </div>` },
       { category: 'customization', html: `
       <div class="shop-card">
+        ${shopIconHTML('Font Manager')}
         <div class="shop-info">
           <h3>Font Manager</h3>
           <p>One-time buy. Adds a picker to change the font used across the whole UI.</p>
@@ -5928,6 +6389,7 @@
       </div>` },
       { category: 'plain', html: `
       <div class="shop-card">
+        ${shopIconHTML('Auto Kill')}
         <div class="shop-info">
           <h3>Auto Kill</h3>
           <p>One-time buy. Amoguses get taken out automatically the moment they finish their tasks, for 175 instead of the usual 200.</p>
@@ -5936,6 +6398,7 @@
       </div>` },
       { category: 'plain', html: `
       <div class="shop-card">
+        ${shopIconHTML('Offline Earnings')}
         <div class="shop-info">
           <h3>Offline Earnings</h3>
           <p>One-time buy. Keeps your Auto Clicker upgrades earning clicks while the page is closed (capped at 24 hours away).</p>
@@ -5944,6 +6407,7 @@
       </div>` },
       { category: 'plain', html: `
       <div class="shop-card">
+        ${shopIconHTML('Mega Click Boost')}
         <div class="shop-info">
           <h3>Mega Click Boost</h3>
           <p>+5 click power per click. <span class="owned">Owned: ${game.megaBoostOwned}</span></p>
@@ -5952,6 +6416,7 @@
       </div>` },
       { category: 'plain', html: `
       <div class="shop-card">
+        ${shopIconHTML('Turbo Clicker')}
         <div class="shop-info">
           <h3>Turbo Clicker</h3>
           <p>+5 clicks every second, automatically. <span class="owned">Owned: ${game.turboClickerOwned}</span></p>
@@ -5960,6 +6425,7 @@
       </div>` },
       { category: 'plain', html: `
       <div class="shop-card">
+        ${shopIconHTML('Lucky Charm')}
         <div class="shop-info">
           <h3>Lucky Charm</h3>
           <p>One-time buy. Every time you earn clicks, there's a 15% chance it's doubled.</p>
@@ -5968,6 +6434,7 @@
       </div>` },
       { category: 'prestige', html: `
       <div class="shop-card">
+        ${shopIconHTML('Prestige')}
         <div class="shop-info">
           <h3>Prestige</h3>
           <p>Resets all your progress in exchange for 1 Prestige, a permanent currency that carries over. Requires ${PRESTIGE_COST.toLocaleString()} clicks. <span class="owned">Prestige: ${game.prestige || 0}</span></p>
@@ -5976,6 +6443,7 @@
       </div>` },
       { category: 'prestige', html: `
       <div class="shop-card">
+        ${shopIconHTML('Boost')}
         <div class="shop-info">
           <h3>Boost</h3>
           <p>Trade 1 Prestige for a permanent +0.5x multiplier on everything that earns clicks. Current multiplier: ${boostMultiplier()}x (${game.boosts || 0} owned). <span class="owned">Prestige: ${game.prestige || 0}</span></p>
@@ -5984,6 +6452,7 @@
       </div>` },
       { category: 'prestige', html: `
       <div class="shop-card">
+        ${shopIconHTML('Head Start')}
         <div class="shop-info">
           <h3>Head Start</h3>
           <p>Permanently start every future Prestige with 5 free Click Boosts already owned. <span class="owned">Owned: ${game.headStartOwned} (Prestige: ${game.prestige || 0})</span></p>
@@ -5992,6 +6461,7 @@
       </div>` },
       { category: 'prestige', html: `
       <div class="shop-card">
+        ${shopIconHTML('Prestige Multiplier')}
         <div class="shop-info">
           <h3>Prestige Multiplier</h3>
           <p>Permanently gain +1 extra Prestige every time you Prestige. <span class="owned">Owned: ${game.prestigeMultOwned} (Prestige: ${game.prestige || 0})</span></p>
@@ -6000,6 +6470,7 @@
       </div>` },
       { category: 'prestige', html: `
       <div class="shop-card">
+        ${shopIconHTML('Auto Buyer')}
         <div class="shop-info">
           <h3>Auto Buyer</h3>
           <p>One-time buy. Every 5 seconds, automatically buys the cheapest affordable Click Boost, Clicker, Mega Click Boost, or Turbo Clicker. <span class="owned">Prestige: ${game.prestige || 0}</span></p>
@@ -8523,6 +8994,8 @@
       renderWorkshopProfile();
     } else if (workshopView === 'detail') {
       renderWorkshopDetail();
+    } else if (workshopView === 'create') {
+      renderModEditor();
     } else {
       renderWorkshopBrowse();
     }
@@ -8882,7 +9355,7 @@
               <div class="mio-panel mio-action-panel">
                 <button class="auth-btn${installed ? ' workshop-update-btn' : ''}" id="workshop-real-download-btn">${installed ? 'Update' : (item.price ? `Download (${esc(item.price)} Gems)` : 'Download')}</button>
                 ${installed ? '<button class="auth-btn secondary" id="workshop-uninstall-btn">Uninstall</button>' : ''}
-                <button class="auth-btn secondary" id="workshop-manual-download-btn">Manual download (GitHub)</button>
+                ${item.repoUrl ? '<button class="auth-btn secondary" id="workshop-manual-download-btn">Manual download (GitHub)</button>' : '<p class="mio-side-note" style="text-align:center;">Made in the mod editor</p>'}
               </div>
 
               <div class="mio-panel">
@@ -8942,7 +9415,8 @@
     });
     const uninstallBtn = document.getElementById('workshop-uninstall-btn');
     if (uninstallBtn) uninstallBtn.addEventListener('click', () => uninstallMod(item));
-    document.getElementById('workshop-manual-download-btn').addEventListener('click', () => {
+    const manualDlBtn = document.getElementById('workshop-manual-download-btn');
+    if (manualDlBtn) manualDlBtn.addEventListener('click', () => {
       if (item.repoUrl) window.open(item.repoUrl, '_blank');
     });
     document.getElementById('workshop-comment-submit').addEventListener('click', () => submitWorkshopComment(item));
@@ -9260,18 +9734,548 @@
     }
   }
 
-  function openWorkshopUploadDialog(){
-    confirmBox.innerHTML = `
-      <h1 class="auth-heading">Upload a Mod</h1>
-      <p class="auth-sub">Paste a link to a public GitHub repo. It needs a manifest.json in the root and a "custom" folder (the folder itself is required, but everything inside it is optional). Uploading costs ${WORKSHOP_UPLOAD_COST} Gems. You have ${(game.gems || 0).toLocaleString()} Gems.</p>
-      <input type="text" id="workshop-upload-repo" class="auth-input" placeholder="https://github.com/owner/repo">
-      <button class="auth-btn" id="workshop-upload-check">Check Repo</button>
-      <button class="auth-btn secondary" id="confirm-cancel">Cancel</button>
-      <p class="auth-error" id="workshop-upload-error" style="display:none;"></p>
-    `;
+  // "New Mod" dialog with two tabs: Upload (from a GitHub repo) and Create
+  // (build a mod in the built-in editor, no GitHub needed).
+  function openWorkshopUploadDialog(tab){
+    const active = tab === 'create' ? 'create' : 'upload';
+    const gems = game.gems || 0;
+    const hasDraft = !!loadModEditorDraft();
+    const tabsHtml = `
+      <div class="new-mod-tabs" role="tablist">
+        <button class="new-mod-tab${active === 'upload' ? ' active' : ''}" data-tab="upload" role="tab" aria-selected="${active === 'upload'}">Upload</button>
+        <button class="new-mod-tab${active === 'create' ? ' active' : ''}" data-tab="create" role="tab" aria-selected="${active === 'create'}">Create</button>
+      </div>`;
+
+    if (active === 'upload') {
+      confirmBox.innerHTML = `
+        <h1 class="auth-heading">New Mod</h1>
+        ${tabsHtml}
+        <p class="auth-sub">Paste a link to a public GitHub repo. It needs a manifest.json in the root and a "custom" folder (the folder itself is required, but everything inside it is optional). Uploading costs ${WORKSHOP_UPLOAD_COST} Gems. You have ${gems.toLocaleString()} Gems.</p>
+        <input type="text" id="workshop-upload-repo" class="auth-input" placeholder="https://github.com/owner/repo">
+        <button class="auth-btn" id="workshop-upload-check">Check Repo</button>
+        <button class="auth-btn secondary" id="confirm-cancel">Cancel</button>
+        <p class="auth-error" id="workshop-upload-error" style="display:none;"></p>
+      `;
+      document.getElementById('workshop-upload-check').addEventListener('click', checkWorkshopUploadRepo);
+    } else {
+      const enough = gems >= MOD_EDITOR_COST;
+      confirmBox.innerHTML = `
+        <h1 class="auth-heading">New Mod</h1>
+        ${tabsHtml}
+        <p class="auth-sub">Build a mod right here, no GitHub needed. Add icons, cursors, backgrounds and music, see a live preview, then publish it to the Workshop.</p>
+        <p class="auth-sub">Creating a mod costs <strong>${MOD_EDITOR_COST} Gems</strong>, paid when you publish. You have ${gems.toLocaleString()} Gems.</p>
+        <button class="auth-btn" id="mod-editor-open"${enough ? '' : ' disabled'}>${hasDraft ? 'Continue your draft' : 'Open the editor'}</button>
+        ${enough ? '' : `<p class="auth-error" style="display:block;">You need ${(MOD_EDITOR_COST - gems).toLocaleString()} more Gems.</p><button class="auth-btn secondary" id="mod-editor-get-gems">Convert Moneys to Gems</button>`}
+        <button class="auth-btn secondary" id="confirm-cancel">Cancel</button>
+      `;
+      const openBtn = document.getElementById('mod-editor-open');
+      if (openBtn) openBtn.addEventListener('click', openModEditor);
+      const getGemsBtn = document.getElementById('mod-editor-get-gems');
+      if (getGemsBtn) getGemsBtn.addEventListener('click', openGemsConvertDialog);
+    }
+
+    confirmBox.querySelectorAll('.new-mod-tab').forEach(btn => {
+      btn.addEventListener('click', () => openWorkshopUploadDialog(btn.dataset.tab));
+    });
     document.getElementById('confirm-cancel').addEventListener('click', closeConfirm);
-    document.getElementById('workshop-upload-check').addEventListener('click', checkWorkshopUploadRepo);
     confirmOverlay.classList.add('visible');
+  }
+
+  /* ---------- MOD EDITOR ---------- */
+  const MOD_EDITOR_COST = 150;
+  const MOD_EDITOR_DRAFT_KEY = 'fallgamedev-clicker-mod-editor-draft';
+  // Mods made in the editor are stored in the Sheet, and a Google Sheets cell
+  // holds up to 50,000 characters. Uploaded files are shrunk and kept under
+  // this budget. Links to files hosted elsewhere barely count against it.
+  const MOD_EDITOR_SIZE_LIMIT = 45000;
+  const MOD_EDITOR_TYPES = [
+    { id: 'icons', label: 'Icons', hint: 'Clicker avatar images. Shrunk to 128px.', accept: 'image/*', max: 128, format: 'png', linkHint: 'https://example.com/icon.png' },
+    { id: 'cursors', label: 'Cursors', hint: 'Mouse cursors. Shrunk to 32px, transparent PNG works best.', accept: 'image/*', max: 32, format: 'png', linkHint: 'https://example.com/cursor.png' },
+    { id: 'bg', label: 'Backgrounds', hint: 'Full page backgrounds. Uploads are shrunk to 640px, so use a link for sharp ones.', accept: 'image/*', max: 640, format: 'jpeg', linkHint: 'https://example.com/background.jpg' },
+    { id: 'music', label: 'Music', hint: 'Songs are too big to store, so add a direct link to an .mp3 file.', accept: '', linkOnly: true, linkHint: 'https://example.com/song.mp3' }
+  ];
+
+  let modEditorDraft = null;
+  let modEditorPublishing = false;
+
+  function newModEditorDraft(){
+    return {
+      name: '',
+      description: '',
+      category: 'Other',
+      mature: false,
+      version: '1.0',
+      price: 0,
+      iconData: '',
+      files: { icons: [], cursors: [], bg: [], music: [] }
+    };
+  }
+
+  function loadModEditorDraft(){
+    try {
+      const raw = localStorage.getItem(MOD_EDITOR_DRAFT_KEY);
+      if (!raw) return null;
+      const d = JSON.parse(raw);
+      if (!d || typeof d !== 'object') return null;
+      const base = newModEditorDraft();
+      return Object.assign(base, d, { files: Object.assign(base.files, d.files || {}) });
+    } catch (e) {
+      return null;
+    }
+  }
+
+  function saveModEditorDraft(){
+    try { localStorage.setItem(MOD_EDITOR_DRAFT_KEY, JSON.stringify(modEditorDraft)); } catch (e) {}
+  }
+
+  function clearModEditorDraft(){
+    try { localStorage.removeItem(MOD_EDITOR_DRAFT_KEY); } catch (e) {}
+  }
+
+  function openModEditor(){
+    if ((game.gems || 0) < MOD_EDITOR_COST) return;
+    modEditorDraft = loadModEditorDraft() || newModEditorDraft();
+    closeConfirm();
+    workshopView = 'create';
+    renderWorkshopBody();
+  }
+
+  function modEditorSlug(text){
+    return String(text || 'file').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 40) || 'file';
+  }
+
+  // Builds the customFiles object in the same shape GitHub mods use, so
+  // editor mods install and apply exactly like any other mod.
+  function modEditorCustomFiles(){
+    const out = { music: [], icons: [], cursors: [], bg: [] };
+    Object.keys(out).forEach(type => {
+      (modEditorDraft.files[type] || []).forEach((f, i) => {
+        const name = String(f.name || '').trim() || `${type} ${i + 1}`;
+        out[type].push({ name, file: `${modEditorSlug(name)}-${i + 1}`, url: f.url });
+      });
+    });
+    return out;
+  }
+
+  function modEditorSize(){
+    return JSON.stringify(modEditorCustomFiles()).length;
+  }
+
+  function modEditorFileCount(){
+    return Object.values(modEditorDraft.files).reduce((sum, arr) => sum + arr.length, 0);
+  }
+
+  // Reads an image file and redraws it on a canvas at most `max` pixels
+  // wide/tall. WebP is used when the browser can encode it (smallest),
+  // otherwise PNG (keeps transparency) or JPEG (for photos/backgrounds).
+  function shrinkImageFile(file, max, format){
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onerror = () => reject(new Error('read'));
+      reader.onload = () => {
+        const img = new Image();
+        img.onerror = () => reject(new Error('image'));
+        img.onload = () => {
+          const scale = Math.min(1, max / Math.max(img.width, img.height));
+          const w = Math.max(1, Math.round(img.width * scale));
+          const h = Math.max(1, Math.round(img.height * scale));
+          const canvas = document.createElement('canvas');
+          canvas.width = w;
+          canvas.height = h;
+          const ctx = canvas.getContext('2d');
+          if (format === 'jpeg') {
+            ctx.fillStyle = '#000';
+            ctx.fillRect(0, 0, w, h);
+          }
+          ctx.drawImage(img, 0, 0, w, h);
+          const webp = canvas.toDataURL('image/webp', format === 'jpeg' ? 0.5 : 0.8);
+          if (webp.indexOf('data:image/webp') === 0) return resolve(webp);
+          resolve(format === 'jpeg' ? canvas.toDataURL('image/jpeg', 0.55) : canvas.toDataURL('image/png'));
+        };
+        img.src = reader.result;
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  function modEditorStatus(text, isError){
+    const el = document.getElementById('mod-editor-status');
+    if (!el) return;
+    el.textContent = text || '';
+    el.classList.toggle('error', !!isError);
+  }
+
+  function renderModEditor(){
+    if (!modEditorDraft) modEditorDraft = loadModEditorDraft() || newModEditorDraft();
+    const d = modEditorDraft;
+    const esc = escapeChatHtml;
+
+    const lastCategory = (d.category && d.category.toLowerCase() !== 'nsfw') ? d.category : 'Other';
+    const categories = getWorkshopUploadCategories(lastCategory);
+    const categoryOptions = categories.map(c =>
+      `<option value="${esc(c)}"${!d.mature && c.toLowerCase() === lastCategory.toLowerCase() ? ' selected' : ''}>${esc(c)}</option>`
+    ).join('') + `<option value="${WORKSHOP_NSFW_CATEGORY}"${d.mature ? ' selected' : ''}>${WORKSHOP_NSFW_CATEGORY}</option>`;
+
+    const sectionHtml = MOD_EDITOR_TYPES.map(t => {
+      const list = d.files[t.id] || [];
+      const rows = list.map((f, i) => `
+        <div class="mod-editor-file">
+          <div class="mod-editor-file-preview${t.id === 'cursors' ? ' is-cursor' : ''}${t.id === 'music' ? ' is-music' : ''}">
+            ${t.id === 'music'
+              ? '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M9 17.5V5l11-2.5v12.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/><circle cx="6.5" cy="17.5" r="3"/><circle cx="17.5" cy="15" r="3"/></svg>'
+              : `<img src="${esc(f.url)}" alt="">`}
+          </div>
+          <div class="mod-editor-file-main">
+            <input type="text" class="auth-input mod-editor-file-name" data-type="${t.id}" data-index="${i}" value="${esc(f.name)}" placeholder="Name shown in the picker" maxlength="40">
+            <span class="mod-editor-file-src">${String(f.url).indexOf('data:') === 0 ? `Uploaded file &middot; ${(f.url.length / 1000).toFixed(1)}K` : esc(f.url)}</span>
+            ${t.id === 'music' ? `<audio controls preload="none" src="${esc(f.url)}"></audio>` : ''}
+          </div>
+          <button class="mod-editor-remove" data-type="${t.id}" data-index="${i}" title="Remove" aria-label="Remove ${esc(f.name)}">&times;</button>
+        </div>
+      `).join('');
+      return `
+        <section class="mio-panel mod-editor-section">
+          <div class="mod-editor-section-head">
+            <h3 class="mio-panel-heading">${t.label} <span class="mod-editor-count">${list.length}</span></h3>
+            ${t.linkOnly ? '' : `
+              <label class="workshop-icon-btn mod-editor-upload-btn">
+                Upload files
+                <input type="file" class="mod-editor-file-input" data-type="${t.id}" accept="${t.accept}" multiple>
+              </label>`}
+          </div>
+          <p class="mio-side-note">${t.hint}</p>
+          <div class="mod-editor-files">${rows || `<div class="mod-editor-empty">No ${t.label.toLowerCase()} yet.</div>`}</div>
+          <div class="mod-editor-link-row">
+            <input type="url" class="auth-input mod-editor-link-input" data-type="${t.id}" placeholder="${t.linkHint}">
+            <button class="workshop-icon-btn mod-editor-link-add" data-type="${t.id}">Add link</button>
+          </div>
+        </section>
+      `;
+    }).join('');
+
+    workshopBody.innerHTML = `
+      <div class="mod-editor">
+        <div class="mod-editor-top">
+          <button class="workshop-icon-btn mod-editor-back" id="mod-editor-back">&larr; Back to mods</button>
+          <h2 class="mod-editor-title">Mod editor</h2>
+          <span class="mio-side-note">Your work saves automatically on this device.</span>
+        </div>
+        <div class="mod-editor-grid">
+          <div class="mod-editor-main">
+            <section class="mio-panel">
+              <h3 class="mio-panel-heading">Details</h3>
+              <div class="mod-editor-details">
+                <div class="mod-editor-icon-pick">
+                  <div class="mod-editor-icon-box" id="mod-editor-icon-box">
+                    ${d.iconData ? `<img src="${esc(d.iconData)}" alt="">` : '<span>+</span>'}
+                  </div>
+                  <label class="workshop-icon-btn mod-editor-upload-btn">
+                    ${d.iconData ? 'Change icon' : 'Add mod icon'}
+                    <input type="file" id="mod-editor-icon-input" accept="image/*">
+                  </label>
+                  ${d.iconData ? '<button class="mod-editor-text-btn" id="mod-editor-icon-remove">Remove icon</button>' : ''}
+                </div>
+                <div class="mod-editor-fields">
+                  <label class="workshop-upload-label" for="mod-editor-name">Name</label>
+                  <input type="text" id="mod-editor-name" class="auth-input" maxlength="60" value="${esc(d.name)}" placeholder="My awesome mod">
+                  <label class="workshop-upload-label" for="mod-editor-desc">Description</label>
+                  <textarea id="mod-editor-desc" class="auth-input edit-description" maxlength="500" rows="3" placeholder="What does your mod add?">${esc(d.description)}</textarea>
+                  <div class="mod-editor-inline">
+                    <div>
+                      <label class="workshop-upload-label" for="mod-editor-category">Category</label>
+                      <select id="mod-editor-category" class="auth-input workshop-upload-select"${d.mature ? ' disabled' : ''}>${categoryOptions}</select>
+                    </div>
+                    <div>
+                      <label class="workshop-upload-label" for="mod-editor-version">Version</label>
+                      <input type="text" id="mod-editor-version" class="auth-input" maxlength="12" value="${esc(d.version)}" placeholder="1.0">
+                    </div>
+                    <div>
+                      <label class="workshop-upload-label" for="mod-editor-price">Price (Gems)</label>
+                      <input type="number" id="mod-editor-price" class="auth-input" min="0" step="1" value="${Number(d.price) || 0}">
+                    </div>
+                  </div>
+                  <label class="workshop-mature-row" for="mod-editor-mature">
+                    <input type="checkbox" id="mod-editor-mature"${d.mature ? ' checked' : ''}>
+                    <span>Contains mature content (sets category to NSFW)</span>
+                  </label>
+                  <p class="auth-sub workshop-mature-note" id="mod-editor-mature-note" style="display:none;">Mature content was turned on because the name or description has flagged words.</p>
+                </div>
+              </div>
+            </section>
+            ${sectionHtml}
+          </div>
+
+          <aside class="mod-editor-side">
+            <div class="mio-panel">
+              <h3 class="mio-panel-heading">Preview</h3>
+              <div id="mod-editor-preview"></div>
+            </div>
+            <div class="mio-panel mod-editor-publish">
+              <div class="mod-editor-meter">
+                <div class="mod-editor-meter-head"><span>Storage used</span><span id="mod-editor-meter-text"></span></div>
+                <div class="mio-rating-bar mod-editor-meter-bar"><span id="mod-editor-meter-fill"></span></div>
+              </div>
+              <button class="auth-btn" id="mod-editor-publish">Publish for ${MOD_EDITOR_COST} Gems</button>
+              <p class="mio-side-note" style="text-align:center;">You have ${(game.gems || 0).toLocaleString()} Gems.</p>
+              <button class="auth-btn secondary" id="mod-editor-reset">Start over</button>
+              <p class="mod-editor-status" id="mod-editor-status" role="status"></p>
+            </div>
+          </aside>
+        </div>
+      </div>
+    `;
+
+    bindModEditor();
+    updateModEditorPreview();
+  }
+
+  function updateModEditorPreview(){
+    const d = modEditorDraft;
+    const previewEl = document.getElementById('mod-editor-preview');
+    if (!previewEl) return;
+    const fake = {
+      id: '__preview__',
+      name: d.name || 'Untitled mod',
+      description: d.description || 'No description.',
+      category: d.mature ? WORKSHOP_NSFW_CATEGORY : (d.category || 'Other'),
+      author: currentUsername || 'You',
+      version: d.version,
+      price: Number(d.price) || 0,
+      iconUrl: d.iconData,
+      upvotes: 0,
+      downvotes: 0,
+      downloads: 0
+    };
+    // Preview is never blurred, even for mature mods, so the maker can see it.
+    const wasRevealed = nsfwRevealedIds.has(fake.id);
+    nsfwRevealedIds.add(fake.id);
+    previewEl.innerHTML = renderWorkshopCard(fake);
+    if (!wasRevealed) nsfwRevealedIds.delete(fake.id);
+    const btn = previewEl.querySelector('.workshop-download-btn');
+    if (btn) btn.disabled = true;
+
+    const size = modEditorSize();
+    const pct = Math.min(100, Math.round((size / MOD_EDITOR_SIZE_LIMIT) * 100));
+    const fill = document.getElementById('mod-editor-meter-fill');
+    const text = document.getElementById('mod-editor-meter-text');
+    if (fill) {
+      fill.style.width = pct + '%';
+      fill.style.background = pct >= 100 ? '#ff5c5c' : (pct >= 80 ? 'var(--zap)' : 'var(--moneys-green)');
+    }
+    if (text) text.textContent = `${pct}%`;
+  }
+
+  function modEditorCheckNsfw(){
+    const d = modEditorDraft;
+    const flagged = textHasNsfwKeyword(d.name) || textHasNsfwKeyword(d.description);
+    const note = document.getElementById('mod-editor-mature-note');
+    if (note) note.style.display = flagged ? 'block' : 'none';
+    if (flagged && !d.mature) {
+      d.mature = true;
+      const box = document.getElementById('mod-editor-mature');
+      const sel = document.getElementById('mod-editor-category');
+      if (box) box.checked = true;
+      if (sel) { sel.value = WORKSHOP_NSFW_CATEGORY; sel.disabled = true; }
+    }
+  }
+
+  function bindModEditor(){
+    const d = modEditorDraft;
+    const onChange = () => { saveModEditorDraft(); updateModEditorPreview(); };
+
+    document.getElementById('mod-editor-back').addEventListener('click', () => {
+      saveModEditorDraft();
+      workshopView = 'browse';
+      renderWorkshopBody();
+    });
+
+    const nameEl = document.getElementById('mod-editor-name');
+    const descEl = document.getElementById('mod-editor-desc');
+    nameEl.addEventListener('input', () => { d.name = nameEl.value; modEditorCheckNsfw(); onChange(); });
+    descEl.addEventListener('input', () => { d.description = descEl.value; modEditorCheckNsfw(); onChange(); });
+    document.getElementById('mod-editor-version').addEventListener('input', (e) => { d.version = e.target.value; onChange(); });
+    document.getElementById('mod-editor-price').addEventListener('input', (e) => { d.price = Math.max(0, Math.floor(Number(e.target.value) || 0)); onChange(); });
+
+    const catSel = document.getElementById('mod-editor-category');
+    const matureBox = document.getElementById('mod-editor-mature');
+    catSel.addEventListener('change', () => {
+      if (catSel.value === WORKSHOP_NSFW_CATEGORY) {
+        matureBox.checked = true;
+        matureBox.dispatchEvent(new Event('change'));
+        return;
+      }
+      d.category = catSel.value;
+      onChange();
+    });
+    matureBox.addEventListener('change', () => {
+      d.mature = matureBox.checked;
+      if (d.mature) {
+        catSel.value = WORKSHOP_NSFW_CATEGORY;
+        catSel.disabled = true;
+      } else {
+        catSel.disabled = false;
+        const match = Array.from(catSel.options).find(o => o.value.toLowerCase() === String(d.category).toLowerCase() && o.value !== WORKSHOP_NSFW_CATEGORY);
+        catSel.value = match ? match.value : 'Other';
+        d.category = catSel.value;
+      }
+      onChange();
+    });
+    modEditorCheckNsfw();
+
+    document.getElementById('mod-editor-icon-input').addEventListener('change', async (e) => {
+      const file = e.target.files && e.target.files[0];
+      if (!file) return;
+      try {
+        d.iconData = await shrinkImageFile(file, 128, 'png');
+        saveModEditorDraft();
+        renderModEditor();
+      } catch (err) {
+        modEditorStatus("That file couldn't be read as an image.", true);
+      }
+    });
+    const iconRemove = document.getElementById('mod-editor-icon-remove');
+    if (iconRemove) iconRemove.addEventListener('click', () => { d.iconData = ''; saveModEditorDraft(); renderModEditor(); });
+
+    workshopBody.querySelectorAll('.mod-editor-file-input').forEach(input => {
+      input.addEventListener('change', async () => {
+        const type = MOD_EDITOR_TYPES.find(t => t.id === input.dataset.type);
+        const files = Array.from(input.files || []);
+        let failed = 0;
+        for (const file of files) {
+          try {
+            const url = await shrinkImageFile(file, type.max, type.format);
+            d.files[type.id].push({ name: file.name.replace(/\.[^.]+$/, '').slice(0, 40), url });
+          } catch (err) {
+            failed++;
+          }
+        }
+        saveModEditorDraft();
+        renderModEditor();
+        if (failed) modEditorStatus(`${failed} file${failed === 1 ? '' : 's'} couldn't be read as an image.`, true);
+        else if (modEditorSize() > MOD_EDITOR_SIZE_LIMIT) modEditorStatus('Storage is full. Remove a file or use links instead of uploads.', true);
+      });
+    });
+
+    workshopBody.querySelectorAll('.mod-editor-link-add').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const type = btn.dataset.type;
+        const input = workshopBody.querySelector(`.mod-editor-link-input[data-type="${type}"]`);
+        const url = String(input.value || '').trim();
+        if (!/^https?:\/\/\S+$/i.test(url)) {
+          modEditorStatus('Enter a full link starting with https://', true);
+          input.focus();
+          return;
+        }
+        const guess = decodeURIComponent(url.split('?')[0].split('/').pop() || '').replace(/\.[^.]+$/, '').slice(0, 40);
+        d.files[type].push({ name: guess || `${type} ${d.files[type].length + 1}`, url });
+        saveModEditorDraft();
+        renderModEditor();
+      });
+    });
+    workshopBody.querySelectorAll('.mod-editor-link-input').forEach(input => {
+      input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          const btn = workshopBody.querySelector(`.mod-editor-link-add[data-type="${input.dataset.type}"]`);
+          if (btn) btn.click();
+        }
+      });
+    });
+
+    workshopBody.querySelectorAll('.mod-editor-file-name').forEach(input => {
+      input.addEventListener('input', () => {
+        const entry = d.files[input.dataset.type][Number(input.dataset.index)];
+        if (entry) entry.name = input.value;
+        onChange();
+      });
+    });
+    workshopBody.querySelectorAll('.mod-editor-remove').forEach(btn => {
+      btn.addEventListener('click', () => {
+        d.files[btn.dataset.type].splice(Number(btn.dataset.index), 1);
+        saveModEditorDraft();
+        renderModEditor();
+      });
+    });
+
+    document.getElementById('mod-editor-reset').addEventListener('click', () => {
+      if (!confirm('Clear everything in the editor and start a new mod?')) return;
+      modEditorDraft = newModEditorDraft();
+      clearModEditorDraft();
+      renderModEditor();
+    });
+    document.getElementById('mod-editor-publish').addEventListener('click', publishModFromEditor);
+  }
+
+  async function publishModFromEditor(){
+    if (modEditorPublishing) return;
+    const d = modEditorDraft;
+    const btn = document.getElementById('mod-editor-publish');
+    const name = String(d.name || '').trim();
+    const category = d.mature ? WORKSHOP_NSFW_CATEGORY : (String(d.category || '').trim() || 'Other');
+
+    if (!name) { modEditorStatus('Give your mod a name.', true); document.getElementById('mod-editor-name').focus(); return; }
+    if (!modEditorFileCount()) { modEditorStatus('Add at least one icon, cursor, background or song.', true); return; }
+    if (modEditorSize() > MOD_EDITOR_SIZE_LIMIT) { modEditorStatus('Storage is full. Remove a file or use links instead of uploads.', true); return; }
+    if ((d.iconData || '').length > MOD_EDITOR_SIZE_LIMIT) { modEditorStatus('The mod icon is too big. Try a simpler image.', true); return; }
+    if ((game.gems || 0) < MOD_EDITOR_COST) { modEditorStatus(`You need ${MOD_EDITOR_COST} Gems to publish.`, true); return; }
+
+    modEditorPublishing = true;
+    btn.disabled = true;
+    btn.textContent = 'Publishing...';
+    modEditorStatus('');
+    const gemsBefore = game.gems || 0;
+
+    try {
+      const result = await sheetRequest({
+        action: 'uploadWorkshopItem',
+        username: currentUsername,
+        name: name,
+        description: String(d.description || '').trim(),
+        category: category,
+        mature: !!d.mature,
+        repoUrl: '',
+        iconUrl: d.iconData || '',
+        version: String(d.version || '').trim(),
+        customFiles: modEditorCustomFiles(),
+        price: Math.max(0, Math.floor(Number(d.price) || 0)),
+        createdInEditor: true,
+        uploadCost: MOD_EDITOR_COST
+      });
+
+      if (result.success) {
+        // The Sheet charges MOD_EDITOR_COST for editor mods. If an older
+        // Sheet script only charged the regular upload fee, top up the
+        // difference here so creating always costs MOD_EDITOR_COST.
+        const afterServer = result.gemsRemaining !== undefined ? Number(result.gemsRemaining) : gemsBefore;
+        const charged = Math.max(0, gemsBefore - afterServer);
+        game.gems = Math.max(0, afterServer - Math.max(0, MOD_EDITOR_COST - charged));
+        saveGame();
+        syncToSheet();
+        updateWorkshopGemsDisplay();
+
+        clearModEditorDraft();
+        modEditorDraft = null;
+        if (result.item) {
+          workshopItemsCache.unshift(result.item);
+          workshopDetailModId = result.item.id;
+          workshopView = 'detail';
+        } else {
+          workshopView = 'browse';
+        }
+        renderWorkshopBody();
+      } else if (result.error === 'nogems') {
+        modEditorStatus(`You need ${MOD_EDITOR_COST} Gems to publish.`, true);
+      } else if (result.error === 'toolarge') {
+        modEditorStatus('This mod is too big to save. Remove a file or use links instead of uploads. No Gems were taken.', true);
+      } else {
+        modEditorStatus('Something went wrong saving your mod. Your draft is still here, try again.', true);
+      }
+    } catch (e) {
+      modEditorStatus("Couldn't reach the database. Your draft is saved, try again in a moment.", true);
+    } finally {
+      modEditorPublishing = false;
+      const b = document.getElementById('mod-editor-publish');
+      if (b) { b.disabled = false; b.textContent = `Publish for ${MOD_EDITOR_COST} Gems`; }
+    }
   }
 
   const WORKSHOP_UPLOAD_COST = 100;
@@ -9585,6 +10589,11 @@
         errorEl.style.display = 'block';
         confirmBtn.disabled = false;
         confirmBtn.textContent = `Upload for ${WORKSHOP_UPLOAD_COST} Gems`;
+      } else if (result.error === 'toolarge') {
+        errorEl.textContent = "This mod's file list is too big to save. No Gems were taken.";
+        errorEl.style.display = 'block';
+        confirmBtn.disabled = false;
+        confirmBtn.textContent = `Upload for ${WORKSHOP_UPLOAD_COST} Gems`;
       } else {
         errorEl.textContent = 'Something went wrong saving your mod. Please try again.';
         errorEl.style.display = 'block';
@@ -9635,7 +10644,7 @@
   const AUTH_KEY = 'fgd_last_auth';
   const FONT_KEY = 'fgd_last_font';
   // Plain deployment URL only. A /u/N/ part is a browser account number and does not resolve for players. See README, Backend.
-  const SHEET_API_URL = 'https://script.google.com/macros/s/AKfycbzn5FbC6agAEHgUsMQ-F4FLjuzAXmWynISQM4-_7ZKqjlETH1DvSuy1EE_rH8J-B2PDFQ/exec';
+  const SHEET_API_URL = 'https://script.google.com/macros/s/AKfycbyal468CPlsx25nEaSiNCjKpu-DJUp-uXzUeEhReTYaS0_bJY_O8sZodnwOMr1LpzcXFA/exec';
 
   function getSiteOpens(){
     return parseInt(localStorage.getItem(SITE_OPENS_KEY) || '0', 10);
@@ -11980,15 +12989,31 @@
     const owned = ACHIEVEMENTS.filter(a => unlocked.includes(a.id));
 
     select.innerHTML = '';
-    select.add(new Option(owned.length ? 'None' : 'No achievements unlocked yet', ''));
-    owned.forEach(a => select.add(new Option(a.label + ' (' + a.difficulty + ')', a.id)));
+    const noneOpt = new Option(owned.length ? 'None' : 'No achievements unlocked yet', '');
+    noneOpt.className = 'diff-none';
+    select.add(noneOpt);
+    owned.forEach(a => {
+      const opt = new Option(a.label + ' (' + a.difficulty + ')', a.id);
+      opt.className = 'diff-' + String(a.difficulty || '').toLowerCase();
+      select.add(opt);
+    });
     select.disabled = owned.length === 0;
     if (!owned.some(a => a.id === editSelectedFeatured)) editSelectedFeatured = '';
     select.value = editSelectedFeatured;
+    updateEditFeaturedSelectColor();
+  }
+
+  // Colors the closed select to match the picked achievement's difficulty.
+  function updateEditFeaturedSelectColor(){
+    const select = document.getElementById('edit-featured-select');
+    select.className = select.className.replace(/\s*diff-[a-z]+/g, '');
+    const picked = findAchievement(select.value);
+    if (picked) select.classList.add('diff-' + String(picked.difficulty || '').toLowerCase());
   }
 
   document.getElementById('edit-featured-select').addEventListener('change', (e) => {
     editSelectedFeatured = e.target.value;
+    updateEditFeaturedSelectColor();
   });
 
   function openEditProfile(){
