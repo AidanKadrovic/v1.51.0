@@ -3402,6 +3402,40 @@
     gap:12px;
     margin-bottom:10px;
   }
+  .workshop-upload-label{
+    display:block;
+    font-family:'Fredoka One', cursive;
+    font-size:12px;
+    color:var(--rind);
+    margin:0 0 4px;
+  }
+  .workshop-upload-select{
+    cursor:pointer;
+  }
+  .workshop-upload-select option{
+    background:var(--night);
+  }
+  .workshop-upload-select:disabled{
+    opacity:0.6;
+    cursor:not-allowed;
+  }
+  .workshop-mature-row{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    margin:0 0 12px;
+    cursor:pointer;
+    font-family:'Poppins', sans-serif;
+    font-size:13px;
+    color:var(--rind);
+  }
+  .workshop-mature-row input[type="checkbox"]{
+    width:18px;
+    height:18px;
+    flex-shrink:0;
+    accent-color:var(--melon);
+    cursor:pointer;
+  }
 
   /* ---------- TUTORIAL ---------- */
   .tutorial-overlay{
@@ -3844,6 +3878,885 @@
   body.debug-ratio-pc .icon-grid{ grid-template-columns:repeat(3, 1fr) !important; gap:12px !important; }
   body.debug-ratio-tablet .stats-name,
   body.debug-ratio-pc .stats-name{ font-size:18px !important; }
+
+  /* =====================================================================
+     WORKSHOP: mod.io-style layout
+     Sticky top bar with search, filter sidebar on the left, sort bar and
+     a grid of cover-image cards on the right. Mod pages get a hero
+     banner with a sidebar for download, rating and details.
+     ===================================================================== */
+  .workshop-box{
+    background:var(--night);
+    padding:0;
+  }
+  .workshop-header{
+    max-width:none;
+    margin:0;
+    padding:14px 64px 14px 24px;
+    background:var(--card);
+    border-bottom:2px solid var(--ink);
+    box-shadow:0 3px 0 var(--ink);
+    position:relative;
+    z-index:3;
+    flex-wrap:wrap;
+    row-gap:10px;
+  }
+  .workshop-header .auth-heading{
+    font-size:22px;
+    flex-shrink:0;
+  }
+  #workshop-close{
+    z-index:4;
+  }
+  .mio-search{
+    flex:1 1 320px;
+    max-width:560px;
+    display:flex;
+    align-items:center;
+    gap:8px;
+    background:var(--night);
+    border:2px solid var(--ink);
+    border-radius:12px;
+    padding:0 12px;
+    color:var(--muted);
+    transition:border-color .12s ease, box-shadow .12s ease;
+  }
+  .mio-search:focus-within{
+    border-color:var(--zap);
+    box-shadow:0 0 0 3px rgba(255,203,61,0.25);
+  }
+  .mio-search svg{
+    width:17px;
+    height:17px;
+    flex-shrink:0;
+  }
+  .mio-search input{
+    flex:1;
+    min-width:0;
+    background:none;
+    border:none;
+    outline:none;
+    color:var(--rind);
+    font-family:'Poppins', sans-serif;
+    font-size:14px;
+    padding:10px 0;
+  }
+  .mio-search input::placeholder{ color:var(--muted); }
+  .workshop-refresh-banner{
+    margin:14px auto 0;
+    max-width:1240px;
+    width:calc(100% - 48px);
+  }
+  .workshop-body{
+    max-width:none;
+    margin:0;
+    padding:20px 24px 40px;
+    display:block;
+  }
+  .workshop-body > .empty-state{
+    max-width:1240px;
+    margin:40px auto;
+  }
+
+  /* ---------- browse layout ---------- */
+  .mio-browse{
+    max-width:1240px;
+    margin:0 auto;
+    display:grid;
+    grid-template-columns:220px minmax(0, 1fr);
+    gap:24px;
+    align-items:start;
+  }
+  .mio-sidebar{
+    position:sticky;
+    top:0;
+    background:var(--card);
+    border:2px solid var(--ink);
+    border-radius:14px;
+    box-shadow:var(--pop-sm);
+    padding:14px;
+  }
+  .mio-side-heading{
+    font-family:'Fredoka One', cursive;
+    font-size:13px;
+    color:var(--rind);
+    margin:0 0 8px;
+  }
+  .mio-side-heading:not(:first-child){
+    margin-top:18px;
+  }
+  .mio-filter-list{
+    display:flex;
+    flex-direction:column;
+    gap:3px;
+  }
+  .mio-filter{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:8px;
+    width:100%;
+    text-align:left;
+    font-family:'Poppins', sans-serif;
+    font-size:13px;
+    font-weight:500;
+    color:var(--muted);
+    background:none;
+    border:2px solid transparent;
+    border-radius:9px;
+    padding:7px 10px;
+    cursor:pointer;
+    transition:background .12s ease, color .12s ease;
+  }
+  .mio-filter:hover{
+    background:var(--card-hover);
+    color:var(--rind);
+  }
+  .mio-filter.active{
+    background:var(--brand-gradient);
+    border-color:var(--ink);
+    color:var(--night);
+    font-weight:600;
+  }
+  .mio-filter-count{
+    font-size:11px;
+    font-weight:600;
+    min-width:22px;
+    text-align:center;
+    padding:1px 6px;
+    border-radius:999px;
+    background:var(--night);
+    color:var(--muted);
+  }
+  .mio-filter.active .mio-filter-count{
+    background:rgba(0,0,0,0.18);
+    color:var(--night);
+  }
+  .mio-switch-row{
+    position:relative;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+    font-family:'Poppins', sans-serif;
+    font-size:13px;
+    color:var(--rind);
+    cursor:pointer;
+    padding:4px 0;
+  }
+  .mio-switch-row input{
+    position:absolute;
+    opacity:0;
+    width:1px;
+    height:1px;
+  }
+  .mio-switch{
+    flex-shrink:0;
+    position:relative;
+    width:40px;
+    height:22px;
+    border-radius:999px;
+    background:var(--night);
+    border:2px solid var(--ink);
+    transition:background .15s ease;
+  }
+  .mio-switch::after{
+    content:'';
+    position:absolute;
+    top:2px;
+    left:2px;
+    width:14px;
+    height:14px;
+    border-radius:50%;
+    background:var(--muted);
+    transition:transform .15s ease, background .15s ease;
+  }
+  .mio-switch-row input:checked + .mio-switch{ background:var(--pow); }
+  .mio-switch-row input:checked + .mio-switch::after{ transform:translateX(18px); background:#fff; }
+  .mio-switch-row input:focus-visible + .mio-switch{ outline:3px solid var(--zap); outline-offset:2px; }
+  .mio-side-note{
+    font-size:11px;
+    color:var(--muted);
+    margin:6px 0 0;
+    line-height:1.5;
+  }
+
+  .mio-results{
+    min-width:0;
+    display:flex;
+    flex-direction:column;
+    gap:16px;
+  }
+  .mio-toolbar{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+    flex-wrap:wrap;
+  }
+  .mio-result-count{
+    font-family:'Fredoka One', cursive;
+    font-size:15px;
+    color:var(--rind);
+  }
+  .mio-sort{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    font-size:12px;
+    color:var(--muted);
+  }
+  .mio-sort select{
+    width:auto;
+    margin:0;
+    padding:8px 12px;
+    font-size:13px;
+    cursor:pointer;
+  }
+  .mio-sort select option{ background:var(--night); }
+
+  /* ---------- featured banner ---------- */
+  .mio-featured{
+    position:relative;
+    overflow:hidden;
+    display:grid;
+    grid-template-columns:auto minmax(0, 1fr) auto;
+    align-items:center;
+    gap:20px;
+    padding:22px;
+    border:2px solid var(--ink);
+    border-radius:16px;
+    box-shadow:var(--pop);
+    cursor:pointer;
+    background:linear-gradient(120deg, hsl(var(--mio-hue) 55% 32%), hsl(calc(var(--mio-hue) + 50) 60% 20%));
+    transition:transform .12s ease, box-shadow .12s ease;
+  }
+  .mio-featured:hover{
+    transform:translate(-2px,-2px);
+    box-shadow:6px 6px 0 var(--ink);
+  }
+  .mio-featured-backdrop{
+    position:absolute;
+    inset:-30px;
+    background-size:cover;
+    background-position:center;
+    filter:blur(28px) saturate(1.3);
+    opacity:0.55;
+  }
+  .mio-featured::after{
+    content:'';
+    position:absolute;
+    inset:0;
+    background:linear-gradient(90deg, rgba(10,8,20,0.2), rgba(10,8,20,0.75));
+    pointer-events:none;
+  }
+  .mio-featured > *:not(.mio-featured-backdrop){ position:relative; z-index:1; }
+  .mio-featured-art{
+    width:112px;
+    height:112px;
+    border-radius:18px;
+    border:3px solid var(--ink);
+    box-shadow:var(--pop-sm);
+    overflow:hidden;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:hsl(var(--mio-hue) 60% 45%);
+  }
+  .mio-featured-art img{ width:100%; height:100%; object-fit:cover; }
+  .mio-featured-art span{
+    font-family:'Fredoka One', cursive;
+    font-size:56px;
+    color:#fff;
+  }
+  .mio-featured-label{
+    font-family:'Poppins', sans-serif;
+    font-size:12px;
+    font-weight:600;
+    color:var(--zap);
+  }
+  .mio-featured-info h2{
+    font-family:'Fredoka One', cursive;
+    font-size:26px;
+    line-height:1.15;
+    color:#fff;
+    margin:2px 0 6px;
+  }
+  .mio-featured-info p{
+    font-size:13px;
+    line-height:1.55;
+    color:rgba(255,255,255,0.82);
+    margin:0 0 10px;
+    max-width:60ch;
+    display:-webkit-box;
+    -webkit-line-clamp:2;
+    -webkit-box-orient:vertical;
+    overflow:hidden;
+  }
+  .mio-featured-meta{
+    display:flex;
+    flex-wrap:wrap;
+    align-items:center;
+    gap:6px 14px;
+    font-size:12px;
+    color:rgba(255,255,255,0.78);
+  }
+  .mio-featured-btn{
+    width:auto;
+    padding:12px 22px;
+    white-space:nowrap;
+  }
+
+  /* ---------- mod cards ---------- */
+  .mio-grid{
+    grid-template-columns:repeat(auto-fill, minmax(210px, 1fr));
+    gap:18px;
+  }
+  .workshop-item-card.mio-card{
+    padding:0;
+    gap:0;
+    overflow:hidden;
+    border-width:2px;
+    border-radius:14px;
+    box-shadow:var(--pop-sm);
+  }
+  .workshop-item-card.mio-card:not(.nsfw-card):hover{
+    transform:translate(-2px,-3px);
+    box-shadow:5px 6px 0 var(--ink);
+  }
+  .workshop-item-card.mio-card:not(.nsfw-card):hover .mio-thumb-icon{
+    transform:scale(1.06);
+  }
+  .mio-thumb{
+    position:relative;
+    aspect-ratio:16 / 9;
+    overflow:hidden;
+    border-bottom:2px solid var(--ink);
+    background:linear-gradient(135deg, hsl(var(--mio-hue) 60% 42%), hsl(calc(var(--mio-hue) + 45) 65% 28%));
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+  .mio-thumb-backdrop{
+    position:absolute;
+    inset:-20px;
+    background-size:cover;
+    background-position:center;
+    filter:blur(18px) saturate(1.4) brightness(0.8);
+  }
+  .mio-thumb-icon{
+    position:relative;
+    height:72%;
+    aspect-ratio:1;
+    object-fit:cover;
+    border-radius:14px;
+    border:2px solid var(--ink);
+    box-shadow:var(--pop-sm);
+    transition:transform .2s ease;
+  }
+  .mio-thumb-letter{
+    font-family:'Fredoka One', cursive;
+    font-size:64px;
+    line-height:1;
+    color:rgba(255,255,255,0.92);
+    text-shadow:3px 3px 0 rgba(0,0,0,0.25);
+  }
+  .mio-badge{
+    position:absolute;
+    top:8px;
+    display:inline-flex;
+    align-items:center;
+    gap:4px;
+    font-family:'Fredoka One', cursive;
+    font-size:11px;
+    padding:3px 9px;
+    border-radius:999px;
+    border:2px solid var(--ink);
+    z-index:1;
+  }
+  .mio-badge img{ width:12px; height:12px; object-fit:contain; }
+  .mio-badge-price{ right:8px; background:#a855f7; color:#fff; }
+  .mio-badge-free{ right:8px; background:var(--moneys-green); color:#0b2a14; }
+  .mio-badge-installed{ left:8px; background:var(--zap); color:#241c00; }
+  .mio-tag{
+    display:inline-block;
+    font-family:'Poppins', sans-serif;
+    font-size:11px;
+    font-weight:600;
+    padding:2px 9px;
+    border-radius:6px;
+    background:rgba(16,12,31,0.72);
+    color:#fff;
+  }
+  .mio-thumb-tag{
+    position:absolute;
+    left:8px;
+    bottom:8px;
+    z-index:1;
+  }
+  .mio-card-body{
+    padding:12px 14px 4px;
+    display:flex;
+    flex-direction:column;
+    gap:4px;
+    flex:1;
+  }
+  .workshop-item-card.mio-card .mio-card-title{
+    font-family:'Fredoka One', cursive;
+    font-size:15px;
+    line-height:1.25;
+    color:var(--rind);
+    margin:0;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+  }
+  .workshop-item-card.mio-card .mio-card-desc{
+    font-size:12px;
+    line-height:1.5;
+    color:var(--muted);
+    margin:0;
+    display:-webkit-box;
+    -webkit-line-clamp:2;
+    -webkit-box-orient:vertical;
+    overflow:hidden;
+    min-height:36px;
+  }
+  .mio-card-author{
+    font-size:11.5px;
+    color:var(--muted);
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+  }
+  .mio-card-footer{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    padding:8px 14px 12px;
+  }
+  .mio-stat{
+    display:inline-flex;
+    align-items:center;
+    gap:5px;
+    font-size:12px;
+    font-weight:600;
+    color:var(--muted);
+  }
+  .mio-stat svg{ width:14px; height:14px; }
+  .mio-card-footer .mio-card-btn{
+    margin:0 0 0 auto;
+    align-self:center;
+    padding:7px 12px;
+    font-size:12px;
+  }
+
+  /* ---------- mod page ---------- */
+  .mio-detail-wrap{
+    max-width:1100px;
+    margin:0 auto;
+  }
+  .mio-back-row{
+    max-width:none;
+    margin:0 0 14px;
+  }
+  .mio-back-row button{
+    flex:0 0 auto;
+    padding:8px 14px;
+  }
+  .workshop-detail.mio-detail{
+    max-width:none;
+    background:none;
+    border:none;
+    padding:0;
+    margin:0;
+    gap:20px;
+  }
+  .workshop-detail.mio-detail .nsfw-reveal-btn{
+    justify-content:flex-start;
+    padding-top:140px;
+    font-size:16px;
+  }
+  .mio-hero{
+    position:relative;
+    overflow:hidden;
+    border:2px solid var(--ink);
+    border-radius:16px;
+    box-shadow:var(--pop);
+    background:linear-gradient(120deg, hsl(var(--mio-hue) 55% 34%), hsl(calc(var(--mio-hue) + 50) 60% 20%));
+  }
+  .mio-hero-backdrop{
+    position:absolute;
+    inset:-40px;
+    background-size:cover;
+    background-position:center;
+    filter:blur(30px) saturate(1.3);
+    opacity:0.6;
+  }
+  .mio-hero::after{
+    content:'';
+    position:absolute;
+    inset:0;
+    background:linear-gradient(180deg, rgba(10,8,20,0.05), rgba(10,8,20,0.7));
+    pointer-events:none;
+  }
+  .mio-hero-inner{
+    position:relative;
+    z-index:1;
+    display:flex;
+    align-items:flex-end;
+    gap:20px;
+    padding:56px 24px 22px;
+  }
+  .mio-hero-art{
+    width:120px;
+    height:120px;
+    flex-shrink:0;
+    border-radius:20px;
+    border:3px solid var(--ink);
+    box-shadow:var(--pop-sm);
+    overflow:hidden;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:hsl(var(--mio-hue) 60% 45%);
+  }
+  .mio-hero-art .workshop-detail-icon{
+    width:100%;
+    height:100%;
+    border:none;
+    border-radius:0;
+  }
+  .mio-hero-art span{
+    font-family:'Fredoka One', cursive;
+    font-size:60px;
+    color:#fff;
+  }
+  .mio-hero-text{ min-width:0; }
+  .mio-hero-tags{
+    display:flex;
+    flex-wrap:wrap;
+    gap:6px;
+    margin-bottom:8px;
+  }
+  .mio-tag-mature{ background:var(--pow); }
+  .mio-tag-installed{ background:var(--zap); color:#241c00; }
+  .mio-hero-text h2{
+    font-family:'Fredoka One', cursive;
+    font-size:32px;
+    line-height:1.1;
+    color:#fff;
+    margin:0 0 6px;
+    overflow-wrap:anywhere;
+  }
+  .mio-hero-author{
+    font-size:13px;
+    color:rgba(255,255,255,0.82);
+  }
+  .mio-detail-grid{
+    display:grid;
+    grid-template-columns:minmax(0, 1fr) 300px;
+    gap:20px;
+    align-items:start;
+  }
+  .mio-detail-main,
+  .mio-detail-side{
+    display:flex;
+    flex-direction:column;
+    gap:16px;
+    min-width:0;
+  }
+  .mio-detail-side{
+    position:sticky;
+    top:0;
+  }
+  .mio-panel{
+    background:var(--card);
+    border:2px solid var(--ink);
+    border-radius:14px;
+    box-shadow:var(--pop-sm);
+    padding:16px 18px;
+  }
+  .mio-panel-heading,
+  .mio-panel .workshop-comments-heading{
+    font-family:'Fredoka One', cursive;
+    font-size:15px;
+    color:var(--rind);
+    margin:0 0 10px;
+    max-width:none;
+  }
+  .mio-panel .workshop-detail-desc{
+    font-size:14px;
+    line-height:1.7;
+    color:var(--rind);
+    opacity:0.88;
+    white-space:pre-line;
+    max-width:70ch;
+  }
+  .mio-comments #workshop-comment-input,
+  .mio-comments #workshop-comment-submit,
+  .mio-comments #workshop-comments-list{
+    max-width:none;
+    margin-left:0;
+    margin-right:0;
+  }
+  .mio-comments #workshop-comment-submit{
+    width:auto;
+    padding:10px 18px;
+  }
+  .mio-comments .workshop-comment{
+    background:var(--night);
+  }
+  .mio-action-panel{
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+  }
+  .mio-action-panel .auth-btn{ margin:0; }
+  .mio-action-panel #workshop-real-download-btn{
+    font-size:16px;
+    padding:14px 12px;
+  }
+  .mio-rating{ margin-bottom:12px; }
+  .mio-rating-num{
+    font-family:'Fredoka One', cursive;
+    font-size:18px;
+    color:var(--moneys-green);
+  }
+  .mio-rating-bar{
+    height:8px;
+    margin-top:6px;
+    border-radius:999px;
+    background:rgba(255,93,160,0.35);
+    overflow:hidden;
+  }
+  .mio-rating-bar span{
+    display:block;
+    height:100%;
+    background:var(--moneys-green);
+    border-radius:999px;
+  }
+  .mio-vote-row .vote-btn{
+    flex:1;
+    padding:8px 10px;
+    font-size:13px;
+  }
+  .mio-meta-list{
+    margin:0;
+    display:flex;
+    flex-direction:column;
+  }
+  .mio-meta-list > div{
+    display:flex;
+    justify-content:space-between;
+    gap:12px;
+    padding:8px 0;
+    border-top:1px solid var(--line);
+    font-size:13px;
+  }
+  .mio-meta-list > div:first-child{ border-top:none; padding-top:0; }
+  .mio-meta-list dt{ color:var(--muted); }
+  .mio-meta-list dd{
+    margin:0;
+    color:var(--rind);
+    font-weight:600;
+    text-align:right;
+    min-width:0;
+    overflow-wrap:anywhere;
+  }
+  .mio-meta-list a{ color:var(--zap); text-decoration:underline; }
+  .mio-meta-list .workshop-download-count{ font-size:13px; color:var(--rind); }
+  .workshop-mature-note{
+    margin-top:-6px;
+    font-size:11.5px;
+    color:var(--pow);
+  }
+
+  /* ---------- workshop on tablet / phone ---------- */
+  @media (max-width:860px){
+    .mio-browse{ grid-template-columns:minmax(0, 1fr); gap:16px; }
+    .mio-sidebar{ position:static; padding:12px; }
+    .mio-filter-list{ flex-direction:row; flex-wrap:wrap; gap:6px; }
+    .mio-filter{
+      width:auto;
+      border:2px solid var(--ink);
+      background:var(--night);
+      border-radius:999px;
+      padding:6px 12px;
+    }
+    .mio-side-heading{ display:none; }
+    .mio-switch-row{ margin-top:12px; }
+    .mio-detail-grid{ grid-template-columns:minmax(0, 1fr); }
+    .mio-detail-side{ position:static; order:-1; }
+  }
+  @media (max-width:600px){
+    .workshop-header{ padding:12px 52px 12px 14px; }
+    .workshop-header .auth-heading{ font-size:18px; }
+    .mio-search{ order:3; flex-basis:100%; max-width:none; }
+    .workshop-header-actions{ margin-left:auto; }
+    .workshop-profile-btn span{ display:none; }
+    .workshop-body{ padding:14px 14px 32px; }
+    .mio-grid{ grid-template-columns:repeat(auto-fill, minmax(150px, 1fr)); gap:12px; }
+    .mio-card-footer{ flex-wrap:wrap; gap:8px; }
+    .mio-card-footer .mio-card-btn{ width:100%; margin:0; }
+    .mio-featured{ grid-template-columns:minmax(0, 1fr); gap:12px; padding:16px; }
+    .mio-featured-art{ width:72px; height:72px; }
+    .mio-featured-art span{ font-size:36px; }
+    .mio-featured-info h2{ font-size:20px; }
+    .mio-featured-btn{ width:100%; }
+    .mio-hero-inner{ flex-direction:column; align-items:flex-start; padding:36px 16px 16px; }
+    .mio-hero-art{ width:84px; height:84px; }
+    .mio-hero-text h2{ font-size:24px; }
+  }
+
+  /* =====================================================================
+     MAIN GAME UI POLISH
+     Works on top of the existing styles and theme colors, so account
+     themes, light mode, layouts and custom backgrounds keep working.
+     Delete this block to go back to the old look.
+     ===================================================================== */
+  /* Soft dotted texture behind everything. */
+  body::before{
+    content:'';
+    position:fixed;
+    inset:0;
+    z-index:-1;
+    pointer-events:none;
+    background-image:radial-gradient(var(--line) 1.2px, transparent 1.6px);
+    background-size:22px 22px;
+    -webkit-mask-image:linear-gradient(180deg, #000 0%, transparent 85%);
+    mask-image:linear-gradient(180deg, #000 0%, transparent 85%);
+  }
+
+  /* Avatar: gradient ring so the main click target reads as a button. */
+  .avatar{
+    padding:6px;
+    background:var(--hero-gradient);
+    border:3px solid var(--ink);
+    position:relative;
+  }
+  .avatar img,
+  .avatar .avatar-emoji{
+    overflow:hidden;
+    border-radius:50%;
+    border:3px solid var(--ink);
+    box-sizing:border-box;
+  }
+  .avatar:hover{
+    transform:scale(1.03);
+  }
+  .avatar:active{
+    transform:scale(0.93);
+  }
+
+  /* Click counter reads like a score display. */
+  .click-counter{
+    font-size:15px;
+    letter-spacing:0.3px;
+    box-shadow:var(--pop);
+  }
+
+  /* Main tabs sit in one dock instead of five loose buttons. */
+  .tabs{
+    background:var(--card);
+    border:2px solid var(--ink);
+    border-radius:18px;
+    box-shadow:var(--pop);
+    padding:6px;
+  }
+  .tab-btn{
+    background:transparent;
+    border-color:transparent;
+  }
+  .tab-btn:hover{
+    background:var(--card-hover);
+    box-shadow:none;
+    transform:none;
+  }
+  .tab-btn.active{
+    border-color:var(--ink);
+    transform:none;
+    box-shadow:2px 2px 0 var(--ink);
+  }
+  @media (min-width:481px){
+    .tabs{ gap:6px; }
+    .tab-btn{ padding:9px 8px; border-radius:12px; }
+    .tab-btn .tab-icon{
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      width:17px;
+      height:17px;
+    }
+  }
+
+  /* Sub tabs (shop categories, leaderboard filters, stats pages) get the same dock. */
+  .stats-subtabs{
+    background:var(--card);
+    border:2px solid var(--ink);
+    border-radius:14px;
+    padding:5px;
+    gap:5px;
+  }
+  .stats-subtab-btn{
+    background:transparent;
+    border-color:transparent;
+  }
+  .stats-subtab-btn:hover{
+    background:var(--card-hover);
+    box-shadow:none;
+    transform:none;
+  }
+  .stats-subtab-btn.active{
+    border-color:var(--ink);
+    box-shadow:2px 2px 0 var(--ink);
+    transform:none;
+  }
+  .shop-category-bar{
+    background:var(--card);
+    border:2px solid var(--ink);
+    border-radius:14px;
+    padding:5px;
+    gap:5px;
+  }
+  .shop-category-btn:not(.prestige-tab-btn){
+    background:transparent;
+    border-color:transparent;
+    border-radius:10px;
+  }
+  .shop-category-btn:not(.prestige-tab-btn):hover{
+    background:var(--card-hover);
+    box-shadow:none;
+    transform:none;
+  }
+  .shop-category-btn:not(.prestige-tab-btn).active{
+    background:var(--pow);
+    border-color:var(--ink);
+    box-shadow:2px 2px 0 var(--ink);
+    transform:none;
+  }
+
+  /* Cards: a faint top highlight gives them some depth. */
+  .shop-card,
+  .achievement-card,
+  .leaderboard-row,
+  .stats-card,
+  .link-card{
+    background-image:linear-gradient(180deg, rgba(255,255,255,0.045), rgba(255,255,255,0) 55%);
+  }
+  body.light-mode .shop-card,
+  body.light-mode .achievement-card,
+  body.light-mode .leaderboard-row,
+  body.light-mode .stats-card,
+  body.light-mode .link-card{
+    background-image:none;
+  }
+  .shop-card{
+    transition:transform .12s ease, box-shadow .12s ease;
+  }
+  .shop-card:hover{
+    transform:translate(-1px,-2px);
+  }
 </style>
 </head>
 <body>
@@ -4024,6 +4937,10 @@
     <button class="edit-profile-close" id="workshop-close">&times;</button>
     <div class="workshop-header">
       <h1 class="auth-heading">Workshop</h1>
+      <div class="mio-search">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" stroke-width="2.4"/><path d="M16.5 16.5L21 21" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>
+        <input type="search" id="workshop-search-input" placeholder="Search mods" autocomplete="off" aria-label="Search mods">
+      </div>
       <div class="workshop-header-actions">
         <button class="workshop-gems-display" id="workshop-gems-display" title="Convert Moneys to Gems">
           <img src="gems.png" alt="Gems">
@@ -4033,7 +4950,7 @@
           <img id="workshop-profile-btn-img" src="profile.png" alt="">
           <span id="workshop-profile-btn-name">Profile</span>
         </button>
-        <button class="workshop-icon-btn" id="workshop-upload-btn" title="Upload a Mod">Upload</button>
+        <button class="workshop-icon-btn" id="workshop-upload-btn" title="Upload a Mod">+ Upload Mod</button>
       </div>
     </div>
     <div class="workshop-refresh-banner" id="workshop-refresh-banner">
@@ -7412,6 +8329,12 @@
   let workshopCommentsCache = [];
   let workshopSearchQuery = '';
   let workshopCategoryFilter = 'All';
+  let workshopSortMode = 'trending';
+  // "Show mature content" toggle in the Workshop sidebar. Off by default,
+  // so flagged mods only show up when searched for (same as before).
+  const WORKSHOP_SHOW_MATURE_KEY = 'fallgamedev-clicker-show-mature';
+  let workshopShowMature = false;
+  try { workshopShowMature = localStorage.getItem(WORKSHOP_SHOW_MATURE_KEY) === '1'; } catch (e) {}
   // Mod ids the current viewer has chosen to reveal after clicking through
   // an NSFW warning. Saved to localStorage so a reveal sticks around across
   // page reloads instead of resetting every time the Workshop is reopened.
@@ -7438,14 +8361,64 @@
   // not real moderation - it will not catch everything and can occasionally
   // flag something harmless. Site moderators can still override a mod's
   // flag by hand (see modOverrideNsfw below) if the filter gets it wrong.
-  const NSFW_KEYWORDS = [
-    'nsfw', 'porn', 'pornographic', 'hentai', 'xxx', 'fetish',
-    'nude', 'nudity', 'naked', 'sex', 'sexual', 'erotic', 'gore'
+  // Two lists:
+  // NSFW_KEYWORDS_ANYWHERE match inside any word ("pornhub", "hentaihaven").
+  // NSFW_KEYWORDS_WHOLE only match as a whole word (plus common endings like
+  // s/es/ed/ing/y), so harmless words that contain them are not flagged
+  // ("Essex", "grape", "class", "button", "scumbag" stay clean).
+  const NSFW_KEYWORDS_ANYWHERE = [
+    'nsfw', 'nsfl', 'porn', 'hentai', 'xxx', 'onlyfans', 'fansly', 'rule34',
+    'masturbat', 'erotic', 'fetish', 'pornograph', 'nudity', 'bukkake',
+    'blowjob', 'handjob', 'footjob', 'rimjob', 'cumshot', 'creampie',
+    'gangbang', 'deepthroat', 'camgirl', 'sexting', 'decapitat', 'dismember',
+    'disembowel', 'mutilat'
   ];
+  const NSFW_KEYWORDS_WHOLE = [
+    // sexual
+    'sex', 'sexy', 'sexual', 'sexually', 'nude', 'nudes', 'naked', 'nsfw18',
+    'lewd', 'ecchi', 'smut', 'horny', 'kink', 'kinky', 'bdsm', 'bondage',
+    'dominatrix', 'orgy', 'orgasm', 'milf', 'dilf', 'thot', 'slut', 'whore',
+    'hooker', 'escort', 'stripper', 'striptease', 'lingerie', 'topless',
+    'bottomless', 'boob', 'boobs', 'boobies', 'tit', 'tits', 'titty', 'titties',
+    'nipple', 'nipples', 'penis', 'vagina', 'genital', 'genitals', 'dick',
+    'cock', 'pussy', 'cum', 'jizz', 'dildo', 'vibrator', 'anal', 'booty',
+    'thicc', 'futa', 'futanari', 'yiff', 'r34', 'ahegao', 'oppai', 'paizuri',
+    'incest', 'stepsis', 'stepbro', 'loli', 'shota', 'pedo', 'rape', 'raped',
+    'molest', 'fap', 'jerkoff', 'playboy', 'hustler', '18plus', 'adultsonly',
+    // gore / extreme violence
+    'gore', 'gory', 'guro', 'bloodbath', 'behead', 'beheading', 'snuff',
+    'torture', 'massacre', 'suicide', 'selfharm',
+    // drugs
+    'cocaine', 'heroin', 'meth', 'crack pipe'
+  ];
+  // Kept for any older code that still reads the combined list.
+  const NSFW_KEYWORDS = NSFW_KEYWORDS_ANYWHERE.concat(NSFW_KEYWORDS_WHOLE);
+
+  // Undo simple letter swaps people use to dodge filters (s3x, p0rn, n@ked).
+  function normalizeNsfwText(text){
+    return String(text || '').toLowerCase()
+      .replace(/0/g, 'o').replace(/1/g, 'i').replace(/3/g, 'e')
+      .replace(/4/g, 'a').replace(/5/g, 's').replace(/7/g, 't')
+      .replace(/@/g, 'a').replace(/\$/g, 's').replace(/!/g, 'i');
+  }
+
+  const NSFW_WHOLE_REGEX = new RegExp(
+    '(^|[^a-z])(' +
+    NSFW_KEYWORDS_WHOLE.map(w => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/ /g, '[\\s_-]*')).join('|') +
+    ')(s|es|ed|ing|y|ies)?(?=$|[^a-z])'
+  );
 
   function textHasNsfwKeyword(text){
-    const lower = String(text || '').toLowerCase();
-    return NSFW_KEYWORDS.some(word => lower.includes(word));
+    if (!text) return false;
+    const raw = String(text).toLowerCase();
+    const norm = normalizeNsfwText(text);
+    // "18+" and "+18" style age tags
+    if (/(^|[^0-9])(18\+|\+18)(?![0-9])/.test(raw)) return true;
+    for (const variant of [raw, norm]) {
+      if (NSFW_KEYWORDS_ANYWHERE.some(word => variant.includes(word))) return true;
+      if (NSFW_WHOLE_REGEX.test(variant)) return true;
+    }
+    return false;
   }
 
   // Checks each field separately so only the flagged part gets blurred,
@@ -7477,7 +8450,7 @@
   function getVisibleWorkshopItems(query){
     const q = String(query || '').trim().toLowerCase();
     return workshopItemsCache.filter(item => {
-      if (!q) return !modIsNsfw(item);
+      if (!q) return workshopShowMature || !modIsNsfw(item);
       const haystack = `${item.name || ''} ${item.description || ''} ${item.category || ''}`.toLowerCase();
       return haystack.includes(q);
     });
@@ -7515,11 +8488,18 @@
     renderWorkshopBody();
   });
   workshopUploadBtn.addEventListener('click', openWorkshopUploadDialog);
+  const workshopSearchInput = document.getElementById('workshop-search-input');
+  workshopSearchInput.addEventListener('input', () => {
+    workshopSearchQuery = workshopSearchInput.value;
+    workshopView = 'browse';
+    renderWorkshopBody();
+  });
   document.getElementById('workshop-gems-display').addEventListener('click', openGemsConvertDialog);
 
   async function openWorkshop(){
     workshopView = 'browse';
     workshopOverlay.classList.add('visible');
+    workshopSearchInput.value = workshopSearchQuery || '';
     workshopBody.innerHTML = '<div class="empty-state loading-state">Loading...</div>';
     document.getElementById('workshop-profile-btn-img').src = currentProfileIcon || 'profile.png';
     document.getElementById('workshop-profile-btn-name').textContent = currentUsername || 'Guest';
@@ -7553,87 +8533,253 @@
     return match ? `${match[1]}/${match[2]}` : (repoUrl || '');
   }
 
-  // Builds one mod.io-style tile. If the mod trips the NSFW keyword check
-  // and hasn't been revealed yet, the flagged fields are blurred and a
-  // "click to reveal" button covers the card instead of the normal click
-  // through to the mod's page.
+  // ---------- mod.io-style helpers ----------
+  const WORKSHOP_SORTS = [
+    { id: 'trending', label: 'Trending' },
+    { id: 'popular', label: 'Most downloaded' },
+    { id: 'rated', label: 'Highest rated' },
+    { id: 'recent', label: 'Recently added' },
+    { id: 'alpha', label: 'Alphabetical' }
+  ];
+
+  function modRatingPercent(item){
+    const up = Number(item.upvotes) || 0;
+    const down = Number(item.downvotes) || 0;
+    if (!up && !down) return null;
+    return Math.round((up / (up + down)) * 100);
+  }
+
+  function formatModCount(n){
+    n = Number(n) || 0;
+    if (n >= 1000000) return (n / 1000000).toFixed(n >= 10000000 ? 0 : 1).replace(/\.0$/, '') + 'M';
+    if (n >= 1000) return (n / 1000).toFixed(n >= 10000 ? 0 : 1).replace(/\.0$/, '') + 'K';
+    return String(n);
+  }
+
+  function modDateValue(item){
+    const raw = item.createdAt || item.uploadedAt || item.created || item.date || item.timestamp;
+    const t = raw ? new Date(raw).getTime() : NaN;
+    return isNaN(t) ? null : t;
+  }
+
+  function sortWorkshopItems(items){
+    const withIndex = items.map(item => ({ item, index: workshopItemsCache.indexOf(item) }));
+    const up = i => Number(i.upvotes) || 0;
+    const down = i => Number(i.downvotes) || 0;
+    const dl = i => Number(i.downloads) || 0;
+    const byMode = {
+      trending: (a, b) => (dl(b.item) + (up(b.item) - down(b.item)) * 5) - (dl(a.item) + (up(a.item) - down(a.item)) * 5),
+      popular: (a, b) => dl(b.item) - dl(a.item),
+      // Smoothed ratio so a mod with 1 upvote doesn't beat one with 90/100.
+      rated: (a, b) => ((up(b.item) + 1) / (up(b.item) + down(b.item) + 2)) - ((up(a.item) + 1) / (up(a.item) + down(a.item) + 2)) || dl(b.item) - dl(a.item),
+      recent: (a, b) => {
+        const da = modDateValue(a.item), db = modDateValue(b.item);
+        if (da !== null && db !== null) return db - da;
+        return a.index - b.index;
+      },
+      alpha: (a, b) => String(a.item.name || '').localeCompare(String(b.item.name || ''), undefined, { sensitivity: 'base' })
+    };
+    withIndex.sort((a, b) => (byMode[workshopSortMode] || byMode.trending)(a, b) || a.index - b.index);
+    return withIndex.map(x => x.item);
+  }
+
+  // Mods without an icon get a colored cover with their first letter, so the
+  // grid never shows blank thumbnails. Color is picked from the name.
+  function modCoverHue(name){
+    let h = 0;
+    const str = String(name || 'mod');
+    for (let i = 0; i < str.length; i++) h = (h * 31 + str.charCodeAt(i)) % 360;
+    return h;
+  }
+
+  function renderModThumb(item, opts){
+    const o = opts || {};
+    const esc = escapeChatHtml;
+    const hue = modCoverHue(item.name);
+    const letter = esc(String(item.name || '?').trim().charAt(0).toUpperCase() || '?');
+    const blurImg = o.blurImage ? ' nsfw-blur' : '';
+    const art = item.iconUrl
+      ? `<div class="mio-thumb-backdrop${blurImg}" style="background-image:url('${esc(item.iconUrl)}')"></div>
+         <img class="mio-thumb-icon${blurImg}" src="${esc(item.iconUrl)}" alt="" loading="lazy">`
+      : `<div class="mio-thumb-letter${blurImg}">${letter}</div>`;
+    return `
+      <div class="mio-thumb" style="--mio-hue:${hue}">
+        ${art}
+        ${o.installed ? '<span class="mio-badge mio-badge-installed">Installed</span>' : ''}
+        ${o.hidePrice ? '' : (item.price
+          ? `<span class="mio-badge mio-badge-price"><img src="gems.png" alt="">${esc(item.price)}</span>`
+          : '<span class="mio-badge mio-badge-free">Free</span>')}
+        ${o.hideTag ? '' : `<span class="mio-tag mio-thumb-tag${o.blurTag ? ' nsfw-blur' : ''}">${esc(item.category || 'Other')}</span>`}
+      </div>
+    `;
+  }
+
+  // Builds one mod.io-style tile: wide cover image on top, then title,
+  // author and a stats footer. If the mod trips the NSFW keyword check and
+  // hasn't been revealed yet, the flagged parts are blurred and a "click to
+  // reveal" button covers the card instead of opening the mod page.
   function renderWorkshopCard(item){
+    const esc = escapeChatHtml;
     const installed = !!findInstalledMod(item.id);
     const flags = getModNsfwFlags(item);
     const revealed = nsfwRevealedIds.has(item.id);
     const showBlur = (flags.name || flags.description || flags.category || flags.image) && !revealed;
+    const rating = modRatingPercent(item);
     return `
-      <div class="workshop-item-card${showBlur ? ' nsfw-card' : ''}" data-mod-id="${item.id}">
-        ${showBlur ? `<button class="nsfw-reveal-btn" data-mod-id="${item.id}">\ud83d\udd1e Sensitive Content<br><span>Click to reveal</span></button>` : ''}
-        <div class="workshop-item-top">
-          ${item.iconUrl ? `<img class="workshop-item-icon${flags.image && showBlur ? ' nsfw-blur' : ''}" src="${item.iconUrl}" alt="">` : ''}
-          <h3 class="${flags.name && showBlur ? 'nsfw-blur' : ''}">${item.name}${item.version ? ` <span class="workshop-item-version">v${item.version}</span>` : ''}</h3>
+      <div class="workshop-item-card mio-card${showBlur ? ' nsfw-card' : ''}" data-mod-id="${esc(item.id)}">
+        ${showBlur ? `<button class="nsfw-reveal-btn" data-mod-id="${esc(item.id)}">\ud83d\udd1e Mature content<br><span>Click to reveal</span></button>` : ''}
+        ${renderModThumb(item, { installed, blurImage: flags.image && showBlur, blurTag: flags.category && showBlur })}
+        <div class="mio-card-body">
+          <h3 class="mio-card-title${flags.name && showBlur ? ' nsfw-blur' : ''}" title="${esc(item.name)}">${esc(item.name)}</h3>
+          <p class="mio-card-desc${flags.description && showBlur ? ' nsfw-blur' : ''}">${esc(item.description || 'No description.')}</p>
+          <span class="mio-card-author">by ${workshopAuthorLabel(item)}${item.version ? ` <span class="workshop-item-version">v${esc(item.version)}</span>` : ''}</span>
         </div>
-        <p class="${flags.description && showBlur ? 'nsfw-blur' : ''}">${item.description || 'No description.'}</p>
-        <span class="workshop-item-meta${flags.category && showBlur ? ' nsfw-blur' : ''}">${item.category || 'Other'} &middot; ${shortRepo(item.repoUrl)} &middot; by ${workshopAuthorLabel(item)}</span>
-        <div class="workshop-item-stats">
-          <span>\u2b06 ${item.upvotes || 0}</span>
-          <span>\u2b07 ${item.downvotes || 0}</span>
-          <span>\u2b07\ufe0f ${item.downloads || 0} downloads</span>
-          ${item.price ? `<span class="workshop-item-price"><img src="gems.png" alt="">${item.price}</span>` : '<span>Free</span>'}
+        <div class="mio-card-footer">
+          <span class="mio-stat" title="${(item.upvotes || 0)} up / ${(item.downvotes || 0)} down">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 21h4V9H2v12zm20-11a2 2 0 0 0-2-2h-6.3l1-4.6v-.3c0-.4-.2-.8-.4-1.1L13.2 1 6.6 7.6C6.2 8 6 8.5 6 9v10a2 2 0 0 0 2 2h9c.8 0 1.5-.5 1.8-1.2l3-7.1c.1-.2.2-.5.2-.7v-2z" fill="currentColor"/></svg>
+            ${rating === null ? 'New' : rating + '%'}
+          </span>
+          <span class="mio-stat" title="${(item.downloads || 0)} downloads">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12m0 0l-5-5m5 5l5-5M4 21h16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            ${formatModCount(item.downloads)}
+          </span>
+          <button class="buy-btn workshop-download-btn mio-card-btn${installed ? ' workshop-update-btn' : ''}" data-mod-id="${esc(item.id)}">${installed ? 'Update' : 'Download'}</button>
         </div>
-        <button class="buy-btn workshop-download-btn${installed ? ' workshop-update-btn' : ''}" data-mod-id="${item.id}">${installed ? 'Update' : 'Download'}</button>
       </div>
     `;
   }
 
   function renderWorkshopBrowse(){
-    const query = workshopSearchQuery || '';
-    let visible = getVisibleWorkshopItems(query);
+    const esc = escapeChatHtml;
+    const query = String(workshopSearchQuery || '').trim();
+    const baseVisible = getVisibleWorkshopItems(query);
+
+    // Category counts come from what the person can currently see (search
+    // and mature setting applied), before the category filter itself.
+    const counts = {};
+    baseVisible.forEach(item => {
+      const cat = item.category || 'Other';
+      counts[cat] = (counts[cat] || 0) + 1;
+    });
+    const categoryNames = Object.keys(counts).sort((a, b) => a.localeCompare(b));
+    if (workshopCategoryFilter !== 'All' && categoryNames.indexOf(workshopCategoryFilter) === -1) {
+      categoryNames.push(workshopCategoryFilter);
+    }
+
+    let visible = baseVisible;
     if (workshopCategoryFilter !== 'All') {
       visible = visible.filter(item => (item.category || 'Other') === workshopCategoryFilter);
     }
+    visible = sortWorkshopItems(visible);
 
-    // Category chips are built from every mod that could ever show up
-    // (not just the currently visible ones) so the filter bar stays stable.
-    const categories = ['All'];
-    workshopItemsCache.forEach(item => {
-      const cat = item.category || 'Other';
-      if (categories.indexOf(cat) === -1) categories.push(cat);
-    });
+    const catRow = (id, label, count) => `
+      <button class="mio-filter${workshopCategoryFilter === id ? ' active' : ''}" data-category="${esc(id)}">
+        <span>${esc(label)}</span><span class="mio-filter-count">${count}</span>
+      </button>`;
+
+    const sidebarHtml = `
+      <aside class="mio-sidebar">
+        <h4 class="mio-side-heading">Categories</h4>
+        <div class="mio-filter-list">
+          ${catRow('All', 'All mods', baseVisible.length)}
+          ${categoryNames.map(c => catRow(c, c, counts[c] || 0)).join('')}
+        </div>
+        <h4 class="mio-side-heading">Content</h4>
+        <label class="mio-switch-row">
+          <span>Show mature content</span>
+          <input type="checkbox" id="workshop-mature-toggle"${workshopShowMature ? ' checked' : ''}>
+          <span class="mio-switch" aria-hidden="true"></span>
+        </label>
+        <p class="mio-side-note">Mature mods stay blurred until you click them.</p>
+      </aside>
+    `;
+
+    // Featured banner, like the spotlight at the top of a mod.io game page.
+    // Only on the default view, and never a mature mod.
+    let featuredHtml = '';
+    if (!query && workshopCategoryFilter === 'All' && workshopSortMode === 'trending') {
+      const pick = visible.find(item => !modIsNsfw(item));
+      if (pick) {
+        const rating = modRatingPercent(pick);
+        featuredHtml = `
+          <div class="mio-featured" data-mod-id="${esc(pick.id)}" style="--mio-hue:${modCoverHue(pick.name)}">
+            ${pick.iconUrl ? `<div class="mio-featured-backdrop" style="background-image:url('${esc(pick.iconUrl)}')"></div>` : ''}
+            <div class="mio-featured-art">
+              ${pick.iconUrl ? `<img src="${esc(pick.iconUrl)}" alt="">` : `<span>${esc(String(pick.name || '?').charAt(0).toUpperCase())}</span>`}
+            </div>
+            <div class="mio-featured-info">
+              <span class="mio-featured-label">Top trending mod</span>
+              <h2>${esc(pick.name)}</h2>
+              <p>${esc(pick.description || 'No description.')}</p>
+              <div class="mio-featured-meta">
+                <span class="mio-tag">${esc(pick.category || 'Other')}</span>
+                <span>by ${workshopAuthorLabel(pick)}</span>
+                <span>${rating === null ? 'No ratings yet' : rating + '% positive'}</span>
+                <span>${formatModCount(pick.downloads)} downloads</span>
+              </div>
+            </div>
+            <button class="auth-btn mio-featured-btn" data-mod-id="${esc(pick.id)}">View mod</button>
+          </div>
+        `;
+        // The featured mod still appears in the grid below; mod.io does the same.
+      }
+    }
 
     const toolbarHtml = `
-      <div class="workshop-toolbar">
-        <input type="text" id="workshop-search-input" class="auth-input workshop-search-input" placeholder="Search all mods (including sensitive results)..." value="${String(query).replace(/"/g, '&quot;')}">
-      </div>
-      <div class="workshop-category-bar">
-        ${categories.map(c => `<button class="workshop-chip${c === workshopCategoryFilter ? ' active' : ''}" data-category="${c}">${c}</button>`).join('')}
+      <div class="mio-toolbar">
+        <span class="mio-result-count">${visible.length} ${visible.length === 1 ? 'mod' : 'mods'}${query ? ` for "${esc(query)}"` : ''}</span>
+        <label class="mio-sort">
+          <span>Sort by</span>
+          <select id="workshop-sort-select" class="auth-input">
+            ${WORKSHOP_SORTS.map(o => `<option value="${o.id}"${o.id === workshopSortMode ? ' selected' : ''}>${o.label}</option>`).join('')}
+          </select>
+        </label>
       </div>
     `;
 
+    let gridHtml;
     if (!workshopItemsCache.length) {
-      workshopBody.innerHTML = '<div class="empty-state">No mods uploaded yet.</div>';
+      gridHtml = '<div class="empty-state">No mods uploaded yet. Be the first: hit "Upload Mod" at the top.</div>';
     } else if (!visible.length) {
-      workshopBody.innerHTML = toolbarHtml + `<div class="empty-state">${query ? 'No mods match your search.' : 'No mods in this category yet.'}</div>`;
+      gridHtml = `<div class="empty-state">${query ? 'No mods match your search. Try a different word or clear the search box.' : 'No mods in this category yet.'}</div>`;
     } else {
-      workshopBody.innerHTML = toolbarHtml + `<div class="workshop-grid">${visible.map(renderWorkshopCard).join('')}</div>`;
+      gridHtml = `<div class="workshop-grid mio-grid">${visible.map(renderWorkshopCard).join('')}</div>`;
     }
 
-    const searchInput = document.getElementById('workshop-search-input');
-    if (searchInput) {
-      searchInput.addEventListener('input', (e) => {
-        workshopSearchQuery = e.target.value;
-        const caret = e.target.selectionStart;
-        renderWorkshopBrowse();
-        // Re-render steals focus, so put it right back where the user was typing.
-        const freshInput = document.getElementById('workshop-search-input');
-        if (freshInput) {
-          freshInput.focus();
-          freshInput.setSelectionRange(caret, caret);
-        }
-      });
-    }
+    workshopBody.innerHTML = `
+      <div class="mio-browse">
+        ${sidebarHtml}
+        <div class="mio-results">
+          ${featuredHtml}
+          ${toolbarHtml}
+          ${gridHtml}
+        </div>
+      </div>
+    `;
 
-    workshopBody.querySelectorAll('.workshop-chip').forEach(btn => {
+    workshopBody.querySelectorAll('.mio-filter').forEach(btn => {
       btn.addEventListener('click', () => {
         workshopCategoryFilter = btn.dataset.category;
         renderWorkshopBrowse();
       });
+    });
+    const sortSelect = document.getElementById('workshop-sort-select');
+    if (sortSelect) {
+      sortSelect.addEventListener('change', () => {
+        workshopSortMode = sortSelect.value;
+        renderWorkshopBrowse();
+      });
+    }
+    const matureToggle = document.getElementById('workshop-mature-toggle');
+    if (matureToggle) {
+      matureToggle.addEventListener('change', () => {
+        workshopShowMature = matureToggle.checked;
+        try { localStorage.setItem(WORKSHOP_SHOW_MATURE_KEY, workshopShowMature ? '1' : '0'); } catch (e) {}
+        renderWorkshopBrowse();
+      });
+    }
+    workshopBody.querySelectorAll('.mio-featured').forEach(el => {
+      el.addEventListener('click', () => openWorkshopModPage(el.dataset.modId));
     });
 
     // Cards still hidden behind an NSFW warning only get the reveal button
@@ -7685,34 +8831,86 @@
     const nsfwRevealed = nsfwRevealedIds.has(item.id);
     const nsfwShowBlur = (nsfwFlags.name || nsfwFlags.description || nsfwFlags.category || nsfwFlags.image) && !nsfwRevealed;
 
+    const esc = escapeChatHtml;
+    const rating = modRatingPercent(item);
+    const up = Number(item.upvotes) || 0;
+    const down = Number(item.downvotes) || 0;
+
     workshopBody.innerHTML = `
-      <div class="workshop-tabs">
-        <button id="workshop-tab-back">&larr; Back to Browse</button>
-      </div>
-      <div class="workshop-detail${nsfwShowBlur ? ' nsfw-card' : ''}">
-        ${nsfwShowBlur ? `<button class="nsfw-reveal-btn" id="workshop-detail-reveal-btn">\ud83d\udd1e Sensitive Content<br><span>Click to reveal</span></button>` : ''}
-        <div class="workshop-detail-top">
-          ${item.iconUrl ? `<img class="workshop-detail-icon${nsfwFlags.image && nsfwShowBlur ? ' nsfw-blur' : ''}" src="${item.iconUrl}" alt="">` : ''}
-          <div>
-            <h2 class="${nsfwFlags.name && nsfwShowBlur ? 'nsfw-blur' : ''}">${item.name}${item.version ? ` <span class="workshop-item-version">v${item.version}</span>` : ''}</h2>
-            <span class="workshop-item-meta${nsfwFlags.category && nsfwShowBlur ? ' nsfw-blur' : ''}">${shortRepo(item.repoUrl)} &middot; by ${workshopAuthorLabel(item)}</span>
+      <div class="mio-detail-wrap">
+        <div class="workshop-tabs mio-back-row">
+          <button id="workshop-tab-back">&larr; Back to mods</button>
+        </div>
+        <div class="workshop-detail mio-detail${nsfwShowBlur ? ' nsfw-card' : ''}">
+          ${nsfwShowBlur ? `<button class="nsfw-reveal-btn" id="workshop-detail-reveal-btn">\ud83d\udd1e Mature content<br><span>Click to reveal</span></button>` : ''}
+          <div class="mio-hero" style="--mio-hue:${modCoverHue(item.name)}">
+            ${item.iconUrl ? `<div class="mio-hero-backdrop${nsfwFlags.image && nsfwShowBlur ? ' nsfw-blur' : ''}" style="background-image:url('${esc(item.iconUrl)}')"></div>` : ''}
+            <div class="mio-hero-inner">
+              <div class="mio-hero-art">
+                ${item.iconUrl
+                  ? `<img class="workshop-detail-icon${nsfwFlags.image && nsfwShowBlur ? ' nsfw-blur' : ''}" src="${esc(item.iconUrl)}" alt="">`
+                  : `<span>${esc(String(item.name || '?').charAt(0).toUpperCase())}</span>`}
+              </div>
+              <div class="mio-hero-text">
+                <div class="mio-hero-tags">
+                  <span class="mio-tag${nsfwFlags.category && nsfwShowBlur ? ' nsfw-blur' : ''}">${esc(item.category || 'Other')}</span>
+                  ${modIsNsfw(item) ? '<span class="mio-tag mio-tag-mature">Mature</span>' : ''}
+                  ${installed ? '<span class="mio-tag mio-tag-installed">Installed</span>' : ''}
+                </div>
+                <h2 class="${nsfwFlags.name && nsfwShowBlur ? 'nsfw-blur' : ''}">${esc(item.name)}</h2>
+                <span class="mio-hero-author">by ${workshopAuthorLabel(item)}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="mio-detail-grid">
+            <div class="mio-detail-main">
+              <section class="mio-panel">
+                <h3 class="mio-panel-heading">About this mod</h3>
+                <p class="workshop-detail-desc${nsfwFlags.description && nsfwShowBlur ? ' nsfw-blur' : ''}">${esc(item.description || 'No description.')}</p>
+              </section>
+              ${isSiteMod ? renderNsfwModPanel(item) : ''}
+              <section class="mio-panel mio-comments">
+                <h3 class="workshop-comments-heading mio-panel-heading">Comments</h3>
+                <textarea id="workshop-comment-input" class="auth-input edit-description" placeholder="Add a comment..." maxlength="300" rows="2"></textarea>
+                <button class="auth-btn" id="workshop-comment-submit">Post comment</button>
+                <div id="workshop-comments-list"></div>
+              </section>
+            </div>
+
+            <aside class="mio-detail-side">
+              <div class="mio-panel mio-action-panel">
+                <button class="auth-btn${installed ? ' workshop-update-btn' : ''}" id="workshop-real-download-btn">${installed ? 'Update' : (item.price ? `Download (${esc(item.price)} Gems)` : 'Download')}</button>
+                ${installed ? '<button class="auth-btn secondary" id="workshop-uninstall-btn">Uninstall</button>' : ''}
+                <button class="auth-btn secondary" id="workshop-manual-download-btn">Manual download (GitHub)</button>
+              </div>
+
+              <div class="mio-panel">
+                <h3 class="mio-panel-heading">Rating</h3>
+                <div class="mio-rating">
+                  <span class="mio-rating-num">${rating === null ? 'No ratings yet' : rating + '% positive'}</span>
+                  <div class="mio-rating-bar"><span style="width:${rating === null ? 0 : rating}%"></span></div>
+                </div>
+                <div class="workshop-detail-actions mio-vote-row">
+                  <button class="vote-btn${item.myVote === 'up' ? ' active' : ''}" id="workshop-upvote-btn" title="Upvote">&#128077; <span id="workshop-upvote-count">${up}</span></button>
+                  <button class="vote-btn${item.myVote === 'down' ? ' active' : ''}" id="workshop-downvote-btn" title="Downvote">&#128078; <span id="workshop-downvote-count">${down}</span></button>
+                </div>
+              </div>
+
+              <div class="mio-panel">
+                <h3 class="mio-panel-heading">Details</h3>
+                <dl class="mio-meta-list">
+                  <div><dt>Downloads</dt><dd><span class="workshop-download-count"><span id="workshop-download-count">${item.downloads || 0}</span></span></dd></div>
+                  <div><dt>Price</dt><dd>${item.price ? `<span class="workshop-item-price"><img src="gems.png" alt="">${esc(item.price)} Gems</span>` : 'Free'}</dd></div>
+                  ${item.version ? `<div><dt>Version</dt><dd>v${esc(item.version)}</dd></div>` : ''}
+                  <div><dt>Category</dt><dd>${esc(item.category || 'Other')}</dd></div>
+                  ${item.repoUrl ? `<div><dt>Source</dt><dd><a href="${esc(item.repoUrl)}" target="_blank" rel="noopener">${esc(shortRepo(item.repoUrl))}</a></dd></div>` : ''}
+                </dl>
+              </div>
+            </aside>
           </div>
         </div>
-        <p class="workshop-detail-desc${nsfwFlags.description && nsfwShowBlur ? ' nsfw-blur' : ''}">${item.description || 'No description.'}</p>
-        ${isSiteMod ? renderNsfwModPanel(item) : ''}
-        <div class="workshop-detail-actions">
-          <button class="vote-btn${item.myVote === 'up' ? ' active' : ''}" id="workshop-upvote-btn">&#11014; <span id="workshop-upvote-count">${item.upvotes || 0}</span></button>
-          <button class="vote-btn${item.myVote === 'down' ? ' active' : ''}" id="workshop-downvote-btn">&#11015; <span id="workshop-downvote-count">${item.downvotes || 0}</span></button>
-          <span class="workshop-download-count"><span id="workshop-download-count">${item.downloads || 0}</span> downloads</span>
-        </div>
-        <button class="auth-btn${installed ? ' workshop-update-btn' : ''}" id="workshop-real-download-btn">${installed ? 'Update' : (item.price ? `Download (${item.price} Gems)` : 'Download')}</button>
-        ${installed ? '<button class="auth-btn secondary" id="workshop-uninstall-btn">Uninstall</button>' : ''}
-        <button class="auth-btn secondary" id="workshop-manual-download-btn">Manual Download (GitHub)</button>
       </div>
-      <h3 class="workshop-comments-heading">Comments</h3>
-      <textarea id="workshop-comment-input" class="auth-input edit-description" placeholder="Add a comment..." maxlength="300" rows="2"></textarea>
-      <button class="auth-btn" id="workshop-comment-submit">Post</button>
-      <div id="workshop-comments-list"></div>
     `;
 
     document.getElementById('workshop-tab-back').addEventListener('click', () => {
@@ -8164,6 +9362,8 @@
         description: String(manifest.description || '').trim(),
         version: String(manifest.version || '').trim(),
         category: String(manifest.category || 'Other').trim(),
+        mature: String(manifest.category || '').trim().toLowerCase() === 'nsfw' || manifest.mature === true || manifest.nsfw === true
+          || textHasNsfwKeyword(manifest.name) || textHasNsfwKeyword(manifest.description),
         repoUrl: `https://github.com/${parsed.owner}/${parsed.repo}`,
         repoShort: `${parsed.owner}/${parsed.repo}`,
         iconUrl: checked.iconUrl,
@@ -8186,27 +9386,126 @@
     }
   }
 
+  // Default categories offered in the upload form. Any category already used
+  // by a mod in the Workshop is added to this list automatically.
+  const WORKSHOP_DEFAULT_CATEGORIES = ['Themes', 'Music', 'Icons', 'Cursors', 'Backgrounds', 'Other'];
+  const WORKSHOP_NSFW_CATEGORY = 'NSFW';
+
+  function getWorkshopUploadCategories(extra){
+    const list = WORKSHOP_DEFAULT_CATEGORIES.slice();
+    const add = cat => {
+      const c = String(cat || '').trim();
+      if (!c || c.toLowerCase() === 'nsfw') return;
+      if (!list.some(x => x.toLowerCase() === c.toLowerCase())) list.splice(list.length - 1, 0, c);
+    };
+    (workshopItemsCache || []).forEach(item => add(item.category));
+    add(extra);
+    return list;
+  }
+
   function renderWorkshopUploadPreview(){
     const d = workshopUploadDraft;
     const customCount = Object.values(d.customFiles).reduce((sum, arr) => sum + arr.length, 0);
+    const esc = escapeChatHtml;
+
+    // Remember the last non-NSFW category so unchecking mature content restores it.
+    if (!d.lastCategory) d.lastCategory = (d.category && d.category.toLowerCase() !== 'nsfw') ? d.category : 'Other';
+    const categories = getWorkshopUploadCategories(d.lastCategory);
+    const categoryOptions = categories.map(c =>
+      `<option value="${esc(c)}"${!d.mature && c.toLowerCase() === d.lastCategory.toLowerCase() ? ' selected' : ''}>${esc(c)}</option>`
+    ).join('') +
+      `<option value="${WORKSHOP_NSFW_CATEGORY}"${d.mature ? ' selected' : ''}>${WORKSHOP_NSFW_CATEGORY}</option>` +
+      `<option value="__custom__">Custom category...</option>`;
 
     confirmBox.innerHTML = `
       <h1 class="auth-heading">Confirm Upload</h1>
       <div class="workshop-upload-preview">
-        ${d.iconUrl ? `<img class="workshop-detail-icon" src="${d.iconUrl}" alt="">` : ''}
+        ${d.iconUrl ? `<img class="workshop-detail-icon" src="${esc(d.iconUrl)}" alt="">` : ''}
         <div>
-          <h3 style="font-family:'Fredoka One', cursive; font-size:14px; color:var(--rind); margin:0 0 2px;">${d.name}${d.version ? ` <span class="workshop-item-version">v${d.version}</span>` : ''}</h3>
-          <span class="workshop-item-meta">${d.repoShort}</span>
+          <h3 style="font-family:'Fredoka One', cursive; font-size:14px; color:var(--rind); margin:0 0 2px;">${esc(d.name)}${d.version ? ` <span class="workshop-item-version">v${esc(d.version)}</span>` : ''}</h3>
+          <span class="workshop-item-meta">${esc(d.repoShort)} &middot; Custom files found: ${customCount}</span>
         </div>
       </div>
-      <p class="auth-sub">${d.description || 'No description found in manifest.json.'}</p>
-      <p class="auth-sub">Category: ${d.category} &middot; Custom files found: ${customCount}</p>
+
+      <label class="workshop-upload-label" for="workshop-upload-name">Name</label>
+      <input type="text" id="workshop-upload-name" class="auth-input" maxlength="60" value="${esc(d.name)}" placeholder="Mod name">
+
+      <label class="workshop-upload-label" for="workshop-upload-desc">Description</label>
+      <textarea id="workshop-upload-desc" class="auth-input edit-description" maxlength="500" rows="3" placeholder="What does your mod change?">${esc(d.description)}</textarea>
+
+      <label class="workshop-upload-label" for="workshop-upload-category">Category</label>
+      <select id="workshop-upload-category" class="auth-input workshop-upload-select"${d.mature ? ' disabled' : ''}>${categoryOptions}</select>
+      <input type="text" id="workshop-upload-category-custom" class="auth-input" maxlength="30" placeholder="Type a category name" style="display:none;">
+
+      <label class="workshop-mature-row" for="workshop-upload-mature">
+        <input type="checkbox" id="workshop-upload-mature"${d.mature ? ' checked' : ''}>
+        <span>Contains mature content (sets category to NSFW)</span>
+      </label>
+      <p class="auth-sub workshop-mature-note" id="workshop-upload-mature-note" style="display:none;">Mature content was turned on because the name or description has flagged words. Mods with flagged words are marked NSFW either way.</p>
+
+      <label class="workshop-upload-label" for="workshop-upload-price">Price</label>
       <input type="number" id="workshop-upload-price" class="auth-input" placeholder="Price in Gems (0 = free)" min="0" step="1" value="0">
       <p class="auth-sub">Uploading costs ${WORKSHOP_UPLOAD_COST} Gems. You have ${(game.gems || 0).toLocaleString()} Gems.</p>
       <button class="auth-btn" id="workshop-upload-confirm">Upload for ${WORKSHOP_UPLOAD_COST} Gems</button>
       <button class="auth-btn secondary" id="confirm-cancel">Cancel</button>
       <p class="auth-error" id="workshop-upload-error" style="display:none;"></p>
     `;
+
+    const categorySelect = document.getElementById('workshop-upload-category');
+    const customInput = document.getElementById('workshop-upload-category-custom');
+    const matureBox = document.getElementById('workshop-upload-mature');
+
+    // Tick mature content automatically when the name or description
+    // trips the NSFW keyword filter, since the mod would be flagged anyway.
+    const matureNote = document.getElementById('workshop-upload-mature-note');
+    const checkTextForNsfw = () => {
+      const flagged = textHasNsfwKeyword(document.getElementById('workshop-upload-name').value)
+        || textHasNsfwKeyword(document.getElementById('workshop-upload-desc').value);
+      if (flagged && !matureBox.checked) {
+        matureBox.checked = true;
+        matureBox.dispatchEvent(new Event('change'));
+      }
+      matureNote.style.display = flagged ? 'block' : 'none';
+    };
+    document.getElementById('workshop-upload-name').addEventListener('input', checkTextForNsfw);
+    document.getElementById('workshop-upload-desc').addEventListener('input', checkTextForNsfw);
+
+    categorySelect.addEventListener('change', () => {
+      const val = categorySelect.value;
+      if (val === '__custom__') {
+        customInput.style.display = 'block';
+        customInput.focus();
+        return;
+      }
+      customInput.style.display = 'none';
+      if (val === WORKSHOP_NSFW_CATEGORY) {
+        // Picking NSFW from the list is the same as ticking mature content.
+        matureBox.checked = true;
+        matureBox.dispatchEvent(new Event('change'));
+        return;
+      }
+      d.lastCategory = val;
+    });
+
+    customInput.addEventListener('input', () => {
+      const val = customInput.value.trim();
+      if (val) d.lastCategory = val;
+    });
+
+    matureBox.addEventListener('change', () => {
+      d.mature = matureBox.checked;
+      if (d.mature) {
+        categorySelect.value = WORKSHOP_NSFW_CATEGORY;
+        categorySelect.disabled = true;
+        customInput.style.display = 'none';
+      } else {
+        categorySelect.disabled = false;
+        const match = Array.from(categorySelect.options).find(o => o.value.toLowerCase() === String(d.lastCategory).toLowerCase());
+        categorySelect.value = match ? match.value : 'Other';
+      }
+    });
+
+    checkTextForNsfw();
     document.getElementById('confirm-cancel').addEventListener('click', closeConfirm);
     document.getElementById('workshop-upload-confirm').addEventListener('click', submitWorkshopUpload);
     confirmOverlay.classList.add('visible');
@@ -8218,6 +9517,35 @@
     const confirmBtn = document.getElementById('workshop-upload-confirm');
     const priceInput = document.getElementById('workshop-upload-price');
     const price = Math.max(0, Math.floor(Number(priceInput.value) || 0));
+
+    const name = document.getElementById('workshop-upload-name').value.trim();
+    const description = document.getElementById('workshop-upload-desc').value.trim();
+    const mature = document.getElementById('workshop-upload-mature').checked;
+    const categorySelect = document.getElementById('workshop-upload-category');
+    let category = categorySelect.value;
+    if (category === '__custom__') category = document.getElementById('workshop-upload-category-custom').value.trim();
+    if (mature) category = WORKSHOP_NSFW_CATEGORY;
+
+    if (!name) {
+      errorEl.textContent = 'Give your mod a name.';
+      errorEl.style.display = 'block';
+      return;
+    }
+    if (!category) {
+      errorEl.textContent = 'Type a category name or pick one from the list.';
+      errorEl.style.display = 'block';
+      return;
+    }
+    if (!mature && category.toLowerCase() === 'nsfw') {
+      errorEl.textContent = 'To use the NSFW category, tick the mature content box.';
+      errorEl.style.display = 'block';
+      return;
+    }
+
+    d.name = name;
+    d.description = description;
+    d.category = category;
+    d.mature = mature;
 
     if ((game.gems || 0) < WORKSHOP_UPLOAD_COST) {
       errorEl.textContent = `You need ${WORKSHOP_UPLOAD_COST} Gems to upload a mod.`;
@@ -8235,6 +9563,7 @@
         name: d.name,
         description: d.description,
         category: d.category,
+        mature: d.mature,
         repoUrl: d.repoUrl,
         iconUrl: d.iconUrl,
         version: d.version,
