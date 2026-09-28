@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<!-- Game version: 1.12.0 | Deployment: 194 | Update both on every release, see README.md -->
-<meta name="game-version" content="1.12.0">
+<!-- Game version: 1.13.0 | Deployment: 195 | Update both on every release, see README.md -->
+<meta name="game-version" content="1.13.0">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>The Clicker Game!</title>
 <link rel="icon" type="image/x-icon" href="maksy.ico" id="favicon-link">
@@ -1730,6 +1730,28 @@
     border-top-color:#fff;
   }
 
+
+  /* Achievement SVG icons (1.13.0): white on the tile, like the shop icons. */
+  .achievement-icon svg,
+  .achievement-popup-icon svg,
+  .public-profile-featured-icon svg{
+    width:22px;
+    height:22px;
+    display:block;
+    filter:drop-shadow(0 1px 0 rgba(0,0,0,0.25));
+  }
+  .achievement-popup-icon svg{ width:26px; height:26px; }
+  .achievement-icon{ color:var(--muted); }
+  .achievement-card.unlocked .achievement-icon,
+  .achievement-popup-icon,
+  .public-profile-featured-icon{
+    color:#fff;
+  }
+  .achievement-card.unlocked .achievement-icon{
+    border:2px solid var(--ink);
+    box-shadow:var(--pop-sm);
+  }
+
   /* ---------- CREWMATE ---------- */
   .crewmate{
     position:fixed;
@@ -1823,6 +1845,73 @@
     to{ transform:translateY(-3px); }
   }
 
+
+  /* ---------- AMOGUS TASK METERS (1.13.0) ---------- */
+  /* Small bar above each crewmate showing how far along its 5 tasks it is. */
+  .crewmate .task-meter{
+    position:absolute;
+    left:50%;
+    top:-13px;
+    width:40px;
+    height:7px;
+    transform:translateX(-50%);
+    background:rgba(0,0,0,0.55);
+    border:1.5px solid var(--ink);
+    border-radius:4px;
+    overflow:hidden;
+    pointer-events:none;
+  }
+  .crewmate .task-meter-fill{
+    height:100%;
+    width:0;
+    background:#4dff88;
+    transition:width .15s linear;
+  }
+  .crewmate.done .task-meter-fill{ background:#ffcb3d; }
+  .crewmate.dead .task-meter{ display:none; }
+
+  /* Overall task meter, top left, for every living crewmate combined. */
+  .task-overall{
+    position:fixed;
+    top:10px;
+    left:10px;
+    z-index:999;
+    width:min(240px, 60vw);
+    padding:6px 8px 7px;
+    background:rgba(16,12,31,0.82);
+    border:2px solid var(--ink);
+    border-radius:10px;
+    box-shadow:var(--pop-sm);
+    pointer-events:none;
+    user-select:none;
+    display:none;
+  }
+  .task-overall.visible{ display:block; }
+  body.low-perf .task-overall{ top:40px; }
+  .task-overall-label{
+    display:flex;
+    justify-content:space-between;
+    gap:8px;
+    font-family:'Fredoka One', cursive;
+    font-size:11px;
+    letter-spacing:0.04em;
+    color:#faf3df;
+    margin-bottom:4px;
+  }
+  .task-overall-track{
+    height:10px;
+    background:#2a2245;
+    border:1.5px solid #000;
+    border-radius:5px;
+    overflow:hidden;
+  }
+  .task-overall-fill{
+    height:100%;
+    width:0;
+    background:linear-gradient(90deg, #3fd66f, #4dff88);
+    transition:width .2s linear;
+  }
+
   /* ---------- TASK MARKERS ---------- */
   .task-marker{
     position:fixed;
@@ -1841,6 +1930,382 @@
     font-size:10px;
     color:var(--btn-text);
   }
+
+
+  /* ======================================================
+     LIMITED SHOP (1.13.0)
+     ====================================================== */
+  .shop-category-btn.prestige-tab-btn.limited-tab-btn{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:10px;
+    flex-wrap:wrap;
+    background:linear-gradient(135deg, #f97316, #ef4444);
+  }
+  .shop-category-btn.prestige-tab-btn.limited-tab-btn:hover{
+    background:linear-gradient(135deg, #f97316, #ef4444);
+  }
+  .shop-category-btn.prestige-tab-btn.limited-tab-btn.active{
+    background:linear-gradient(135deg, #ea580c, #dc2626);
+  }
+  .limited-tab-timer{
+    font-family:'Poppins', sans-serif;
+    font-size:11px;
+    font-weight:600;
+    padding:2px 8px;
+    border-radius:999px;
+    background:rgba(0,0,0,0.25);
+  }
+  .limited-header{
+    width:100%;
+    background:linear-gradient(135deg, #f97316, #ef4444);
+    border:2px solid var(--ink);
+    border-radius:16px;
+    padding:14px 16px;
+    box-shadow:var(--pop);
+    color:#fff;
+    text-align:left;
+  }
+  .limited-header-top{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+  }
+  .limited-title{
+    font-family:'Fredoka One', cursive;
+    font-weight:400;
+    font-size:20px;
+    margin:0;
+    text-shadow:2px 2px 0 var(--ink);
+  }
+  .limited-reset{
+    margin:2px 0 0;
+    font-size:12px;
+    color:rgba(255,255,255,0.9);
+  }
+  .limited-gems{
+    display:flex;
+    align-items:center;
+    gap:6px;
+    flex-shrink:0;
+    font-family:'Fredoka One', cursive;
+    font-size:14px;
+    color:var(--rind);
+    background:var(--night);
+    border:2px solid var(--ink);
+    border-radius:999px;
+    padding:5px 10px;
+    cursor:pointer;
+    box-shadow:var(--pop-sm);
+  }
+  .limited-gems img{ width:18px; height:18px; display:block; }
+  .limited-gems-plus{
+    width:18px;
+    height:18px;
+    border-radius:50%;
+    background:var(--melon-light);
+    color:var(--night);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:13px;
+    line-height:1;
+  }
+  .limited-card{
+    border-left:6px solid var(--rarity);
+  }
+  .limited-card .shop-info h3{
+    display:flex;
+    align-items:center;
+    flex-wrap:wrap;
+    gap:6px;
+  }
+  .rarity-pill{
+    display:inline-block;
+    font-family:'Poppins', sans-serif;
+    font-size:9.5px;
+    font-weight:700;
+    text-transform:uppercase;
+    letter-spacing:0.06em;
+    padding:2px 7px;
+    border-radius:999px;
+    color:#fff;
+    background:var(--rarity);
+    border:1.5px solid var(--ink);
+  }
+  .limited-preview{
+    flex-shrink:0;
+    width:42px;
+    height:42px;
+    border-radius:12px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:var(--night);
+    border:2px solid var(--rarity, var(--ink));
+    box-shadow:var(--pop-sm);
+    color:var(--rind);
+    font-size:18px;
+    overflow:visible;
+  }
+  .limited-preview.block{
+    color:var(--rarity);
+  }
+  .limited-preview.block svg{ width:28px; height:28px; display:block; }
+  .limited-preview.none{ font-size:22px; color:var(--muted); border-color:var(--ink); }
+  .limited-preview.big{
+    width:84px;
+    height:84px;
+    border-radius:20px;
+    font-size:34px;
+    margin:0 auto;
+  }
+  .limited-preview.block.big svg{ width:60px; height:60px; }
+  .pf-preview{
+    width:28px;
+    height:28px;
+    border-radius:50%;
+    overflow:hidden;
+    border:3px solid var(--ink);
+    background:var(--night);
+  }
+  .limited-preview.big .pf-preview{ width:56px; height:56px; }
+  .pf-preview img{ width:100%; height:100%; object-fit:cover; display:block; }
+  .limited-collection{
+    width:100%;
+    background:var(--card);
+    border:2px solid var(--ink);
+    border-radius:16px;
+    padding:14px 16px;
+    box-shadow:var(--pop-sm);
+    text-align:left;
+  }
+  .limited-section-title{
+    font-family:'Fredoka One', cursive;
+    font-weight:400;
+    font-size:15px;
+    color:var(--rind);
+    margin:0;
+  }
+  .limited-section-sub{
+    margin:2px 0 8px;
+    font-size:11px;
+    color:var(--muted);
+  }
+  .limited-sub-title{
+    font-family:'Poppins', sans-serif;
+    font-size:11px;
+    font-weight:700;
+    text-transform:uppercase;
+    letter-spacing:0.06em;
+    color:var(--lavender);
+    margin:10px 0 6px;
+  }
+  .limited-chip-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fill, minmax(92px, 1fr));
+    gap:8px;
+  }
+  .limited-chip{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:5px;
+    padding:8px 6px;
+    background:var(--night);
+    border:2px solid var(--ink);
+    border-radius:12px;
+    cursor:pointer;
+    color:var(--rind);
+    transition:transform .12s ease, box-shadow .12s ease;
+  }
+  .limited-chip:hover{ transform:translate(-1px,-1px); box-shadow:var(--pop-sm); }
+  .limited-chip.equipped{
+    border-color:var(--rarity, var(--melon-light));
+    box-shadow:0 0 0 2px var(--rarity, var(--melon-light));
+  }
+  .limited-chip.none.equipped{ border-color:var(--melon-light); box-shadow:0 0 0 2px var(--melon-light); }
+  .limited-chip-name{
+    font-family:'Poppins', sans-serif;
+    font-size:11px;
+    font-weight:600;
+    text-align:center;
+    line-height:1.2;
+  }
+  .limited-chip-state{
+    font-family:'Fredoka One', cursive;
+    font-size:10.5px;
+    color:var(--muted);
+  }
+  .limited-chip.equipped .limited-chip-state{ color:var(--melon-light); }
+
+  /* ---------- PROFILE FRAMES ----------
+     Added to .stats-avatar, .public-profile-avatar, .leaderboard-avatar and
+     the shop previews. One rule per frame id in LIMITED_FRAMES. */
+  .pf-frame{ border-style:solid !important; border-width:3px !important; }
+  .public-profile-avatar.pf-frame{ border-width:4px !important; }
+  .pf-frame-frame_mint{ border-color:#6ee7b7 !important; box-shadow:0 0 0 2px #059669 !important; }
+  .pf-frame-frame_bubblegum{ border-color:#f9a8d4 !important; box-shadow:0 0 0 2px #db2777 !important; }
+  .pf-frame-frame_sky{ border-color:#7dd3fc !important; box-shadow:0 0 0 2px #0369a1 !important; }
+  .pf-frame-frame_gold{ border-color:#ffd54a !important; box-shadow:0 0 0 2px #a16207, 0 0 10px rgba(255,213,74,0.6) !important; }
+  .pf-frame-frame_ice{ border-color:#e0f7ff !important; box-shadow:0 0 0 2px #38bdf8, 0 0 14px rgba(125,211,252,0.85) !important; }
+  .pf-frame-frame_toxic{ border-color:#a3e635 !important; box-shadow:0 0 0 2px #3f6212, 0 0 14px rgba(163,230,53,0.85) !important; }
+  .pf-frame-frame_neon{ animation:pfNeon 1.6s ease-in-out infinite; }
+  @keyframes pfNeon{
+    0%,100%{ border-color:#ff4fd8; box-shadow:0 0 0 2px #7e22ce, 0 0 8px #ff4fd8; }
+    50%{ border-color:#22d3ee; box-shadow:0 0 0 2px #0e7490, 0 0 18px #22d3ee; }
+  }
+  .pf-frame-frame_fire{ animation:pfFire .9s ease-in-out infinite alternate; }
+  @keyframes pfFire{
+    0%{ border-color:#f97316; box-shadow:0 0 0 2px #991b1b, 0 -2px 10px #f97316, 0 0 16px rgba(239,68,68,0.6); }
+    100%{ border-color:#fde047; box-shadow:0 0 0 2px #b91c1c, 0 -5px 16px #fb923c, 0 0 22px rgba(250,204,21,0.6); }
+  }
+  .pf-frame-frame_galaxy{ animation:pfGalaxy 4s linear infinite; }
+  @keyframes pfGalaxy{
+    0%,100%{ border-color:#c084fc; box-shadow:0 0 0 2px #1e1b4b, -4px -3px 12px #7c3aed, 4px 3px 12px #2563eb; }
+    50%{ border-color:#818cf8; box-shadow:0 0 0 2px #1e1b4b, 4px -3px 12px #2563eb, -4px 3px 12px #db2777; }
+  }
+  .pf-frame-frame_rainbow{ animation:pfRainbow 3s linear infinite; }
+  @keyframes pfRainbow{
+    0%{ border-color:#ef4444; box-shadow:0 0 0 2px #7f1d1d, 0 0 14px #ef4444; }
+    17%{ border-color:#f97316; box-shadow:0 0 0 2px #7c2d12, 0 0 14px #f97316; }
+    33%{ border-color:#facc15; box-shadow:0 0 0 2px #713f12, 0 0 14px #facc15; }
+    50%{ border-color:#22c55e; box-shadow:0 0 0 2px #14532d, 0 0 14px #22c55e; }
+    67%{ border-color:#3b82f6; box-shadow:0 0 0 2px #1e3a8a, 0 0 14px #3b82f6; }
+    83%{ border-color:#a855f7; box-shadow:0 0 0 2px #581c87, 0 0 14px #a855f7; }
+    100%{ border-color:#ef4444; box-shadow:0 0 0 2px #7f1d1d, 0 0 14px #ef4444; }
+  }
+  .pf-frame-frame_royal{ animation:pfRoyal 2s ease-in-out infinite; }
+  @keyframes pfRoyal{
+    0%,100%{ border-color:#fde68a; box-shadow:0 0 0 2px #b45309, 0 0 0 5px #fde68a, 0 0 10px rgba(253,230,138,0.5); }
+    50%{ border-color:#fff7d1; box-shadow:0 0 0 2px #b45309, 0 0 0 5px #fbbf24, 0 0 22px rgba(255,255,255,0.8); }
+  }
+  .pf-frame-frame_void{ animation:pfVoid 2.4s ease-in-out infinite; }
+  @keyframes pfVoid{
+    0%,100%{ border-color:#0a0a0a; box-shadow:0 0 0 2px #dc2626, 0 0 12px rgba(220,38,38,0.7), inset 0 0 8px #000; }
+    50%{ border-color:#1f0505; box-shadow:0 0 0 2px #7f1d1d, 0 0 24px rgba(220,38,38,0.95), inset 0 0 14px #000; }
+  }
+  body.low-perf .pf-frame{ animation:none !important; }
+
+  /* ---------- LUCKY BLOCK OVERLAY ---------- */
+  .lucky-overlay{
+    position:fixed;
+    inset:0;
+    z-index:5500;
+    background:rgba(10,8,20,0.78);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:16px;
+    opacity:0;
+    transition:opacity .25s ease;
+  }
+  .lucky-overlay.visible{ opacity:1; }
+  .lucky-box{
+    width:min(460px, 100%);
+    background:var(--card);
+    border:2px solid var(--ink);
+    border-top:6px solid var(--rarity);
+    border-radius:18px;
+    padding:20px 18px 22px;
+    box-shadow:var(--pop-lg);
+    text-align:center;
+  }
+  .lucky-stage{
+    min-height:220px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    gap:12px;
+  }
+  .lucky-block-big{ animation:luckyShake .5s ease-in-out infinite; }
+  @keyframes luckyShake{
+    0%,100%{ transform:rotate(0) scale(1); }
+    25%{ transform:rotate(-7deg) scale(1.04); }
+    75%{ transform:rotate(7deg) scale(1.04); }
+  }
+  .lucky-count{
+    font-family:'Fredoka One', cursive;
+    font-size:44px;
+    color:var(--rarity);
+    text-shadow:3px 3px 0 var(--ink);
+  }
+  .lucky-count.tick{ animation:luckyTick .4s ease; }
+  @keyframes luckyTick{
+    from{ transform:scale(1.6); opacity:0.3; }
+    to{ transform:scale(1); opacity:1; }
+  }
+  .lucky-reel{
+    position:relative;
+    width:100%;
+    height:120px;
+    overflow:hidden;
+    background:var(--night);
+    border:2px solid var(--ink);
+    border-radius:14px;
+  }
+  .lucky-reel-marker{
+    position:absolute;
+    top:0;
+    bottom:0;
+    left:50%;
+    width:4px;
+    transform:translateX(-50%);
+    background:var(--zap);
+    box-shadow:0 0 10px var(--zap);
+    z-index:2;
+  }
+  .lucky-reel-strip{
+    display:flex;
+    gap:8px;
+    padding:12px 4px;
+    will-change:transform;
+    transition:transform 4.6s cubic-bezier(.1,.75,.15,1);
+  }
+  .lucky-tile{
+    flex:0 0 84px;
+    height:92px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    gap:6px;
+    background:var(--card);
+    border:2px solid var(--ink);
+    border-bottom:5px solid var(--rarity);
+    border-radius:10px;
+  }
+  .lucky-tile span{
+    font-family:'Poppins', sans-serif;
+    font-size:10px;
+    font-weight:600;
+    color:var(--rind);
+    line-height:1.1;
+    padding:0 4px;
+  }
+  .lucky-result{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:8px;
+    animation:luckyPop .45s cubic-bezier(.2,1.6,.4,1);
+  }
+  @keyframes luckyPop{
+    from{ transform:scale(0.6); opacity:0; }
+    to{ transform:scale(1); opacity:1; }
+  }
+  .lucky-result .limited-preview.big{ box-shadow:0 0 24px var(--rarity), var(--pop-sm); }
+  .lucky-result-name{
+    font-family:'Fredoka One', cursive;
+    font-weight:400;
+    font-size:20px;
+    color:var(--rind);
+    margin:4px 0 0;
+  }
+  .lucky-result-type{ font-size:12px; color:var(--muted); }
 
   /* ---------- LOADING SCREEN ---------- */
   .loading-screen{
@@ -5354,7 +5819,7 @@
           <img id="workshop-profile-btn-img" src="profile.png" alt="">
           <span id="workshop-profile-btn-name">Profile</span>
         </button>
-        <button class="workshop-icon-btn" id="workshop-upload-btn" title="Create or upload a mod">+ New Mod</button>
+        <button class="workshop-icon-btn" id="workshop-upload-btn" title="Create a mod">+ New Mod</button>
       </div>
     </div>
     <div class="workshop-refresh-banner" id="workshop-refresh-banner">
@@ -5396,6 +5861,11 @@
 </div>
 
 <div id="fps-counter">FPS: 0</div>
+
+<div class="task-overall" id="task-overall" aria-hidden="true">
+  <div class="task-overall-label"><span>TOTAL TASKS</span><span id="task-overall-count">0 / 0</span></div>
+  <div class="task-overall-track"><div class="task-overall-fill" id="task-overall-fill"></div></div>
+</div>
 
 <div class="debug-panel" id="debug-panel" style="display:none;">
   <div class="debug-panel-header" id="debug-panel-header">
@@ -5762,7 +6232,11 @@
       prestigeMultOwned: 0,
       autoBuyerOwned: false,
       gems: 0,
-      installedMods: []
+      installedMods: [],
+      // LIMITED SHOP (1.13.0): owned profile fonts/frames and what is equipped.
+      cosmeticsOwned: [],
+      equippedFont: '',
+      equippedFrame: ''
     };
   }
 
@@ -5843,7 +6317,8 @@
   });
 
   setInterval(() => {
-    const passiveIncome = (game.autoClickerOwned || 0) * autoSpeedMult() + (game.turboClickerOwned || 0) * 5;
+    // Turbo Clicker was removed in 1.13.0, so only Auto Clickers earn passive income now.
+    const passiveIncome = (game.autoClickerOwned || 0) * autoSpeedMult();
     if (passiveIncome > 0) {
       earnClicks(passiveIncome);
       updateCounter();
@@ -5892,8 +6367,6 @@
   const EFFECTS_COST = 750;
   const FONT_MANAGER_COST = 900;
   const LUCKY_CHARM_COST = 2500;
-  function megaBoostCost(){ return 500 * (game.megaBoostOwned + 1); }
-  function turboClickerCost(){ return 750 * (game.turboClickerOwned + 1); }
 
   function buyMusicPlayer(){
     if (game.musicPlayerOwned || game.clicks < MUSIC_PLAYER_COST) return;
@@ -5998,31 +6471,6 @@
     syncToSheet();
     renderShop();
     showFontManager();
-  }
-
-  function buyMegaBoost(){
-    const cost = megaBoostCost();
-    if (game.clicks < cost) return;
-    playSound('money.mp3');
-    game.clicks -= cost;
-    game.megaBoostOwned += 1;
-    game.clickPower += 5;
-    updateCounter();
-    saveGame();
-    syncToSheet();
-    renderShop();
-  }
-
-  function buyTurboClicker(){
-    const cost = turboClickerCost();
-    if (game.clicks < cost) return;
-    playSound('money.mp3');
-    game.clicks -= cost;
-    game.turboClickerOwned += 1;
-    updateCounter();
-    saveGame();
-    syncToSheet();
-    renderShop();
   }
 
   function buyLuckyCharm(){
@@ -6206,9 +6654,7 @@
     if (!game.autoBuyerOwned) return;
     const options = [
       { cost: clickBoostCost(), buy: buyClickBoost },
-      { cost: autoClickerCost(), buy: buyAutoClicker },
-      { cost: megaBoostCost(), buy: buyMegaBoost },
-      { cost: turboClickerCost(), buy: buyTurboClicker }
+      { cost: autoClickerCost(), buy: buyAutoClicker }
     ].filter(o => game.clicks >= o.cost);
     if (!options.length) return;
     options.sort((a, b) => a.cost - b.cost);
@@ -6233,8 +6679,6 @@
     'Font Manager': { color:'#64748b', svg:'<path d="M2.5 20L8 4h2.5L16 20h-3l-1.3-4H6.8l-1.3 4zm5.2-7h3.1L9.2 8z"/><path d="M17 20v-6.5a2.6 2.6 0 0 1 4.5-1.8" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><path d="M15.5 15.5h5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>' },
     'Auto Kill': { color:'#dc2626', svg:'<circle cx="12" cy="12" r="7.5" fill="none" stroke="currentColor" stroke-width="2.2"/><circle cx="12" cy="12" r="2.5"/><path d="M12 1.5v5M12 17.5v5M1.5 12h5M17.5 12h5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>' },
     'Offline Earnings': { color:'#4f46e5', svg:'<path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5z"/><path d="M16 3l.6 1.6 1.6.6-1.6.6L16 7.4l-.6-1.6-1.6-.6 1.6-.6zM20 7.5l.4 1 1 .4-1 .4-.4 1-.4-1-1-.4 1-.4z"/>' },
-    'Mega Click Boost': { color:'#16a34a', svg:'<path d="M12 3l8 8h-5v4H9v-4H4z"/><path d="M9 17.5h6M9 20.5h6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>' },
-    'Turbo Clicker': { color:'#f97316', svg:'<path d="M3.5 17a8.5 8.5 0 1 1 17 0" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/><path d="M12 17l5-6.5" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/><circle cx="12" cy="17" r="2.2"/><path d="M5.5 10.5l1.4 1M12 6v1.8M18.5 10.5l-1.4 1" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>' },
     'Lucky Charm': { color:'#22c55e', svg:'<circle cx="8.5" cy="8.5" r="4"/><circle cx="15.5" cy="8.5" r="4"/><circle cx="8.5" cy="15.5" r="4"/><circle cx="15.5" cy="15.5" r="4"/><path d="M12 12l5.5 9.5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>' },
     'Prestige': { color:'#a855f7', svg:'<path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4l-5.9 3.1 1.2-6.5-4.8-4.6 6.6-.9z"/>' },
     'Boost': { color:'#c026d3', svg:'<path d="M3 20h18" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><path d="M4 16l5-5 3.5 3.5L19 8" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/><path d="M14.5 6.5H20V12z"/>' },
@@ -6263,7 +6707,8 @@
     { id: 'visuals', label: 'Visuals' },
     { id: 'customization', label: 'Customization' },
     { id: 'plain', label: 'Plain' },
-    { id: 'prestige', label: 'Prestige' }
+    { id: 'prestige', label: 'Prestige' },
+    { id: 'limited', label: 'Limited' }
   ];
 
   const PRESTIGE_COST = 100000000;
@@ -6407,24 +6852,6 @@
       </div>` },
       { category: 'plain', html: `
       <div class="shop-card">
-        ${shopIconHTML('Mega Click Boost')}
-        <div class="shop-info">
-          <h3>Mega Click Boost</h3>
-          <p>+5 click power per click. <span class="owned">Owned: ${game.megaBoostOwned}</span></p>
-        </div>
-        <button class="buy-btn" id="buy-megaboost" ${game.clicks < megaBoostCost() ? 'disabled' : ''}>Buy (${megaBoostCost()})</button>
-      </div>` },
-      { category: 'plain', html: `
-      <div class="shop-card">
-        ${shopIconHTML('Turbo Clicker')}
-        <div class="shop-info">
-          <h3>Turbo Clicker</h3>
-          <p>+5 clicks every second, automatically. <span class="owned">Owned: ${game.turboClickerOwned}</span></p>
-        </div>
-        <button class="buy-btn" id="buy-turboclicker" ${game.clicks < turboClickerCost() ? 'disabled' : ''}>Buy (${turboClickerCost()})</button>
-      </div>` },
-      { category: 'plain', html: `
-      <div class="shop-card">
         ${shopIconHTML('Lucky Charm')}
         <div class="shop-info">
           <h3>Lucky Charm</h3>
@@ -6473,13 +6900,13 @@
         ${shopIconHTML('Auto Buyer')}
         <div class="shop-info">
           <h3>Auto Buyer</h3>
-          <p>One-time buy. Every 5 seconds, automatically buys the cheapest affordable Click Boost, Clicker, Mega Click Boost, or Turbo Clicker. <span class="owned">Prestige: ${game.prestige || 0}</span></p>
+          <p>One-time buy. Every 5 seconds, automatically buys the cheapest affordable Click Boost or Auto Clicker. <span class="owned">Prestige: ${game.prestige || 0}</span></p>
         </div>
         <button class="buy-btn" id="buy-autobuyer" ${game.autoBuyerOwned ? 'disabled' : ((game.prestige || 0) < AUTO_BUYER_COST ? 'disabled' : '')}>${game.autoBuyerOwned ? 'Owned' : 'Buy (' + AUTO_BUYER_COST + ' Prestige)'}</button>
       </div>` }
     ];
 
-    const categoryBar = SHOP_CATEGORIES.filter(cat => cat.id !== 'prestige').map(cat =>
+    const categoryBar = SHOP_CATEGORIES.filter(cat => cat.id !== 'prestige' && cat.id !== 'limited').map(cat =>
       `<button class="shop-category-btn${shopCategory === cat.id ? ' active' : ''}" data-category="${cat.id}">${cat.label}</button>`
     ).join('');
 
@@ -6487,12 +6914,17 @@
       <div class="prestige-tab-row">
         <button class="shop-category-btn prestige-tab-btn${shopCategory === 'prestige' ? ' active' : ''}" data-category="prestige">✨ Prestige Shop</button>
       </div>
+      <div class="prestige-tab-row">
+        <button class="shop-category-btn prestige-tab-btn limited-tab-btn${shopCategory === 'limited' ? ' active' : ''}" data-category="limited">⏳ Limited Shop <span class="limited-tab-timer" id="limited-tab-timer">${formatLimitedCountdown(limitedMsLeft())}</span></button>
+      </div>
     `;
 
-    const visibleCards = cards
-      .filter(c => shopCategory === 'all' || c.category === shopCategory)
-      .map(c => c.html)
-      .join('');
+    const visibleCards = shopCategory === 'limited'
+      ? renderLimitedShopHTML()
+      : cards
+        .filter(c => shopCategory === 'all' || c.category === shopCategory)
+        .map(c => c.html)
+        .join('');
 
     list.innerHTML = `<div class="shop-category-bar">${categoryBar}</div>${prestigeTabBtn}${visibleCards}`;
 
@@ -6538,15 +6970,465 @@
     bind('buy-font-manager', buyFontManager);
     bind('buy-autokill', buyAutoKill);
     bind('buy-noob', buyNoob);
-    bind('buy-megaboost', buyMegaBoost);
-    bind('buy-turboclicker', buyTurboClicker);
     bind('buy-luckycharm', buyLuckyCharm);
     bind('do-prestige', openConfirmPrestige);
     bind('buy-boost-trade', buyBoost);
     bind('buy-headstart', buyHeadStart);
     bind('buy-prestigemult', buyPrestigeMult);
     bind('buy-autobuyer', buyAutoBuyer);
+    if (shopCategory === 'limited') bindLimitedShop();
   }
+
+
+  /* ======================================================
+     LIMITED SHOP (1.13.0)
+     A weekly shop paid in Gems. Every Monday 00:00 UTC it rolls to the next
+     LIMITED_SLOTS items from a shuffled list of every item, so over a few
+     weeks everything comes around. Each new cycle is shuffled differently.
+     Items:
+       fonts  - profile name font (Google Fonts), equippable
+       frames - ring around the profile picture, equippable
+       blocks - Lucky Blocks. Countdown, then a reel cycles through a random
+                list of every font and frame and lands on the prize. Better
+                blocks roll better rarities. Duplicates pay back Gems.
+     Add new fonts/frames to the lists below. Ids must start with font_ or
+     frame_ and never change once players own them. A new frame also needs a
+     .pf-frame-<id> CSS rule. Equipped items sync to the Sheet (columns 54-56).
+     ====================================================== */
+  const LIMITED_RARITIES = {
+    Common:    { color:'#9ca3af', price:15,  refund:6 },
+    Rare:      { color:'#3b82f6', price:35,  refund:14 },
+    Epic:      { color:'#a855f7', price:75,  refund:30 },
+    Legendary: { color:'#f59e0b', price:150, refund:60 }
+  };
+  const LIMITED_RARITY_ORDER = ['Common', 'Rare', 'Epic', 'Legendary'];
+
+  const LIMITED_FONTS = [
+    { id:'font_bangers', name:'Bangers', family:'Bangers', rarity:'Common' },
+    { id:'font_marker', name:'Marker', family:'Permanent Marker', rarity:'Common' },
+    { id:'font_lobster', name:'Lobster', family:'Lobster', rarity:'Common' },
+    { id:'font_luckiest', name:'Lucky Guy', family:'Luckiest Guy', rarity:'Common' },
+    { id:'font_typewriter', name:'Typewriter', family:'Special Elite', rarity:'Common' },
+    { id:'font_bungee', name:'Bungee', family:'Bungee', rarity:'Rare' },
+    { id:'font_pacifico', name:'Pacifico', family:'Pacifico', rarity:'Rare' },
+    { id:'font_orbitron', name:'Orbitron', family:'Orbitron', rarity:'Rare' },
+    { id:'font_pixel', name:'Pixel', family:'Silkscreen', rarity:'Rare' },
+    { id:'font_arcade', name:'Arcade', family:'Press Start 2P', rarity:'Epic' },
+    { id:'font_creepster', name:'Creepster', family:'Creepster', rarity:'Epic' },
+    { id:'font_nosifer', name:'Nosifer', family:'Nosifer', rarity:'Epic' },
+    { id:'font_monoton', name:'Neon Sign', family:'Monoton', rarity:'Legendary' },
+    { id:'font_glitch', name:'Glitch', family:'Rubik Glitch', rarity:'Legendary' }
+  ];
+
+  const LIMITED_FRAMES = [
+    { id:'frame_mint', name:'Mint Ring', rarity:'Common' },
+    { id:'frame_bubblegum', name:'Bubblegum Ring', rarity:'Common' },
+    { id:'frame_sky', name:'Sky Ring', rarity:'Common' },
+    { id:'frame_gold', name:'Gold Frame', rarity:'Rare' },
+    { id:'frame_ice', name:'Ice Frame', rarity:'Rare' },
+    { id:'frame_toxic', name:'Toxic Frame', rarity:'Rare' },
+    { id:'frame_neon', name:'Neon Pulse', rarity:'Epic' },
+    { id:'frame_fire', name:'Fire Frame', rarity:'Epic' },
+    { id:'frame_galaxy', name:'Galaxy Frame', rarity:'Epic' },
+    { id:'frame_rainbow', name:'Rainbow Frame', rarity:'Legendary' },
+    { id:'frame_royal', name:'Royal Frame', rarity:'Legendary' },
+    { id:'frame_void', name:'Void Frame', rarity:'Legendary' }
+  ];
+
+  // Lucky Block odds per item rarity, in percent (each row adds up to 100).
+  const LUCKY_BLOCKS = [
+    { id:'block_common', name:'Common Lucky Block', rarity:'Common', price:10, odds:{ Common:70, Rare:22, Epic:7, Legendary:1 } },
+    { id:'block_rare', name:'Rare Lucky Block', rarity:'Rare', price:30, odds:{ Common:40, Rare:40, Epic:16, Legendary:4 } },
+    { id:'block_epic', name:'Epic Lucky Block', rarity:'Epic', price:65, odds:{ Common:15, Rare:35, Epic:38, Legendary:12 } },
+    { id:'block_legendary', name:'Legendary Lucky Block', rarity:'Legendary', price:140, odds:{ Common:0, Rare:20, Epic:45, Legendary:35 } }
+  ];
+
+  const LIMITED_COSMETICS = LIMITED_FONTS.map(f => Object.assign({ type:'font' }, f))
+    .concat(LIMITED_FRAMES.map(f => Object.assign({ type:'frame' }, f)));
+  const LIMITED_ALL = LIMITED_COSMETICS.concat(LUCKY_BLOCKS.map(b => Object.assign({ type:'block' }, b)));
+  const LIMITED_BY_ID = {};
+  LIMITED_ALL.forEach(item => { LIMITED_BY_ID[item.id] = item; });
+
+  const LIMITED_SLOTS = 6;
+  const LIMITED_WEEK_MS = 7 * 24 * 60 * 60 * 1000;
+  const LIMITED_EPOCH = Date.UTC(2024, 0, 1); // a Monday, 00:00 UTC
+  const LIMITED_SHUFFLE_SEED = 1130;
+
+  function cleanCosmeticList(list){
+    if (!Array.isArray(list)) return [];
+    return Array.from(new Set(list.map(String))).filter(id => LIMITED_BY_ID[id] && LIMITED_BY_ID[id].type !== 'block');
+  }
+  function isOwnedCosmetic(id){ return (game.cosmeticsOwned || []).includes(id); }
+  function limitedPrice(item){ return item.type === 'block' ? item.price : LIMITED_RARITIES[item.rarity].price; }
+  function validShopFont(id){ const i = LIMITED_BY_ID[id]; return i && i.type === 'font' ? i : null; }
+  function validShopFrame(id){ const i = LIMITED_BY_ID[id]; return i && i.type === 'frame' ? i : null; }
+
+  function seededRandom(seed){
+    let t = seed >>> 0;
+    return function(){
+      t += 0x6D2B79F5;
+      let r = Math.imul(t ^ (t >>> 15), 1 | t);
+      r ^= r + Math.imul(r ^ (r >>> 7), 61 | r);
+      return ((r ^ (r >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+  const limitedCycleCache = {};
+  function limitedCycle(cycle){
+    if (limitedCycleCache[cycle]) return limitedCycleCache[cycle];
+    const rand = seededRandom(LIMITED_SHUFFLE_SEED + cycle * 7919);
+    const ids = LIMITED_ALL.map(i => i.id);
+    for (let i = ids.length - 1; i > 0; i--) {
+      const j = Math.floor(rand() * (i + 1));
+      [ids[i], ids[j]] = [ids[j], ids[i]];
+    }
+    limitedCycleCache[cycle] = ids;
+    return ids;
+  }
+  function limitedWeekIndex(now){ return Math.floor(((now || Date.now()) - LIMITED_EPOCH) / LIMITED_WEEK_MS); }
+  function limitedMsLeft(){
+    const w = limitedWeekIndex();
+    return Math.max(0, LIMITED_EPOCH + (w + 1) * LIMITED_WEEK_MS - Date.now());
+  }
+  function limitedItemsForWeek(week){
+    const total = LIMITED_ALL.length;
+    const picks = [];
+    let pos = week * LIMITED_SLOTS;
+    while (picks.length < LIMITED_SLOTS) {
+      const id = limitedCycle(Math.floor(pos / total))[pos % total];
+      if (!picks.includes(id)) picks.push(id);
+      pos++;
+    }
+    // Every week has at least one Lucky Block.
+    if (!picks.some(id => LIMITED_BY_ID[id].type === 'block')) {
+      const rand = seededRandom(LIMITED_SHUFFLE_SEED * 31 + week);
+      picks[picks.length - 1] = LUCKY_BLOCKS[Math.floor(rand() * LUCKY_BLOCKS.length)].id;
+    }
+    return picks.map(id => LIMITED_BY_ID[id]);
+  }
+  function formatLimitedCountdown(ms){
+    const total = Math.floor(ms / 1000);
+    const d = Math.floor(total / 86400);
+    const h = Math.floor((total % 86400) / 3600);
+    const m = Math.floor((total % 3600) / 60);
+    const sec = total % 60;
+    return (d > 0 ? d + 'd ' : '') + h + 'h ' + m + 'm ' + sec + 's';
+  }
+
+  /* Fonts load from Google Fonts only when needed. */
+  const loadedShopFonts = new Map();
+  function loadShopFont(family){
+    if (!family) return Promise.resolve('');
+    if (loadedShopFonts.has(family)) return loadedShopFonts.get(family);
+    const link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = 'https://fonts.googleapis.com/css2?family=' + encodeURIComponent(family).replace(/%20/g, '+') + '&display=swap';
+    document.head.appendChild(link);
+    const promise = new Promise(resolve => {
+      link.onload = () => {
+        document.fonts.load(`20px "${family}"`).then(() => resolve(family)).catch(() => resolve(family));
+      };
+      link.onerror = () => resolve('');
+    });
+    loadedShopFonts.set(family, promise);
+    return promise;
+  }
+  function loadAllShopFonts(){ LIMITED_FONTS.forEach(f => loadShopFont(f.family)); }
+
+  // Name font: a Limited Shop font wins over the account's staff font.
+  // Uses !important so the Font Manager UI font doesn't cover it up.
+  function applyProfileNameFont(el, accountFont, shopFontId){
+    if (!el) return;
+    el.style.removeProperty('font-family');
+    const shopFont = validShopFont(shopFontId);
+    if (shopFont) {
+      loadShopFont(shopFont.family).then(family => {
+        if (family) el.style.setProperty('font-family', `'${family}', 'Fredoka One', cursive`, 'important');
+      });
+      return;
+    }
+    ensureFontLoaded(accountFont).then(family => {
+      if (family) el.style.fontFamily = `'${family}'`;
+    });
+  }
+  const PF_FRAME_CLASSES = ['pf-frame'].concat(LIMITED_FRAMES.map(f => 'pf-frame-' + f.id));
+  function applyProfileFrame(el, frameId){
+    if (!el) return;
+    el.classList.remove(...PF_FRAME_CLASSES);
+    if (validShopFrame(frameId)) el.classList.add('pf-frame', 'pf-frame-' + frameId);
+  }
+  function frameClassAttr(frameId){ return validShopFrame(frameId) ? ` pf-frame pf-frame-${frameId}` : ''; }
+
+  const LUCKY_BLOCK_SVG = '<path d="M12 2l9 5v10l-9 5-9-5V7z"/><path d="M3 7l9 5 9-5M12 12v10" fill="none" stroke="#000" stroke-opacity=".3" stroke-width="1.4" stroke-linejoin="round"/><path d="M9.6 8.2a2.4 2.1 0 1 1 3.4 1.9c-.7.4-1 .8-1 1.5" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round" transform="translate(0 1.2)"/><circle cx="12" cy="15.3" r=".95" fill="#fff"/>';
+
+  function limitedPreviewHTML(item, size){
+    const cls = size === 'big' ? ' big' : '';
+    if (item.type === 'font') {
+      return `<div class="limited-preview font${cls}" style="--rarity:${LIMITED_RARITIES[item.rarity].color};font-family:'${item.family}', 'Fredoka One', cursive;">Aa</div>`;
+    }
+    if (item.type === 'frame') {
+      return `<div class="limited-preview frame${cls}" style="--rarity:${LIMITED_RARITIES[item.rarity].color};"><div class="pf-preview pf-frame pf-frame-${item.id}"><img src="${currentProfileIcon || 'profile.png'}" alt=""></div></div>`;
+    }
+    return `<div class="limited-preview block${cls}" style="--rarity:${LIMITED_RARITIES[item.rarity].color};"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">${LUCKY_BLOCK_SVG}</svg></div>`;
+  }
+  function rarityPillHTML(rarity){
+    return `<span class="rarity-pill" style="--rarity:${LIMITED_RARITIES[rarity].color};">${rarity}</span>`;
+  }
+  function blockOddsText(block){
+    return LIMITED_RARITY_ORDER.filter(r => block.odds[r] > 0).map(r => `${r} ${block.odds[r]}%`).join(' · ');
+  }
+
+  function renderLimitedShopHTML(){
+    loadAllShopFonts();
+    const gems = game.gems || 0;
+    const items = limitedItemsForWeek(limitedWeekIndex());
+    const cardsHtml = items.map(item => {
+      const price = limitedPrice(item);
+      const owned = item.type !== 'block' && isOwnedCosmetic(item.id);
+      const typeLabel = item.type === 'font' ? 'Profile Font' : item.type === 'frame' ? 'Profile Frame' : 'Lucky Block';
+      const desc = item.type === 'font'
+        ? `Changes the font of your name on your profile and the leaderboard.`
+        : item.type === 'frame'
+          ? `A frame around your profile picture that everyone can see.`
+          : `Counts down, spins through every font and frame, then lands on one. Odds: ${blockOddsText(item)}. Duplicates give Gems back.`;
+      const btnLabel = owned ? 'Owned' : `${price} Gems`;
+      return `
+      <div class="shop-card limited-card" style="--rarity:${LIMITED_RARITIES[item.rarity].color};">
+        ${limitedPreviewHTML(item)}
+        <div class="shop-info">
+          <h3>${item.name} ${rarityPillHTML(item.rarity)}</h3>
+          <p><span class="owned">${typeLabel}</span> ${desc}</p>
+        </div>
+        <button class="buy-btn" data-limited-buy="${item.id}" ${owned || gems < price ? 'disabled' : ''}>${btnLabel}</button>
+      </div>`;
+    }).join('');
+
+    const ownedFonts = LIMITED_FONTS.filter(f => isOwnedCosmetic(f.id));
+    const ownedFrames = LIMITED_FRAMES.filter(f => isOwnedCosmetic(f.id));
+    const chip = (item, slot) => {
+      const equipped = (slot === 'font' ? game.equippedFont : game.equippedFrame) === item.id;
+      return `<button class="limited-chip${equipped ? ' equipped' : ''}" data-limited-equip="${slot}" data-id="${item.id}" style="--rarity:${LIMITED_RARITIES[item.rarity].color};">
+        ${limitedPreviewHTML(Object.assign({ type: slot }, item))}
+        <span class="limited-chip-name">${item.name}</span>
+        <span class="limited-chip-state">${equipped ? 'Equipped' : 'Equip'}</span>
+      </button>`;
+    };
+    const noneChip = (slot) => {
+      const equipped = !(slot === 'font' ? game.equippedFont : game.equippedFrame);
+      return `<button class="limited-chip none${equipped ? ' equipped' : ''}" data-limited-equip="${slot}" data-id="">
+        <div class="limited-preview none">&#8856;</div>
+        <span class="limited-chip-name">None</span>
+        <span class="limited-chip-state">${equipped ? 'Equipped' : 'Equip'}</span>
+      </button>`;
+    };
+    const collectionHtml = `
+      <div class="limited-collection">
+        <h3 class="limited-section-title">Your Collection</h3>
+        <p class="limited-section-sub">Fonts ${ownedFonts.length} / ${LIMITED_FONTS.length} &middot; Frames ${ownedFrames.length} / ${LIMITED_FRAMES.length}</p>
+        <h4 class="limited-sub-title">Profile Fonts</h4>
+        <div class="limited-chip-grid">${noneChip('font')}${ownedFonts.map(f => chip(f, 'font')).join('')}</div>
+        <h4 class="limited-sub-title">Profile Frames</h4>
+        <div class="limited-chip-grid">${noneChip('frame')}${ownedFrames.map(f => chip(f, 'frame')).join('')}</div>
+      </div>`;
+
+    return `
+      <div class="limited-header">
+        <div class="limited-header-top">
+          <div>
+            <h2 class="limited-title">Limited Shop</h2>
+            <p class="limited-reset">New items in <strong id="limited-countdown">${formatLimitedCountdown(limitedMsLeft())}</strong></p>
+          </div>
+          <button class="limited-gems" id="limited-gems-btn" title="Convert Moneys to Gems">
+            <img src="gems.png" alt="Gems"><span>${gems.toLocaleString()}</span><span class="limited-gems-plus">+</span>
+          </button>
+        </div>
+      </div>
+      ${cardsHtml}
+      ${collectionHtml}
+    `;
+  }
+
+  function bindLimitedShop(){
+    const gemsBtn = document.getElementById('limited-gems-btn');
+    if (gemsBtn) gemsBtn.addEventListener('click', openGemsConvertDialog);
+    list.querySelectorAll('[data-limited-buy]').forEach(btn => {
+      btn.addEventListener('click', () => buyLimitedItem(btn.dataset.limitedBuy));
+    });
+    list.querySelectorAll('[data-limited-equip]').forEach(btn => {
+      btn.addEventListener('click', () => equipCosmetic(btn.dataset.limitedEquip, btn.dataset.id));
+    });
+  }
+
+  function buyLimitedItem(id){
+    const item = LIMITED_BY_ID[id];
+    if (!item) return;
+    // Only this week's items can be bought.
+    if (!limitedItemsForWeek(limitedWeekIndex()).some(i => i.id === id)) { renderShop(); return; }
+    const price = limitedPrice(item);
+    if ((game.gems || 0) < price) return;
+    if (item.type === 'block') { openLuckyBlock(item); return; }
+    if (isOwnedCosmetic(id)) return;
+    playSound('money.mp3');
+    game.gems -= price;
+    game.cosmeticsOwned = cleanCosmeticList((game.cosmeticsOwned || []).concat(id));
+    saveGame();
+    syncToSheet();
+    updateWorkshopGemsDisplay();
+    renderShop();
+    showBanner(`You got ${item.name}! Equip it in Your Collection.`);
+  }
+
+  function equipCosmetic(slot, id){
+    if (slot === 'font') {
+      if (id && !(validShopFont(id) && isOwnedCosmetic(id))) return;
+      game.equippedFont = id || '';
+    } else if (slot === 'frame') {
+      if (id && !(validShopFrame(id) && isOwnedCosmetic(id))) return;
+      game.equippedFrame = id || '';
+    } else return;
+    playSound('click.mp3');
+    saveGame();
+    syncToSheet();
+    if (activeTab === 'shop') renderShop();
+  }
+
+  function rollLuckyBlock(block){
+    const roll = Math.random() * 100;
+    let acc = 0;
+    let rarity = 'Common';
+    for (const r of LIMITED_RARITY_ORDER) {
+      acc += block.odds[r] || 0;
+      if (roll < acc) { rarity = r; break; }
+    }
+    const pool = LIMITED_COSMETICS.filter(i => i.rarity === rarity);
+    return pool[Math.floor(Math.random() * pool.length)];
+  }
+
+  /* ---------- LUCKY BLOCK OPENING ---------- */
+  let luckyOpening = false;
+  function openLuckyBlock(block){
+    if (luckyOpening) return;
+    const price = block.price;
+    if ((game.gems || 0) < price) return;
+    luckyOpening = true;
+    loadAllShopFonts();
+
+    // Pay and grant right away, so closing the page mid-spin never loses the prize.
+    const prize = rollLuckyBlock(block);
+    const duplicate = isOwnedCosmetic(prize.id);
+    const refund = duplicate ? LIMITED_RARITIES[prize.rarity].refund : 0;
+    game.gems -= price;
+    if (duplicate) game.gems += refund;
+    else game.cosmeticsOwned = cleanCosmeticList((game.cosmeticsOwned || []).concat(prize.id));
+    saveGame();
+    syncToSheet();
+    updateWorkshopGemsDisplay();
+    playSound('money.mp3');
+
+    const overlay = document.createElement('div');
+    overlay.className = 'lucky-overlay';
+    overlay.style.setProperty('--rarity', LIMITED_RARITIES[block.rarity].color);
+    overlay.innerHTML = `
+      <div class="lucky-box">
+        <h1 class="auth-heading">${block.name}</h1>
+        <div class="lucky-stage" id="lucky-stage">
+          <div class="lucky-block-big">${limitedPreviewHTML(block, 'big')}</div>
+          <div class="lucky-count" id="lucky-count">5</div>
+        </div>
+      </div>`;
+    document.body.appendChild(overlay);
+    requestAnimationFrame(() => overlay.classList.add('visible'));
+
+    const stage = overlay.querySelector('#lucky-stage');
+    const countEl = overlay.querySelector('#lucky-count');
+    let count = 5;
+    playSound('click.mp3');
+    const timer = setInterval(() => {
+      count--;
+      if (count > 0) {
+        countEl.textContent = count;
+        countEl.classList.remove('tick');
+        void countEl.offsetWidth;
+        countEl.classList.add('tick');
+        playSound('click.mp3');
+        return;
+      }
+      clearInterval(timer);
+      spinReel();
+    }, 1000);
+
+    function spinReel(){
+      // A random list of every font and frame, cycled until the strip is long
+      // enough. The prize sits near the end where the reel stops.
+      const TILE = 92;
+      const LENGTH = 44;
+      const WIN_INDEX = 38;
+      const strip = [];
+      let bag = [];
+      while (strip.length < LENGTH) {
+        if (!bag.length) bag = LIMITED_COSMETICS.slice().sort(() => Math.random() - 0.5);
+        strip.push(bag.pop());
+      }
+      strip[WIN_INDEX] = prize;
+      stage.innerHTML = `
+        <div class="lucky-reel">
+          <div class="lucky-reel-marker"></div>
+          <div class="lucky-reel-strip" id="lucky-reel-strip">
+            ${strip.map(item => `<div class="lucky-tile" style="--rarity:${LIMITED_RARITIES[item.rarity].color};">${limitedPreviewHTML(item)}<span>${item.name}</span></div>`).join('')}
+          </div>
+        </div>`;
+      const reel = stage.querySelector('.lucky-reel');
+      const stripEl = stage.querySelector('#lucky-reel-strip');
+      const jitter = (Math.random() - 0.5) * (TILE * 0.6);
+      const target = WIN_INDEX * TILE + TILE / 2 - reel.clientWidth / 2 + jitter;
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          stripEl.style.transform = `translateX(${-target}px)`;
+        });
+      });
+      let revealed = false;
+      const reveal = () => { if (!revealed) { revealed = true; showResult(); } };
+      stripEl.addEventListener('transitionend', reveal, { once: true });
+      setTimeout(reveal, 5200);
+    }
+
+    function showResult(){
+      playSound('money.mp3');
+      const typeLabel = prize.type === 'font' ? 'Profile Font' : 'Profile Frame';
+      stage.innerHTML = `
+        <div class="lucky-result" style="--rarity:${LIMITED_RARITIES[prize.rarity].color};">
+          ${limitedPreviewHTML(prize, 'big')}
+          <h2 class="lucky-result-name">${prize.name}</h2>
+          <div>${rarityPillHTML(prize.rarity)} <span class="lucky-result-type">${typeLabel}</span></div>
+          <p class="auth-sub">${duplicate ? `Duplicate! You already had this one, so you got ${refund} Gems back.` : 'New! It was added to Your Collection.'}</p>
+          ${duplicate ? '' : '<button class="auth-btn" id="lucky-equip">Equip now</button>'}
+          <button class="auth-btn secondary" id="lucky-close">Close</button>
+        </div>`;
+      const close = () => {
+        overlay.classList.remove('visible');
+        setTimeout(() => overlay.remove(), 250);
+        luckyOpening = false;
+        if (activeTab === 'shop') renderShop();
+      };
+      const equipBtn = stage.querySelector('#lucky-equip');
+      if (equipBtn) equipBtn.addEventListener('click', () => { equipCosmetic(prize.type, prize.id); close(); });
+      stage.querySelector('#lucky-close').addEventListener('click', close);
+    }
+  }
+
+  // Live countdown. Re-renders the Limited Shop when the week rolls over.
+  let limitedShownWeek = limitedWeekIndex();
+  setInterval(() => {
+    const text = formatLimitedCountdown(limitedMsLeft());
+    const cd = document.getElementById('limited-countdown');
+    if (cd) cd.textContent = text;
+    const tabTimer = document.getElementById('limited-tab-timer');
+    if (tabTimer) tabTimer.textContent = text;
+    const w = limitedWeekIndex();
+    if (w !== limitedShownWeek) {
+      limitedShownWeek = w;
+      if (activeTab === 'shop' && shopCategory === 'limited' && !luckyOpening) renderShop();
+    }
+  }, 1000);
 
   /* ---------- MUSIC PLAYER ---------- */
   const SONGS = [
@@ -7569,6 +8451,35 @@
     scheduleDance();
   }
 
+  // TASK METERS: every living crewmate registers here so the overall meter
+  // (top left) can add up their progress. Each entry has a progress() that
+  // returns 0 to TASK_COUNT (partial while working on a task).
+  const activeCrewmates = new Set();
+  const taskOverallEl = document.getElementById('task-overall');
+  const taskOverallFillEl = document.getElementById('task-overall-fill');
+  const taskOverallCountEl = document.getElementById('task-overall-count');
+
+  function updateOverallTaskMeter(){
+    if (!taskOverallEl) return;
+    const count = activeCrewmates.size;
+    if (count === 0) {
+      taskOverallEl.classList.remove('visible');
+      return;
+    }
+    let done = 0;
+    let progress = 0;
+    activeCrewmates.forEach(c => {
+      const p = c.progress();
+      progress += p;
+      done += Math.floor(p);
+    });
+    const total = count * TASK_COUNT;
+    taskOverallFillEl.style.width = Math.min(100, (progress / total) * 100) + '%';
+    taskOverallCountEl.textContent = done + ' / ' + total;
+    taskOverallEl.classList.add('visible');
+  }
+  setInterval(updateOverallTaskMeter, 200);
+
   function spawnCrewmate(){
     ensureTaskMarkers();
 
@@ -7576,6 +8487,7 @@
     el.className = 'crewmate';
     el.style.setProperty('--ccolor', CREWMATE_COLORS[Math.floor(Math.random() * CREWMATE_COLORS.length)]);
     el.innerHTML = `
+      <div class="task-meter"><div class="task-meter-fill"></div></div>
       <div class="body">
         <div class="backpack"></div>
         <div class="shell"></div>
@@ -7584,6 +8496,7 @@
       </div>
     `;
     document.body.appendChild(el);
+    const taskMeterFill = el.querySelector('.task-meter-fill');
 
     let x = Math.random() * (window.innerWidth - 36);
     let direction = Math.random() < 0.5 ? -1 : 1;
@@ -7592,6 +8505,18 @@
     let taskIndex = 0;
     let tasksDone = false;
     let workingUntil = null;
+    const TASK_WORK_MS = 1300;
+
+    function taskProgress(){
+      if (tasksDone) return TASK_COUNT;
+      let p = taskIndex;
+      if (workingUntil !== null) {
+        p += Math.min(1, Math.max(0, 1 - (workingUntil - Date.now()) / TASK_WORK_MS));
+      }
+      return Math.min(TASK_COUNT, p);
+    }
+    const crewEntry = { progress: taskProgress };
+    activeCrewmates.add(crewEntry);
 
     el.style.bottom = '16px';
     el.style.left = x + 'px';
@@ -7604,6 +8529,8 @@
       playSound('mogus.mp3');
       el.classList.add('dead');
       el.classList.remove('working', 'tasking', 'done');
+      activeCrewmates.delete(crewEntry);
+      updateOverallTaskMeter();
       earnClicks(reward);
       game.amogusAlive = Math.max(0, game.amogusAlive - 1);
       updateCounter();
@@ -7645,7 +8572,7 @@
           } else {
             const dx = targetX - x;
             if (Math.abs(dx) < 2) {
-              workingUntil = Date.now() + 1300;
+              workingUntil = Date.now() + TASK_WORK_MS;
               el.classList.add('working');
             } else {
               direction = dx > 0 ? 1 : -1;
@@ -7666,6 +8593,7 @@
         }
 
         el.style.left = x + 'px';
+        if (taskMeterFill) taskMeterFill.style.width = (taskProgress() / TASK_COUNT * 100) + '%';
       }
 
       requestAnimationFrame(walk);
@@ -7806,7 +8734,7 @@
       return `
       <div class="leaderboard-row${entry.username === currentUsername ? ' me' : ''}${i === 0 ? ' rank-1' : i === 1 ? ' rank-2' : i === 2 ? ' rank-3' : ''}${hasPrestige ? ' has-prestige' : ''}" data-username="${entry.username}">
         <span class="leaderboard-rank">#${i + 1}</span>
-        <div class="leaderboard-avatar">
+        <div class="leaderboard-avatar${frameClassAttr(entry.username === currentUsername ? game.equippedFrame : entry.profileFrame)}">
           <img src="${entry.profileIcon || 'profile.png'}" alt="${entry.username}">
         </div>
         <span class="leaderboard-name" data-username="${entry.username}" style="color:${authColor(entry.auth)}">${entry.username}${authBadge(entry.auth)}</span>
@@ -7853,6 +8781,8 @@
             profileIcon: res.account.profileIcon,
             auth: res.account.auth,
             font: res.account.font,
+            profileFont: res.account.profileFont || '',
+            profileFrame: res.account.profileFrame || '',
             clicks: res.account.clicks,
             prestige: res.account.prestige
           });
@@ -7906,11 +8836,9 @@
     });
 
     entries.forEach(entry => {
-      ensureFontLoaded(entry.font).then(family => {
-        if (!family) return;
-        const nameEl = list.querySelector(`.leaderboard-name[data-username="${CSS.escape(entry.username)}"]`);
-        if (nameEl) nameEl.style.fontFamily = `'${family}'`;
-      });
+      const nameEl = list.querySelector(`.leaderboard-name[data-username="${CSS.escape(entry.username)}"]`);
+      const shopFont = entry.username === currentUsername ? game.equippedFont : entry.profileFont;
+      applyProfileNameFont(nameEl, entry.font, shopFont);
     });
   }
 
@@ -8018,11 +8946,8 @@
       friendsSearchInput.addEventListener('input', () => renderFriendsList(friendsSearchInput.value.trim()));
     }
 
-    ensureFontLoaded(currentFont).then(family => {
-      if (!family) return;
-      const nameEl = document.getElementById('stats-name-click');
-      if (nameEl) nameEl.style.fontFamily = `'${family}'`;
-    });
+    applyProfileNameFont(document.getElementById('stats-name-click'), currentFont, game.equippedFont);
+    applyProfileFrame(document.getElementById('stats-avatar-click'), game.equippedFrame);
 
     loadFriendRequests();
     loadModReports();
@@ -8781,7 +9706,8 @@
       updateCounter();
       saveGame();
       syncToSheet();
-      renderStats();
+      if (activeTab === 'shop') renderShop();
+      else renderStats();
       updateWorkshopGemsDisplay();
       closeConfirm();
     });
@@ -8958,7 +9884,7 @@
     workshopView = 'profile';
     renderWorkshopBody();
   });
-  workshopUploadBtn.addEventListener('click', openWorkshopUploadDialog);
+  workshopUploadBtn.addEventListener('click', () => openWorkshopUploadDialog());
   const workshopSearchInput = document.getElementById('workshop-search-input');
   workshopSearchInput.addEventListener('input', () => {
     workshopSearchQuery = workshopSearchInput.value;
@@ -9734,55 +10660,31 @@
     }
   }
 
-  // "New Mod" dialog with two tabs: Upload (from a GitHub repo) and Create
-  // (build a mod in the built-in editor, no GitHub needed).
-  function openWorkshopUploadDialog(tab){
-    const active = tab === 'create' ? 'create' : 'upload';
+  // "New Mod" dialog. Only the built-in editor is offered now; the GitHub
+  // Upload tab was removed in 1.13.0. Mods already uploaded from GitHub still
+  // work, and the backend still accepts them, but new ones are made in the editor.
+  function openWorkshopUploadDialog(){
     const gems = game.gems || 0;
     const hasDraft = !!loadModEditorDraft();
-    const tabsHtml = `
-      <div class="new-mod-tabs" role="tablist">
-        <button class="new-mod-tab${active === 'upload' ? ' active' : ''}" data-tab="upload" role="tab" aria-selected="${active === 'upload'}">Upload</button>
-        <button class="new-mod-tab${active === 'create' ? ' active' : ''}" data-tab="create" role="tab" aria-selected="${active === 'create'}">Create</button>
-      </div>`;
-
-    if (active === 'upload') {
-      confirmBox.innerHTML = `
-        <h1 class="auth-heading">New Mod</h1>
-        ${tabsHtml}
-        <p class="auth-sub">Paste a link to a public GitHub repo. It needs a manifest.json in the root and a "custom" folder (the folder itself is required, but everything inside it is optional). Uploading costs ${WORKSHOP_UPLOAD_COST} Gems. You have ${gems.toLocaleString()} Gems.</p>
-        <input type="text" id="workshop-upload-repo" class="auth-input" placeholder="https://github.com/owner/repo">
-        <button class="auth-btn" id="workshop-upload-check">Check Repo</button>
-        <button class="auth-btn secondary" id="confirm-cancel">Cancel</button>
-        <p class="auth-error" id="workshop-upload-error" style="display:none;"></p>
-      `;
-      document.getElementById('workshop-upload-check').addEventListener('click', checkWorkshopUploadRepo);
-    } else {
-      const enough = gems >= MOD_EDITOR_COST;
-      confirmBox.innerHTML = `
-        <h1 class="auth-heading">New Mod</h1>
-        ${tabsHtml}
-        <p class="auth-sub">Build a mod right here, no GitHub needed. Add icons, cursors, backgrounds and music, see a live preview, then publish it to the Workshop.</p>
-        <p class="auth-sub">Creating a mod costs <strong>${MOD_EDITOR_COST} Gems</strong>, paid when you publish. You have ${gems.toLocaleString()} Gems.</p>
-        <button class="auth-btn" id="mod-editor-open"${enough ? '' : ' disabled'}>${hasDraft ? 'Continue your draft' : 'Open the editor'}</button>
-        ${enough ? '' : `<p class="auth-error" style="display:block;">You need ${(MOD_EDITOR_COST - gems).toLocaleString()} more Gems.</p><button class="auth-btn secondary" id="mod-editor-get-gems">Convert Moneys to Gems</button>`}
-        <button class="auth-btn secondary" id="confirm-cancel">Cancel</button>
-      `;
-      const openBtn = document.getElementById('mod-editor-open');
-      if (openBtn) openBtn.addEventListener('click', openModEditor);
-      const getGemsBtn = document.getElementById('mod-editor-get-gems');
-      if (getGemsBtn) getGemsBtn.addEventListener('click', openGemsConvertDialog);
-    }
-
-    confirmBox.querySelectorAll('.new-mod-tab').forEach(btn => {
-      btn.addEventListener('click', () => openWorkshopUploadDialog(btn.dataset.tab));
-    });
+    const enough = gems >= MOD_EDITOR_COST;
+    confirmBox.innerHTML = `
+      <h1 class="auth-heading">New Mod</h1>
+      <p class="auth-sub">Build a mod right here, no GitHub needed. Add icons, cursors, backgrounds and music, see a live preview, then publish it to the Workshop.</p>
+      <p class="auth-sub">Creating a mod costs <strong>${MOD_EDITOR_COST} Gems</strong>, paid when you publish. You have ${gems.toLocaleString()} Gems.</p>
+      <button class="auth-btn" id="mod-editor-open"${enough ? '' : ' disabled'}>${hasDraft ? 'Continue your draft' : 'Open the editor'}</button>
+      ${enough ? '' : `<p class="auth-error" style="display:block;">You need ${(MOD_EDITOR_COST - gems).toLocaleString()} more Gems.</p><button class="auth-btn secondary" id="mod-editor-get-gems">Convert Moneys to Gems</button>`}
+      <button class="auth-btn secondary" id="confirm-cancel">Cancel</button>
+    `;
+    const openBtn = document.getElementById('mod-editor-open');
+    if (openBtn) openBtn.addEventListener('click', openModEditor);
+    const getGemsBtn = document.getElementById('mod-editor-get-gems');
+    if (getGemsBtn) getGemsBtn.addEventListener('click', openGemsConvertDialog);
     document.getElementById('confirm-cancel').addEventListener('click', closeConfirm);
     confirmOverlay.classList.add('visible');
   }
 
   /* ---------- MOD EDITOR ---------- */
-  const MOD_EDITOR_COST = 150;
+  const MOD_EDITOR_COST = 100;
   const MOD_EDITOR_DRAFT_KEY = 'fallgamedev-clicker-mod-editor-draft';
   // Mods made in the editor are stored in the Sheet, and a Google Sheets cell
   // holds up to 50,000 characters. Uploaded files are shrunk and kept under
@@ -10644,7 +11546,7 @@
   const AUTH_KEY = 'fgd_last_auth';
   const FONT_KEY = 'fgd_last_font';
   // Plain deployment URL only. A /u/N/ part is a browser account number and does not resolve for players. See README, Backend.
-  const SHEET_API_URL = 'https://script.google.com/macros/s/AKfycbyal468CPlsx25nEaSiNCjKpu-DJUp-uXzUeEhReTYaS0_bJY_O8sZodnwOMr1LpzcXFA/exec';
+  const SHEET_API_URL = 'https://script.google.com/macros/s/AKfycbw6y6wWv58-PLPBrMagrAqynLKBUCXk3Myj2Q--ur2nI4NCzz8F6gXhwhzPBVo-qKGnfg/exec';
 
   function getSiteOpens(){
     return parseInt(localStorage.getItem(SITE_OPENS_KEY) || '0', 10);
@@ -10730,7 +11632,10 @@
       prestigeMultOwned: game.prestigeMultOwned || 0,
       autoBuyerOwned: game.autoBuyerOwned || false,
       gems: game.gems || 0,
-      installedMods: game.installedMods || []
+      installedMods: game.installedMods || [],
+      ownedCosmetics: game.cosmeticsOwned || [],
+      profileFont: game.equippedFont || '',
+      profileFrame: game.equippedFrame || ''
     };
   }
 
@@ -10856,8 +11761,16 @@
       prestigeMultOwned: source.prestigeMultOwned || 0,
       autoBuyerOwned: !!source.autoBuyerOwned,
       gems: source.gems || 0,
-      installedMods: Array.isArray(source.installedMods) ? source.installedMods : (Array.isArray(account.installedMods) ? account.installedMods : [])
+      installedMods: Array.isArray(source.installedMods) ? source.installedMods : (Array.isArray(account.installedMods) ? account.installedMods : []),
+      // LIMITED SHOP: server copy once the backend has the columns, local save otherwise.
+      cosmeticsOwned: cleanCosmeticList(
+        (!localIsAhead && Array.isArray(account.ownedCosmetics)) ? account.ownedCosmetics : ((savedRaw && savedRaw.cosmeticsOwned) || [])
+      ),
+      equippedFont: (!localIsAhead && account.profileFont !== undefined) ? String(account.profileFont || '') : String((savedRaw && savedRaw.equippedFont) || ''),
+      equippedFrame: (!localIsAhead && account.profileFrame !== undefined) ? String(account.profileFrame || '') : String((savedRaw && savedRaw.equippedFrame) || '')
     });
+    if (!game.cosmeticsOwned.includes(game.equippedFont)) game.equippedFont = '';
+    if (!game.cosmeticsOwned.includes(game.equippedFrame)) game.equippedFrame = '';
 
     // Preserve the real lastSeen so applyOfflineEarnings() (called later in
     // startGame) can still measure real elapsed time. Don't use saveGame()
@@ -11345,7 +12258,7 @@
       box.classList.remove('visible');
       return;
     }
-    document.getElementById('public-profile-featured-icon').textContent = a.icon;
+    document.getElementById('public-profile-featured-icon').innerHTML = achievementIconHTML(a);
     document.getElementById('public-profile-featured-name').textContent = a.label;
     const diff = document.getElementById('public-profile-featured-diff');
     diff.textContent = a.difficulty;
@@ -11430,9 +12343,8 @@
       publicProfileModActions.style.display = canModerate ? 'flex' : 'none';
       publicProfileRestoreRow.style.display = (viewerAuth === 'owner' && !isSelf) ? 'flex' : 'none';
 
-      ensureFontLoaded(account.font).then(family => {
-        if (family) publicProfileName.style.fontFamily = `'${family}'`;
-      });
+      applyProfileNameFont(publicProfileName, account.font, isSelf ? game.equippedFont : account.profileFont);
+      applyProfileFrame(document.querySelector('#public-profile-overlay .public-profile-avatar'), isSelf ? game.equippedFrame : account.profileFrame);
 
       const monthName = account.birthday && MONTHS[(account.birthday.month || 1) - 1];
       const showBirthday = monthName && (!account.hideBirthday || isSelf);
@@ -11850,87 +12762,129 @@
      ACHIEVEMENTS
      Add more entries here any time. Each needs:
        id    - unique, never change once players may have it
-       icon  - a short bit of text/emoji shown in the icon box
+       icon  - a key from ACHIEVEMENT_ICONS below, or 'shop:<Shop item name>'
+               to reuse that item's shop icon. Drawn white on the tile.
        label - title shown to the player
        desc  - description shown to the player
        check - function(game) that returns true once earned
      ====================================================== */
   const ACHIEVEMENTS = [
-    { id: 'first_click', icon: '1', label: 'First Click', desc: 'Click the avatar for the first time.', difficulty: 'Easy', check: g => g.clicks >= 1 },
-    { id: 'click_100', icon: '100', label: 'Getting Started', desc: 'Reach 100 total clicks.', difficulty: 'Easy', check: g => g.clicks >= 100 },
-    { id: 'click_1000', icon: '1K', label: 'Clicking Along', desc: 'Reach 1,000 total clicks.', difficulty: 'Easy', check: g => g.clicks >= 1000 },
-    { id: 'click_10000', icon: '10K', label: 'Big Spender', desc: 'Reach 10,000 total clicks.', difficulty: 'Medium', check: g => g.clicks >= 10000 },
-    { id: 'click_100000', icon: '100K', label: 'Clicking Legend', desc: 'Reach 100,000 total clicks.', difficulty: 'Medium', check: g => g.clicks >= 100000 },
-    { id: 'click_1000000', icon: '1M', label: 'Millionaire', desc: 'Reach 1,000,000 total clicks.', difficulty: 'Hard', check: g => g.clicks >= 1000000 },
-    { id: 'click_10000000', icon: '10M', label: 'Multi-Millionaire', desc: 'Reach 10,000,000 total clicks.', difficulty: 'Hard', check: g => g.clicks >= 10000000 },
-    { id: 'click_100000000', icon: '100M', label: 'Prestige Ready', desc: 'Reach 100,000,000 total clicks.', difficulty: 'Extreme', check: g => g.clicks >= 100000000 },
-    { id: 'click_1000000000', icon: '1B', label: 'Billionaire', desc: 'Reach 1,000,000,000 total clicks.', difficulty: 'Extreme', check: g => g.clicks >= 1000000000 },
-    { id: 'first_boost', icon: '\u26a1', label: 'Power Up', desc: 'Buy your first Click Boost.', difficulty: 'Easy', check: g => g.clickBoostOwned >= 1 },
-    { id: 'clickboost_5', icon: '\u26a1', label: 'Practice Makes Perfect', desc: 'Own 5 Click Boosts.', difficulty: 'Medium', check: g => g.clickBoostOwned >= 5 },
-    { id: 'clickboost_25', icon: '\u26a1', label: 'Boosted', desc: 'Own 25 Click Boosts.', difficulty: 'Hard', check: g => g.clickBoostOwned >= 25 },
-    { id: 'clickboost_50', icon: '\u26a1', label: 'Overclocked', desc: 'Own 50 Click Boosts.', difficulty: 'Extreme', check: g => g.clickBoostOwned >= 50 },
-    { id: 'power_5', icon: '\ud83d\udcaa', label: 'Getting Stronger', desc: 'Reach 5 click power.', difficulty: 'Medium', check: g => g.clickPower >= 5 },
-    { id: 'power_10', icon: '\ud83d\udcaa', label: 'Heavy Hitter', desc: 'Reach 10 click power.', difficulty: 'Medium', check: g => g.clickPower >= 10 },
-    { id: 'power_25', icon: '\ud83d\udcaa', label: 'Overpowered', desc: 'Reach 25 click power.', difficulty: 'Hard', check: g => g.clickPower >= 25 },
-    { id: 'power_50', icon: '\ud83d\udcaa', label: 'Absurd Power', desc: 'Reach 50 click power.', difficulty: 'Hard', check: g => g.clickPower >= 50 },
-    { id: 'power_100', icon: '\ud83d\udcaa', label: 'Broken', desc: 'Reach 100 click power.', difficulty: 'Extreme', check: g => g.clickPower >= 100 },
-    { id: 'first_auto', icon: '\u23f1', label: 'Set It and Forget It', desc: 'Buy your first Auto Clicker.', difficulty: 'Easy', check: g => g.autoClickerOwned >= 1 },
-    { id: 'auto_5', icon: '\u23f1', label: 'Automated', desc: 'Own 5 Auto Clickers.', difficulty: 'Medium', check: g => g.autoClickerOwned >= 5 },
-    { id: 'auto_25', icon: '\u23f1', label: 'Assembly Line', desc: 'Own 25 Auto Clickers.', difficulty: 'Hard', check: g => g.autoClickerOwned >= 25 },
-    { id: 'auto_50', icon: '\u23f1', label: 'Factory Floor', desc: 'Own 50 Auto Clickers.', difficulty: 'Extreme', check: g => g.autoClickerOwned >= 50 },
-    { id: 'first_dvd', icon: 'DVD', label: 'Bouncing Around', desc: 'Buy your first DVD Logo.', difficulty: 'Easy', check: g => g.dvdOwned >= 1 },
-    { id: 'dvd_5', icon: 'DVD', label: 'DVD Party', desc: 'Own 5 DVD Logos.', difficulty: 'Medium', check: g => g.dvdOwned >= 5 },
-    { id: 'dvd_25', icon: 'DVD', label: 'Screensaver Simulator', desc: 'Own 25 DVD Logos.', difficulty: 'Hard', check: g => g.dvdOwned >= 25 },
-    { id: 'dvd_100', icon: 'DVD', label: 'DVD Overload', desc: 'Own 100 DVD Logos.', difficulty: 'Extreme', check: g => g.dvdOwned >= 100 },
-    { id: 'corner_hit', icon: '\ud83c\udfaf', label: 'Perfect Corner', desc: 'Land a DVD logo corner hit.', difficulty: 'Medium', check: g => g.clicks >= 10000 && g.dvdOwned >= 1 },
-    { id: 'dvd_behind', icon: '\ud83d\udd04', label: 'Out of Sight', desc: 'Send the DVD logos behind the page.', difficulty: 'Easy', check: g => g.dvdBehind },
-    { id: 'first_amogus', icon: '?', label: 'Sus', desc: 'Buy your first Amogus.', difficulty: 'Easy', check: g => g.amogusOwned >= 1 },
-    { id: 'amogus_5', icon: '?', label: 'Emergency Meeting', desc: 'Own 5 Amoguses.', difficulty: 'Medium', check: g => g.amogusOwned >= 5 },
-    { id: 'amogus_25', icon: '?', label: 'Impostor Among Us', desc: 'Own 25 Amoguses.', difficulty: 'Hard', check: g => g.amogusOwned >= 25 },
-    { id: 'first_noob', icon: 'N', label: 'Oof', desc: 'Buy your first Roblox Noob.', difficulty: 'Easy', check: g => g.noobOwned >= 1 },
-    { id: 'noob_5', icon: 'N', label: 'Noob Squad', desc: 'Own 5 Roblox Noobs.', difficulty: 'Medium', check: g => g.noobOwned >= 5 },
-    { id: 'noob_25', icon: 'N', label: 'Oof Simulator', desc: 'Own 25 Roblox Noobs.', difficulty: 'Hard', check: g => g.noobOwned >= 25 },
-    { id: 'gems_1', icon: '\ud83d\udc8e', label: 'Shiny', desc: 'Earn your first Gem.', difficulty: 'Easy', check: g => (g.gems || 0) >= 1 },
-    { id: 'gems_50', icon: '\ud83d\udc8e', label: 'Gem Collector', desc: 'Earn 50 Gems.', difficulty: 'Medium', check: g => (g.gems || 0) >= 50 },
-    { id: 'gems_250', icon: '\ud83d\udc8e', label: 'Gem Hoarder', desc: 'Earn 250 Gems.', difficulty: 'Hard', check: g => (g.gems || 0) >= 250 },
-    { id: 'gems_1000', icon: '\ud83d\udc8e', label: 'Gem Tycoon', desc: 'Earn 1,000 Gems.', difficulty: 'Extreme', check: g => (g.gems || 0) >= 1000 },
-    { id: 'first_mod', icon: 'MOD', label: 'Modder', desc: 'Install your first mod from the Workshop.', difficulty: 'Easy', check: g => (g.installedMods || []).length >= 1 },
-    { id: 'mods_5', icon: 'MOD', label: 'Mod Enthusiast', desc: 'Install 5 mods.', difficulty: 'Medium', check: g => (g.installedMods || []).length >= 5 },
-    { id: 'font_changed', icon: 'Aa', label: 'New Look', desc: 'Pick a custom UI font in the Font Manager.', difficulty: 'Easy', check: g => !!g.fontManagerOwned && !!g.selectedUiFont },
-    { id: 'effect_confetti', icon: '\ud83c\udf89', label: 'Party Time', desc: 'Turn on the Confetti click effect.', difficulty: 'Easy', check: g => !!g.effectsOwned && g.selectedEffect === 'confetti' },
-    { id: 'effect_shake', icon: '\ud83d\udcf3', label: 'Earthquake', desc: 'Turn on the Screen Shake click effect.', difficulty: 'Easy', check: g => !!g.effectsOwned && g.selectedEffect === 'shake' },
-    { id: 'icon_food', icon: '\ud83c\udf55', label: 'Snack Time', desc: 'Set your icon to the Food category.', difficulty: 'Easy', check: g => g.selectedIcon === 'category:food' },
-    { id: 'icon_symbols', icon: '\u2728', label: 'Symbolic', desc: 'Set your icon to the Symbols category.', difficulty: 'Easy', check: g => g.selectedIcon === 'category:symbols' },
-    { id: 'icon_items', icon: '\ud83c\udf92', label: 'Loadout', desc: 'Set your icon to the Items category.', difficulty: 'Easy', check: g => g.selectedIcon === 'category:items' },
-    { id: 'all_customization', icon: '\u2728', label: 'Fully Customized', desc: 'Own the Music Player, Custom Cursors, Background Switcher, and Icon Modifier.', difficulty: 'Medium', check: g => g.musicPlayerOwned && g.cursorsOwned && g.bgOwned && g.iconModifierOwned },
-    { id: 'god', icon: '\uD83C\uDFC6', label: 'Platinum', desc: 'Have EVERY achivement.', difficulty: 'Special', check: g => ACHIEVEMENTS.every(x => x.id === 'god' || x.secret || (g.unlockedAchievements || []).includes(x.id)) },
+    { id: 'first_click', icon: 'pointer', label: 'First Click', desc: 'Click the avatar for the first time.', difficulty: 'Easy', check: g => g.clicks >= 1 },
+    { id: 'click_100', icon: 'coin', label: 'Getting Started', desc: 'Reach 100 total clicks.', difficulty: 'Easy', check: g => g.clicks >= 100 },
+    { id: 'click_1000', icon: 'coin', label: 'Clicking Along', desc: 'Reach 1,000 total clicks.', difficulty: 'Easy', check: g => g.clicks >= 1000 },
+    { id: 'click_10000', icon: 'coins', label: 'Big Spender', desc: 'Reach 10,000 total clicks.', difficulty: 'Medium', check: g => g.clicks >= 10000 },
+    { id: 'click_100000', icon: 'coins', label: 'Clicking Legend', desc: 'Reach 100,000 total clicks.', difficulty: 'Medium', check: g => g.clicks >= 100000 },
+    { id: 'click_1000000', icon: 'bag', label: 'Millionaire', desc: 'Reach 1,000,000 total clicks.', difficulty: 'Hard', check: g => g.clicks >= 1000000 },
+    { id: 'click_10000000', icon: 'bag', label: 'Multi-Millionaire', desc: 'Reach 10,000,000 total clicks.', difficulty: 'Hard', check: g => g.clicks >= 10000000 },
+    { id: 'click_100000000', icon: 'shop:Prestige', label: 'Prestige Ready', desc: 'Reach 100,000,000 total clicks.', difficulty: 'Extreme', check: g => g.clicks >= 100000000 },
+    { id: 'click_1000000000', icon: 'bank', label: 'Billionaire', desc: 'Reach 1,000,000,000 total clicks.', difficulty: 'Extreme', check: g => g.clicks >= 1000000000 },
+    { id: 'first_boost', icon: 'shop:Click Boost', label: 'Power Up', desc: 'Buy your first Click Boost.', difficulty: 'Easy', check: g => g.clickBoostOwned >= 1 },
+    { id: 'clickboost_5', icon: 'shop:Click Boost', label: 'Practice Makes Perfect', desc: 'Own 5 Click Boosts.', difficulty: 'Medium', check: g => g.clickBoostOwned >= 5 },
+    { id: 'clickboost_25', icon: 'shop:Click Boost', label: 'Boosted', desc: 'Own 25 Click Boosts.', difficulty: 'Hard', check: g => g.clickBoostOwned >= 25 },
+    { id: 'clickboost_50', icon: 'shop:Click Boost', label: 'Overclocked', desc: 'Own 50 Click Boosts.', difficulty: 'Extreme', check: g => g.clickBoostOwned >= 50 },
+    { id: 'power_5', icon: 'dumbbell', label: 'Getting Stronger', desc: 'Reach 5 click power.', difficulty: 'Medium', check: g => g.clickPower >= 5 },
+    { id: 'power_10', icon: 'dumbbell', label: 'Heavy Hitter', desc: 'Reach 10 click power.', difficulty: 'Medium', check: g => g.clickPower >= 10 },
+    { id: 'power_25', icon: 'dumbbell', label: 'Overpowered', desc: 'Reach 25 click power.', difficulty: 'Hard', check: g => g.clickPower >= 25 },
+    { id: 'power_50', icon: 'dumbbell', label: 'Absurd Power', desc: 'Reach 50 click power.', difficulty: 'Hard', check: g => g.clickPower >= 50 },
+    { id: 'power_100', icon: 'dumbbell', label: 'Broken', desc: 'Reach 100 click power.', difficulty: 'Extreme', check: g => g.clickPower >= 100 },
+    { id: 'first_auto', icon: 'shop:Auto Clicker', label: 'Set It and Forget It', desc: 'Buy your first Auto Clicker.', difficulty: 'Easy', check: g => g.autoClickerOwned >= 1 },
+    { id: 'auto_5', icon: 'shop:Auto Clicker', label: 'Automated', desc: 'Own 5 Auto Clickers.', difficulty: 'Medium', check: g => g.autoClickerOwned >= 5 },
+    { id: 'auto_25', icon: 'shop:Auto Clicker', label: 'Assembly Line', desc: 'Own 25 Auto Clickers.', difficulty: 'Hard', check: g => g.autoClickerOwned >= 25 },
+    { id: 'auto_50', icon: 'shop:Auto Clicker', label: 'Factory Floor', desc: 'Own 50 Auto Clickers.', difficulty: 'Extreme', check: g => g.autoClickerOwned >= 50 },
+    { id: 'first_dvd', icon: 'shop:DVD Logo', label: 'Bouncing Around', desc: 'Buy your first DVD Logo.', difficulty: 'Easy', check: g => g.dvdOwned >= 1 },
+    { id: 'dvd_5', icon: 'shop:DVD Logo', label: 'DVD Party', desc: 'Own 5 DVD Logos.', difficulty: 'Medium', check: g => g.dvdOwned >= 5 },
+    { id: 'dvd_25', icon: 'shop:DVD Logo', label: 'Screensaver Simulator', desc: 'Own 25 DVD Logos.', difficulty: 'Hard', check: g => g.dvdOwned >= 25 },
+    { id: 'dvd_100', icon: 'shop:DVD Logo', label: 'DVD Overload', desc: 'Own 100 DVD Logos.', difficulty: 'Extreme', check: g => g.dvdOwned >= 100 },
+    { id: 'corner_hit', icon: 'target', label: 'Perfect Corner', desc: 'Land a DVD logo corner hit.', difficulty: 'Medium', check: g => g.clicks >= 10000 && g.dvdOwned >= 1 },
+    { id: 'dvd_behind', icon: 'shop:DVD Layer', label: 'Out of Sight', desc: 'Send the DVD logos behind the page.', difficulty: 'Easy', check: g => g.dvdBehind },
+    { id: 'first_amogus', icon: 'crewmate', label: 'Sus', desc: 'Buy your first Amogus.', difficulty: 'Easy', check: g => g.amogusOwned >= 1 },
+    { id: 'amogus_5', icon: 'crewmate', label: 'Emergency Meeting', desc: 'Own 5 Amoguses.', difficulty: 'Medium', check: g => g.amogusOwned >= 5 },
+    { id: 'amogus_25', icon: 'crewmate', label: 'Impostor Among Us', desc: 'Own 25 Amoguses.', difficulty: 'Hard', check: g => g.amogusOwned >= 25 },
+    { id: 'first_noob', icon: 'shop:Roblox Noob', label: 'Oof', desc: 'Buy your first Roblox Noob.', difficulty: 'Easy', check: g => g.noobOwned >= 1 },
+    { id: 'noob_5', icon: 'shop:Roblox Noob', label: 'Noob Squad', desc: 'Own 5 Roblox Noobs.', difficulty: 'Medium', check: g => g.noobOwned >= 5 },
+    { id: 'noob_25', icon: 'shop:Roblox Noob', label: 'Oof Simulator', desc: 'Own 25 Roblox Noobs.', difficulty: 'Hard', check: g => g.noobOwned >= 25 },
+    { id: 'gems_1', icon: 'gem', label: 'Shiny', desc: 'Earn your first Gem.', difficulty: 'Easy', check: g => (g.gems || 0) >= 1 },
+    { id: 'gems_50', icon: 'gem', label: 'Gem Collector', desc: 'Earn 50 Gems.', difficulty: 'Medium', check: g => (g.gems || 0) >= 50 },
+    { id: 'gems_250', icon: 'gem', label: 'Gem Hoarder', desc: 'Earn 250 Gems.', difficulty: 'Hard', check: g => (g.gems || 0) >= 250 },
+    { id: 'gems_1000', icon: 'gem', label: 'Gem Tycoon', desc: 'Earn 1,000 Gems.', difficulty: 'Extreme', check: g => (g.gems || 0) >= 1000 },
+    { id: 'first_mod', icon: 'puzzle', label: 'Modder', desc: 'Install your first mod from the Workshop.', difficulty: 'Easy', check: g => (g.installedMods || []).length >= 1 },
+    { id: 'mods_5', icon: 'puzzle', label: 'Mod Enthusiast', desc: 'Install 5 mods.', difficulty: 'Medium', check: g => (g.installedMods || []).length >= 5 },
+    { id: 'font_changed', icon: 'shop:Font Manager', label: 'New Look', desc: 'Pick a custom UI font in the Font Manager.', difficulty: 'Easy', check: g => !!g.fontManagerOwned && !!g.selectedUiFont },
+    { id: 'effect_confetti', icon: 'shop:Click Effects', label: 'Party Time', desc: 'Turn on the Confetti click effect.', difficulty: 'Easy', check: g => !!g.effectsOwned && g.selectedEffect === 'confetti' },
+    { id: 'effect_shake', icon: 'shake', label: 'Earthquake', desc: 'Turn on the Screen Shake click effect.', difficulty: 'Easy', check: g => !!g.effectsOwned && g.selectedEffect === 'shake' },
+    { id: 'icon_food', icon: 'pizza', label: 'Snack Time', desc: 'Set your icon to the Food category.', difficulty: 'Easy', check: g => g.selectedIcon === 'category:food' },
+    { id: 'icon_symbols', icon: 'star4', label: 'Symbolic', desc: 'Set your icon to the Symbols category.', difficulty: 'Easy', check: g => g.selectedIcon === 'category:symbols' },
+    { id: 'icon_items', icon: 'backpack', label: 'Loadout', desc: 'Set your icon to the Items category.', difficulty: 'Easy', check: g => g.selectedIcon === 'category:items' },
+    { id: 'all_customization', icon: 'palette', label: 'Fully Customized', desc: 'Own the Music Player, Custom Cursors, Background Switcher, and Icon Modifier.', difficulty: 'Medium', check: g => g.musicPlayerOwned && g.cursorsOwned && g.bgOwned && g.iconModifierOwned },
+    { id: 'god', icon: 'trophy', label: 'Platinum', desc: 'Have EVERY achivement.', difficulty: 'Special', check: g => ACHIEVEMENTS.every(x => x.id === 'god' || x.secret || (g.unlockedAchievements || []).includes(x.id)) },
     // Not part of the normal auto-scan below (check always returns false) -
     // this one is only ever granted manually, by checkSymbolsHeadsUpOnLoad(),
     // and `secret: true` keeps it out of the Get a Hint pool entirely so it
     // never gets spoiled ahead of time, no matter which difficulty tiers are
     // still locked.
-    { id: 'symbols_heads_up', icon: '\ud83d\udc40', label: 'Thanks for the heads up!', desc: 'Reload the page while your Symbols icon had landed on a certain content warning label.', difficulty: 'Special', secret: true, check: () => false },
-    { id: 'auto_kill', icon: '\ud83d\udc80', label: 'No Mercy', desc: 'Buy Auto Kill.', difficulty: 'Medium', check: g => g.autoKillOwned },
-    { id: 'offline_earner', icon: '\ud83d\udcb0', label: 'Set for Life', desc: 'Buy Offline Earnings.', difficulty: 'Medium', check: g => g.offlineEarningsOwned },
-    { id: 'completionist', icon: '\ud83c\udfc6', label: 'Completionist', desc: 'Own every upgrade in the Plain and Customization shop categories.', difficulty: 'Hard', check: g => g.autoKillOwned && g.offlineEarningsOwned && g.musicPlayerOwned && g.cursorsOwned && g.bgOwned && g.iconModifierOwned && g.clickBoostOwned >= 1 && g.autoClickerOwned >= 1 },
-    { id: 'music_loop', icon: '\ud83c\udfb5', label: 'On Repeat', desc: 'Turn on music looping.', difficulty: 'Easy', check: g => g.musicLoop },
-    { id: 'light_mode', icon: '\u2600', label: 'Seen the Light', desc: 'Switch to Light Mode.', difficulty: 'Easy', check: g => g.lightMode },
-    { id: 'sfx_muted', icon: '\ud83d\udd07', label: 'Silence is Golden', desc: 'Mute the sound effects.', difficulty: 'Easy', check: g => g.sfxMuted },
-    { id: 'hide_cursor', icon: '\ud83d\udc7b', label: "Where'd It Go?", desc: 'Hide your custom cursor.', difficulty: 'Easy', check: g => g.hideCursor },
-    { id: 'first_prestige', icon: '\u267b', label: 'Rebirth', desc: 'Prestige for the first time.', difficulty: 'Extreme', check: g => (g.totalPrestige || 0) >= 1 },
-    { id: 'prestige_5', icon: '\u267b', label: 'Serial Reincarnator', desc: 'Prestige 5 times.', difficulty: 'Extreme', check: g => (g.totalPrestige || 0) >= 5 },
-    { id: 'prestige_10', icon: '\u267b', label: 'Loop Enjoyer', desc: 'Prestige 10 times.', difficulty: 'Extreme', check: g => (g.totalPrestige || 0) >= 10 },
-    { id: 'prestige_25', icon: '\u267b', label: 'Ascended', desc: 'Prestige 25 times.', difficulty: 'Extreme', check: g => (g.totalPrestige || 0) >= 25 },
-    { id: 'first_boost_trade', icon: '\ud83d\udd2e', label: 'Worth It', desc: 'Trade Prestige for your first Boost.', difficulty: 'Extreme', check: g => (g.boosts || 0) >= 1 },
-    { id: 'boost_5', icon: '\ud83d\udd2e', label: 'Multiplied', desc: 'Own 5 Boosts.', difficulty: 'Extreme', check: g => (g.boosts || 0) >= 5 },
-    { id: 'boost_10', icon: '\ud83d\udd2e', label: 'Exponential', desc: 'Own 10 Boosts.', difficulty: 'Extreme', check: g => (g.boosts || 0) >= 10 },
-    { id: 'first_mega_boost', icon: '\ud83d\udca5', label: 'Mega Power', desc: 'Buy your first Mega Boost.', difficulty: 'Hard', check: g => (g.megaBoostOwned || 0) >= 1 },
-    { id: 'first_turbo', icon: '\ud83d\ude80', label: 'Turbocharged', desc: 'Buy your first Turbo Clicker.', difficulty: 'Hard', check: g => (g.turboClickerOwned || 0) >= 1 },
-    { id: 'lucky_charm', icon: '\ud83c\udf40', label: 'Lucky Break', desc: 'Buy the Lucky Charm.', difficulty: 'Hard', check: g => !!g.luckyCharmOwned },
-    { id: 'head_start', icon: '\ud83c\udfc1', label: 'Running Start', desc: 'Buy your first Head Start.', difficulty: 'Hard', check: g => (g.headStartOwned || 0) >= 1 },
-    { id: 'prestige_mult', icon: '\u00d72', label: 'Multiplying Gains', desc: 'Buy your first Prestige Multiplier.', difficulty: 'Extreme', check: g => (g.prestigeMultOwned || 0) >= 1 },
-    { id: 'auto_buyer', icon: '\ud83e\udd16', label: 'Set and Forget (Again)', desc: 'Buy the Auto Buyer.', difficulty: 'Hard', check: g => !!g.autoBuyerOwned }
+    { id: 'symbols_heads_up', icon: 'eyes', label: 'Thanks for the heads up!', desc: 'Reload the page while your Symbols icon had landed on a certain content warning label.', difficulty: 'Special', secret: true, check: () => false },
+    { id: 'auto_kill', icon: 'skull', label: 'No Mercy', desc: 'Buy Auto Kill.', difficulty: 'Medium', check: g => g.autoKillOwned },
+    { id: 'offline_earner', icon: 'shop:Offline Earnings', label: 'Set for Life', desc: 'Buy Offline Earnings.', difficulty: 'Medium', check: g => g.offlineEarningsOwned },
+    { id: 'completionist', icon: 'medal', label: 'Completionist', desc: 'Own every upgrade in the Plain and Customization shop categories.', difficulty: 'Hard', check: g => g.autoKillOwned && g.offlineEarningsOwned && g.musicPlayerOwned && g.cursorsOwned && g.bgOwned && g.iconModifierOwned && g.clickBoostOwned >= 1 && g.autoClickerOwned >= 1 },
+    { id: 'music_loop', icon: 'shop:Music Player', label: 'On Repeat', desc: 'Turn on music looping.', difficulty: 'Easy', check: g => g.musicLoop },
+    { id: 'light_mode', icon: 'sun', label: 'Seen the Light', desc: 'Switch to Light Mode.', difficulty: 'Easy', check: g => g.lightMode },
+    { id: 'sfx_muted', icon: 'mute', label: 'Silence is Golden', desc: 'Mute the sound effects.', difficulty: 'Easy', check: g => g.sfxMuted },
+    { id: 'hide_cursor', icon: 'ghost', label: "Where'd It Go?", desc: 'Hide your custom cursor.', difficulty: 'Easy', check: g => g.hideCursor },
+    { id: 'first_prestige', icon: 'recycle', label: 'Rebirth', desc: 'Prestige for the first time.', difficulty: 'Extreme', check: g => (g.totalPrestige || 0) >= 1 },
+    { id: 'prestige_5', icon: 'recycle', label: 'Serial Reincarnator', desc: 'Prestige 5 times.', difficulty: 'Extreme', check: g => (g.totalPrestige || 0) >= 5 },
+    { id: 'prestige_10', icon: 'recycle', label: 'Loop Enjoyer', desc: 'Prestige 10 times.', difficulty: 'Extreme', check: g => (g.totalPrestige || 0) >= 10 },
+    { id: 'prestige_25', icon: 'recycle', label: 'Ascended', desc: 'Prestige 25 times.', difficulty: 'Extreme', check: g => (g.totalPrestige || 0) >= 25 },
+    { id: 'first_boost_trade', icon: 'shop:Boost', label: 'Worth It', desc: 'Trade Prestige for your first Boost.', difficulty: 'Extreme', check: g => (g.boosts || 0) >= 1 },
+    { id: 'boost_5', icon: 'shop:Boost', label: 'Multiplied', desc: 'Own 5 Boosts.', difficulty: 'Extreme', check: g => (g.boosts || 0) >= 5 },
+    { id: 'boost_10', icon: 'shop:Boost', label: 'Exponential', desc: 'Own 10 Boosts.', difficulty: 'Extreme', check: g => (g.boosts || 0) >= 10 },
+    { id: 'lucky_charm', icon: 'shop:Lucky Charm', label: 'Lucky Break', desc: 'Buy the Lucky Charm.', difficulty: 'Hard', check: g => !!g.luckyCharmOwned },
+    { id: 'head_start', icon: 'shop:Head Start', label: 'Running Start', desc: 'Buy your first Head Start.', difficulty: 'Hard', check: g => (g.headStartOwned || 0) >= 1 },
+    { id: 'prestige_mult', icon: 'shop:Prestige Multiplier', label: 'Multiplying Gains', desc: 'Buy your first Prestige Multiplier.', difficulty: 'Extreme', check: g => (g.prestigeMultOwned || 0) >= 1 },
+    { id: 'auto_buyer', icon: 'shop:Auto Buyer', label: 'Set and Forget (Again)', desc: 'Buy the Auto Buyer.', difficulty: 'Hard', check: g => !!g.autoBuyerOwned }
   ];
+
+
+  /* ---------- ACHIEVEMENT ICONS ----------
+     SVG icons for achievements, same 24x24 white-on-color style as the shop
+     icons. An achievement's `icon` is a key from this list, or 'shop:<name>'
+     to reuse a SHOP_ICONS entry. Add new icons here. */
+  const ACHIEVEMENT_ICONS = {
+    pointer: '<path d="M6 2.5l13 9.2-5.6 1.1 3.3 6.6-2.7 1.3-3.3-6.6L6 18.3z"/>',
+    coin: '<circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2.2"/><path d="M12 6.5v11M14.8 8.8c-.6-.8-1.6-1.2-2.8-1.2-1.6 0-2.8.8-2.8 2.1 0 2.9 5.8 1.6 5.8 4.5 0 1.3-1.3 2.2-3 2.2-1.3 0-2.4-.5-3-1.4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>',
+    coins: '<ellipse cx="12" cy="5.5" rx="7.5" ry="3"/><path d="M4.5 8.2c0 1.7 3.4 3 7.5 3s7.5-1.3 7.5-3v3c0 1.7-3.4 3-7.5 3s-7.5-1.3-7.5-3z"/><path d="M4.5 13.7c0 1.7 3.4 3 7.5 3s7.5-1.3 7.5-3v3c0 1.7-3.4 3-7.5 3s-7.5-1.3-7.5-3z"/>',
+    bag: '<path d="M9 2.5h6l-1.6 3.2h-2.8z"/><path d="M10 6.8h4c3.4 2.3 6 5.6 6 9.2a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5c0-3.6 2.6-6.9 6-9.2z"/><path d="M12 10.5v7.5M13.9 12c-.4-.5-1-.8-1.9-.8-1 0-1.8.5-1.8 1.3 0 1.8 3.7 1 3.7 2.8 0 .8-.8 1.4-1.9 1.4-.8 0-1.5-.3-1.9-.9" fill="none" stroke="#000" stroke-opacity=".35" stroke-width="1.6" stroke-linecap="round"/>',
+    bank: '<path d="M12 2.5L2.5 7.5v2h19v-2z"/><path d="M4.5 11h2.8v7H4.5zM10.6 11h2.8v7h-2.8zM16.7 11h2.8v7h-2.8z"/><path d="M2.5 19.3h19V22h-19z"/>',
+    dumbbell: '<rect x="1.5" y="9" width="3" height="6" rx="1"/><rect x="4.5" y="6.5" width="3.5" height="11" rx="1"/><rect x="16" y="6.5" width="3.5" height="11" rx="1"/><rect x="19.5" y="9" width="3" height="6" rx="1"/><rect x="8" y="10.8" width="8" height="2.4"/>',
+    target: '<circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2.2"/><circle cx="12" cy="12" r="5" fill="none" stroke="currentColor" stroke-width="2.2"/><circle cx="12" cy="12" r="1.8"/>',
+    crewmate: '<path d="M7 8a5 5 0 0 1 10 0v11a1.5 1.5 0 0 1-1.5 1.5H14v-3h-2.5v3H8.5A1.5 1.5 0 0 1 7 19z"/><path d="M7 10H5a1 1 0 0 0-1 1v5a1 1 0 0 0 1 1h2z"/><rect x="11" y="6.5" width="8" height="4.2" rx="2.1" fill="#000" fill-opacity=".35"/>',
+    gem: '<path d="M7 3.5h10l4.5 5.5L12 21 2.5 9z"/><path d="M2.5 9h19M9 3.5L7.5 9 12 21l4.5-12L15 3.5" fill="none" stroke="#000" stroke-opacity=".3" stroke-width="1.4" stroke-linejoin="round"/>',
+    puzzle: '<path d="M10 3.5a2 2 0 0 1 4 0V6h4a1.5 1.5 0 0 1 1.5 1.5v4h-2a2 2 0 0 0 0 4h2v4A1.5 1.5 0 0 1 18 21h-4v-2a2 2 0 0 0-4 0v2H6a1.5 1.5 0 0 1-1.5-1.5v-4h2a2 2 0 0 0 0-4h-2v-4A1.5 1.5 0 0 1 6 6h4z"/>',
+    shake: '<rect x="7" y="3" width="10" height="18" rx="2.2" fill="none" stroke="currentColor" stroke-width="2.2"/><path d="M11 17.5h2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M3.5 8v8M20.5 8v8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>',
+    pizza: '<path d="M12 21L3 6.5C5.6 4.3 8.7 3 12 3s6.4 1.3 9 3.5z"/><circle cx="10" cy="9" r="1.5" fill="#000" fill-opacity=".35"/><circle cx="14.5" cy="10.5" r="1.4" fill="#000" fill-opacity=".35"/><circle cx="12" cy="15" r="1.3" fill="#000" fill-opacity=".35"/>',
+    star4: '<path d="M12 2l2.5 7.5L22 12l-7.5 2.5L12 22l-2.5-7.5L2 12l7.5-2.5z"/>',
+    backpack: '<path d="M9 5V4a3 3 0 0 1 6 0v1" fill="none" stroke="currentColor" stroke-width="2"/><path d="M6 8a3 3 0 0 1 3-3h6a3 3 0 0 1 3 3v12a1.5 1.5 0 0 1-1.5 1.5h-9A1.5 1.5 0 0 1 6 20z"/><rect x="9" y="13" width="6" height="4" rx="1" fill="#000" fill-opacity=".3"/>',
+    palette: '<path d="M12 2.5a9.5 9.5 0 0 0 0 19c1.3 0 2-1 1.6-2.2-.4-1.1.2-2.3 1.4-2.3H17a4.5 4.5 0 0 0 4.5-4.5c0-5.5-4.3-10-9.5-10z"/><circle cx="7.5" cy="11" r="1.6" fill="#000" fill-opacity=".35"/><circle cx="10" cy="6.8" r="1.6" fill="#000" fill-opacity=".35"/><circle cx="15" cy="7" r="1.6" fill="#000" fill-opacity=".35"/>',
+    trophy: '<path d="M7 3h10v5a5 5 0 0 1-10 0z"/><path d="M7 5H4v1.5A3.5 3.5 0 0 0 7.5 10M17 5h3v1.5A3.5 3.5 0 0 1 16.5 10" fill="none" stroke="currentColor" stroke-width="2"/><path d="M10.5 13h3v3.5h-3z"/><path d="M7.5 20a4.5 3 0 0 1 9 0v1h-9z"/>',
+    eyes: '<ellipse cx="8" cy="12" rx="4" ry="6"/><ellipse cx="16" cy="12" rx="4" ry="6"/><circle cx="9.3" cy="13" r="1.8" fill="#000" fill-opacity=".55"/><circle cx="17.3" cy="13" r="1.8" fill="#000" fill-opacity=".55"/>',
+    skull: '<path d="M12 2.5a8 8 0 0 0-8 8c0 2.6 1.2 4.6 3 5.8V19a1.5 1.5 0 0 0 1.5 1.5h7A1.5 1.5 0 0 0 17 19v-2.7c1.8-1.2 3-3.2 3-5.8a8 8 0 0 0-8-8z"/><circle cx="8.8" cy="11" r="2" fill="#000" fill-opacity=".5"/><circle cx="15.2" cy="11" r="2" fill="#000" fill-opacity=".5"/><path d="M11 15.5h2l-1-2z" fill="#000" fill-opacity=".5"/><path d="M10 18v2.5M14 18v2.5" stroke="#000" stroke-opacity=".4" stroke-width="1.4"/>',
+    medal: '<path d="M7 2.5h4l2 5H9zM13 2.5h4l-2 5h-4z"/><circle cx="12" cy="15" r="6.5"/><path d="M12 11.3l1.1 2.3 2.5.3-1.8 1.7.5 2.5-2.3-1.2-2.3 1.2.5-2.5-1.8-1.7 2.5-.3z" fill="#000" fill-opacity=".35"/>',
+    sun: '<circle cx="12" cy="12" r="4.5"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9L7 7M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>',
+    mute: '<path d="M3.5 9h3.5L12 4.5v15L7 15H3.5z"/><path d="M15.5 9l5 6M20.5 9l-5 6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>',
+    ghost: '<path d="M12 2.5a7 7 0 0 0-7 7V21l2.5-2 2.3 2 2.2-2 2.2 2 2.3-2L19 21V9.5a7 7 0 0 0-7-7z"/><circle cx="9.3" cy="10" r="1.5" fill="#000" fill-opacity=".45"/><circle cx="14.7" cy="10" r="1.5" fill="#000" fill-opacity=".45"/>',
+    recycle: '<path d="M12 4a8 8 0 0 1 7.4 5M12 20a8 8 0 0 1-7.4-5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/><path d="M21 5v5h-5M3 19v-5h5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>'
+  };
+
+  function achievementIconHTML(a){
+    if (!a) return '';
+    const key = String(a.icon || '');
+    let svg = ACHIEVEMENT_ICONS[key] || '';
+    if (!svg && key.indexOf('shop:') === 0) {
+      const shopIcon = SHOP_ICONS[key.slice(5)];
+      svg = shopIcon ? shopIcon.svg : '';
+    }
+    if (!svg) svg = ACHIEVEMENT_ICONS.star4;
+    return `<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">${svg}</svg>`;
+  }
 
   function checkAchievements(){
     if (!game.unlockedAchievements) game.unlockedAchievements = [];
@@ -11979,7 +12933,7 @@
     const popup = document.createElement('div');
     popup.className = 'achievement-popup diff-' + a.difficulty.toLowerCase();
     popup.innerHTML = `
-      <div class="achievement-popup-icon">${a.icon}</div>
+      <div class="achievement-popup-icon">${achievementIconHTML(a)}</div>
       <div class="achievement-popup-text">
         <span class="achievement-popup-label">Achievement Unlocked</span>
         <span class="achievement-popup-name">${a.label}</span>
@@ -12115,7 +13069,7 @@
       const diffClass = 'diff-' + a.difficulty.toLowerCase();
       return `
         <div class="achievement-card ${diffClass}${unlocked ? ' unlocked' : ''}" style="animation-delay:${Math.min(i * 15, 300)}ms;">
-          <div class="achievement-icon">${a.icon}</div>
+          <div class="achievement-icon">${achievementIconHTML(a)}</div>
           <div class="achievement-info">
             <span class="achievement-difficulty ${diffClass}">${a.difficulty}</span>
             <h3>${unlocked ? a.label : '???'}</h3>
@@ -12471,6 +13425,8 @@
 
   function doResetData(){
     document.querySelectorAll('.dvd-logo, .crewmate, .noob').forEach(el => el.remove());
+    activeCrewmates.clear();
+    updateOverallTaskMeter();
     const keepAchievements = game.unlockedAchievements || [];
     const keepFeatured = game.featuredAchievement || '';
     game = defaultGame();
@@ -12489,7 +13445,7 @@
     const gain = 1 + (game.prestigeMultOwned || 0);
     confirmBox.innerHTML = `
       <h1 class="auth-heading">Prestige?</h1>
-      <p class="auth-sub">This resets all your progress (clicks, upgrades, and cosmetics) back to zero in exchange for +${gain} Prestige, which carries over. This can't be undone.</p>
+      <p class="auth-sub">This resets all your progress (clicks, upgrades, and cosmetics) back to zero in exchange for +${gain} Prestige, which carries over. Gems and Limited Shop fonts and frames are kept. This can't be undone.</p>
       <button class="auth-btn" id="confirm-prestige-yes">Yes, prestige</button>
       <button class="auth-btn secondary" id="confirm-cancel">Cancel</button>
     `;
@@ -12501,6 +13457,8 @@
   function doPrestige(){
     if (game.clicks < PRESTIGE_COST) { closeConfirm(); return; }
     document.querySelectorAll('.dvd-logo, .crewmate, .noob').forEach(el => el.remove());
+    activeCrewmates.clear();
+    updateOverallTaskMeter();
     const prestigeGain = 1 + (game.prestigeMultOwned || 0);
     const keepPrestige = (game.prestige || 0) + prestigeGain;
     const keepBoosts = game.boosts || 0;
@@ -12511,8 +13469,14 @@
     const keepAutoBuyer = game.autoBuyerOwned || false;
     const keepGems = game.gems || 0;
     const keepFeatured = game.featuredAchievement || '';
+    const keepCosmetics = game.cosmeticsOwned || [];
+    const keepEquippedFont = game.equippedFont || '';
+    const keepEquippedFrame = game.equippedFrame || '';
     game = defaultGame();
     game.featuredAchievement = keepFeatured;
+    game.cosmeticsOwned = keepCosmetics;
+    game.equippedFont = keepEquippedFont;
+    game.equippedFrame = keepEquippedFrame;
     game.prestige = keepPrestige;
     game.boosts = keepBoosts;
     game.totalPrestige = keepTotalPrestige;
