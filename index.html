@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <!-- Game version: 1.13.0 | Deployment: 195 | Update both on every release, see README.md -->
 <meta name="game-version" content="1.13.0">
-<meta name="viewport" content="width=device-width, initial-scalxe=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>The Clicker Game!</title>
 <link rel="icon" type="image/x-icon" href="maksy.ico" id="favicon-link">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -11783,8 +11783,9 @@
   const PROFILE_ICON_KEY = 'fgd_last_profile_icon';
   const AUTH_KEY = 'fgd_last_auth';
   const FONT_KEY = 'fgd_last_font';
-  // Plain deployment URL only. A /u/N/ part is a browser account number and does not resolve for players. See README, Backend.
-  const SHEET_API_URL = 'https://script.google.com/macros/s/AKfycbyhT0AXiOBML85llfzqLQReMGo0RmgmBSJlgjf9bX8WODcnXX-zSbZrVbM6euvE2D3CrQ/exec';
+    // SUPABASE: URL of the Edge Function named "api" (Edge Functions > api shows it).
+  // Replace YOUR-PROJECT-REF with the part before .supabase.co in your Project URL.
+  const SHEET_API_URL = 'https://YOUR-PROJECT-REF.supabase.co/functions/v1/api';
 
   function getSiteOpens(){
     return parseInt(localStorage.getItem(SITE_OPENS_KEY) || '0', 10);
@@ -14850,4 +14851,4 @@
 </script>
 
 </body>
-</html>s
+</html>
