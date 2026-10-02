@@ -5649,6 +5649,191 @@
     .mod-editor-inline > div:first-child{ grid-column:1 / -1; }
     .mod-editor-section-head{ flex-wrap:wrap; }
   }
+  /* BEGIN CHAT DETAILS CSS */
+  /* =====================================================================
+     CHAT DETAILS: member list, unread badges, avatars on messages
+     ===================================================================== */
+  .chat-header{
+    flex-wrap:wrap;
+    row-gap:8px;
+  }
+  .chat-name-input{
+    min-width:150px;
+  }
+  .chat-meta{
+    width:100%;
+    max-width:520px;
+    margin:-6px auto 10px;
+    font-family:'Poppins', sans-serif;
+    font-size:11.5px;
+    color:var(--muted);
+    text-align:left;
+  }
+
+  /* The slide-down details panel */
+  .chat-details-panel{
+    display:none;
+    flex-direction:column;
+    gap:8px;
+    flex-shrink:0;
+    width:100%;
+    max-width:520px;
+    max-height:42vh;
+    overflow-y:auto;
+    margin:0 auto 12px;
+    padding:14px 16px;
+    background:var(--night);
+    border:2px solid var(--ink);
+    border-radius:14px;
+    box-shadow:var(--pop-sm);
+    text-align:left;
+  }
+  .chat-details-panel.open{
+    display:flex;
+  }
+  .chat-details-line{
+    margin:0;
+    font-family:'Poppins', sans-serif;
+    font-size:12px;
+    color:var(--muted);
+  }
+  .chat-details-line strong{
+    color:var(--rind);
+  }
+  .chat-details-heading{
+    margin:6px 0 0;
+    font-family:'Fredoka One', cursive;
+    font-weight:400;
+    font-size:13px;
+    color:var(--rind);
+  }
+  .chat-member-row{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:8px 10px;
+    background:var(--card);
+    border:2px solid var(--ink);
+    border-radius:12px;
+  }
+  .chat-member-name{
+    flex:1;
+    min-width:0;
+    font-family:'Poppins', sans-serif;
+    font-weight:500;
+    font-size:13px;
+    cursor:pointer;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+  }
+  .chat-role-pill{
+    flex-shrink:0;
+    font-family:'Fredoka One', cursive;
+    font-size:10px;
+    padding:2px 8px;
+    border-radius:999px;
+    border:2px solid var(--ink);
+    background:var(--card-hover);
+    color:var(--rind);
+  }
+  .chat-role-pill.owner{
+    background:var(--zap);
+    color:#241c00;
+  }
+  .chat-role-pill.you{
+    background:var(--melon-light);
+    color:var(--night);
+  }
+  .chat-remove-btn{
+    flex-shrink:0;
+    font-size:10.5px;
+    padding:6px 10px;
+  }
+  .chat-leave-btn{
+    margin-top:6px;
+  }
+
+  /* Chat list rows */
+  .chat-row-name{
+    display:flex;
+    align-items:center;
+    gap:6px;
+  }
+  .chat-row-name-text{
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+  }
+  .chat-count-pill{
+    flex-shrink:0;
+    font-family:'Poppins', sans-serif;
+    font-size:9.5px;
+    font-weight:600;
+    padding:1px 7px;
+    border-radius:999px;
+    background:var(--night);
+    color:var(--muted);
+  }
+  .chat-row-members{
+    font-family:'Poppins', sans-serif;
+    font-size:11px;
+    color:var(--lavender);
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+  }
+  .chat-row-side{
+    flex-shrink:0;
+    display:flex;
+    flex-direction:column;
+    align-items:flex-end;
+    gap:6px;
+  }
+  .chat-unread-badge{
+    min-width:22px;
+    text-align:center;
+    font-family:'Fredoka One', cursive;
+    font-size:11px;
+    padding:2px 7px;
+    border-radius:999px;
+    border:2px solid var(--ink);
+    background:var(--pow);
+    color:#fff;
+    box-shadow:var(--pop-sm);
+  }
+  .chat-row.unread .chat-row-name-text{
+    color:var(--zap);
+  }
+
+  /* Messages: avatar next to the sender name, delete link */
+  .chat-message-head{
+    display:flex;
+    align-items:center;
+    gap:6px;
+  }
+  .chat-msg-avatar{
+    width:20px;
+    height:20px;
+    border-radius:50%;
+    object-fit:cover;
+    flex-shrink:0;
+    border:2px solid var(--ink);
+    background:var(--night);
+  }
+  .chat-left-tag{
+    font-family:'Poppins', sans-serif;
+    font-size:9px;
+    font-weight:400;
+    color:var(--muted);
+  }
+  .chat-message-row.mine .chat-left-tag{
+    color:rgba(10,8,16,0.55);
+  }
+  .chat-delete-btn:hover:not(:disabled){
+    color:#ff6b6b;
+  }
+  /* END CHAT DETAILS CSS */
 </style>
 </head>
 <body>
@@ -5859,10 +6044,13 @@
   <div class="chat-box">
     <button class="edit-profile-close" id="chat-close">&times;</button>
     <div class="chat-header">
-      <input type="text" class="auth-input chat-name-input" id="chat-name-input" placeholder="Chat name" autocomplete="off">
+      <input type="text" class="auth-input chat-name-input" id="chat-name-input" placeholder="Chat name" autocomplete="off" maxlength="60">
       <button class="workshop-icon-btn" id="chat-rename-btn">Save</button>
+      <button class="workshop-icon-btn" id="chat-details-btn">Details</button>
       <button class="workshop-icon-btn" id="chat-add-friends-btn">Add Friends</button>
     </div>
+    <p class="chat-meta" id="chat-meta"></p>
+    <div class="chat-details-panel" id="chat-details-panel"></div>
     <div class="chat-messages" id="chat-messages">
       <div class="empty-state loading-state">Loading...</div>
     </div>
@@ -9242,7 +9430,10 @@
   let chatsListCache = [];
   let activeChatId = null;
   let activeChatMessages = [];
-  let activeChatParticipants = [];
+  let activeChatParticipants = [];   // just the usernames
+  let activeChatInfo = null;         // chat details from the API: name, owner, createdAt, counts
+  let activeChatMembers = [];        // member cards with profile pictures (loaded when a chat opens)
+  let activeChatDetailsOpen = false; // is the Details panel open?
   let friendPickerMode = null;
   let friendPickerFriendsCache = [];
 
@@ -9261,6 +9452,41 @@
     return sameDay
       ? d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })
       : d.toLocaleDateString([], { month: 'short', day: 'numeric' });
+  }
+
+  // "Oct 2, 2026" style date for the Created line in the details panel.
+  function formatChatDate(iso){
+    if (!iso) return '';
+    const d = new Date(iso);
+    if (isNaN(d.getTime())) return '';
+    return d.toLocaleDateString([], { year: 'numeric', month: 'short', day: 'numeric' });
+  }
+
+  // Compares two usernames ignoring upper and lower case.
+  function sameUser(a, b){
+    return String(a || '').toLowerCase() === String(b || '').toLowerCase();
+  }
+
+  // Turns an API error code into words a player can read.
+  function chatErrorText(code){
+    const messages = {
+      notfriends: 'You can only chat with friends.',
+      toomany: 'That would be too many people in one chat.',
+      forbidden: "You can't do that in this chat.",
+      notfound: 'That chat or message no longer exists.',
+      self: "You can't do that to yourself."
+    };
+    return messages[code] || 'Something went wrong. Try again.';
+  }
+
+  // "You, Bob, Alice +2" for the chat list.
+  function chatMemberSummary(chat){
+    const names = (chat.members && chat.members.length)
+      ? chat.members.map(m => m.username)
+      : (chat.participants || []);
+    const shown = names.slice(0, 3).map(n => sameUser(n, currentUsername) ? 'You' : n);
+    const extra = names.length - shown.length;
+    return shown.join(', ') + (extra > 0 ? ' +' + extra : '');
   }
 
   async function loadChatsList(){
@@ -9287,16 +9513,25 @@
 
     listEl.innerHTML = chatsListCache.map(chat => {
       const previewText = chat.lastMessage
-        ? `${chat.lastMessage.sender === currentUsername ? 'You' : chat.lastMessage.sender}: ${chat.lastMessage.text}`
+        ? `${sameUser(chat.lastMessage.sender, currentUsername) ? 'You' : chat.lastMessage.sender}: ${chat.lastMessage.text}`
         : 'No messages yet';
       const timeLabel = formatChatTime(chat.lastMessage ? chat.lastMessage.createdAt : chat.updatedAt);
+      const memberCount = chat.memberCount || (chat.participants || []).length;
+      const unread = Number(chat.unreadCount) || 0;
       return `
-        <div class="chat-row" data-chat-id="${chat.id}">
+        <div class="chat-row${unread > 0 ? ' unread' : ''}" data-chat-id="${escapeChatHtml(chat.id)}">
           <div class="chat-row-info">
-            <span class="chat-row-name">${escapeChatHtml(chat.name)}</span>
+            <span class="chat-row-name">
+              <span class="chat-row-name-text">${escapeChatHtml(chat.name)}</span>
+              <span class="chat-count-pill">${memberCount} member${memberCount === 1 ? '' : 's'}</span>
+            </span>
+            <span class="chat-row-members">${escapeChatHtml(chatMemberSummary(chat))}</span>
             <span class="chat-row-preview">${escapeChatHtml(previewText)}</span>
           </div>
-          <span class="chat-row-preview">${escapeChatHtml(timeLabel)}</span>
+          <div class="chat-row-side">
+            <span class="chat-row-preview">${escapeChatHtml(timeLabel)}</span>
+            ${unread > 0 ? `<span class="chat-unread-badge">${unread > 99 ? '99+' : unread}</span>` : ''}
+          </div>
         </div>
       `;
     }).join('');
@@ -9369,7 +9604,7 @@
           loadChatsList();
           openChat(result.chat.id);
         } else {
-          errorEl.textContent = 'Something went wrong. Try again.';
+          errorEl.textContent = chatErrorText(result.error);
           errorEl.style.display = 'block';
         }
       } catch (e) {
@@ -9382,9 +9617,10 @@
         if (result.success) {
           overlay.classList.remove('visible');
           activeChatParticipants = result.participants || activeChatParticipants;
+          refreshActiveChatMembers(); // loads the new member cards and pictures
           loadChatsList();
         } else {
-          errorEl.textContent = 'Something went wrong. Try again.';
+          errorEl.textContent = chatErrorText(result.error);
           errorEl.style.display = 'block';
         }
       } catch (e) {
@@ -9395,49 +9631,224 @@
   });
 
   const chatOverlay = document.getElementById('chat-overlay');
-  document.getElementById('chat-close').addEventListener('click', () => {
+
+  // Closes the chat window and refreshes the list so unread badges and previews are right.
+  function closeChatOverlay(){
     chatOverlay.classList.remove('visible');
-    // Refresh the list now so previews and new chats are up to date.
+    activeChatId = null;
     chatLastListPoll = Date.now();
     refreshChatsListSilently().catch(() => {});
-  });
+  }
+
+  document.getElementById('chat-close').addEventListener('click', closeChatOverlay);
+
   document.getElementById('chat-add-friends-btn').addEventListener('click', () => {
     if (activeChatId) openFriendPicker('add', activeChatParticipants);
   });
+
+  document.getElementById('chat-details-btn').addEventListener('click', () => {
+    activeChatDetailsOpen = !activeChatDetailsOpen;
+    renderChatDetails();
+  });
+
   document.getElementById('chat-rename-btn').addEventListener('click', async () => {
     const input = document.getElementById('chat-name-input');
     const newName = input.value.trim();
     if (!newName || !activeChatId) return;
     try {
-      await sheetRequest({ action: 'renameChat', chatId: activeChatId, username: currentUsername, name: newName });
-      loadChatsList();
+      const result = await sheetRequest({ action: 'renameChat', chatId: activeChatId, username: currentUsername, name: newName });
+      if (result.success) {
+        if (activeChatInfo) activeChatInfo.name = result.name || newName;
+        showBanner('Chat renamed.');
+        loadChatsList();
+      }
     } catch (e) {}
   });
+
   document.getElementById('chat-send-btn').addEventListener('click', sendActiveChatMessage);
   document.getElementById('chat-message-input').addEventListener('keydown', (e) => {
     if (e.key === 'Enter') sendActiveChatMessage();
   });
 
+  // The chat owner (or staff) can remove people and delete any message.
+  function canManageActiveChat(){
+    if (!activeChatInfo) return false;
+    return sameUser(activeChatInfo.owner, currentUsername) || isStaffAccount();
+  }
+
+  // Small line under the chat name: "3 members, 42 messages".
+  function updateChatMeta(){
+    const el = document.getElementById('chat-meta');
+    if (!el) return;
+    if (!activeChatInfo) { el.textContent = ''; return; }
+    const memberCount = activeChatMembers.length || activeChatParticipants.length;
+    const messageCount = Number(activeChatInfo.messageCount) || activeChatMessages.filter(m => !m.pending && !m.failed).length;
+    el.textContent = `${memberCount} member${memberCount === 1 ? '' : 's'} \u00b7 ${messageCount.toLocaleString()} message${messageCount === 1 ? '' : 's'}`;
+  }
+
+  // Draws the Details panel: who made the chat, counts, every member, and the Leave button.
+  function renderChatDetails(){
+    const panel = document.getElementById('chat-details-panel');
+    const btn = document.getElementById('chat-details-btn');
+    if (!panel || !btn) return;
+    panel.classList.toggle('open', activeChatDetailsOpen);
+    btn.textContent = activeChatDetailsOpen ? 'Hide Details' : 'Details';
+    if (!activeChatDetailsOpen) return;
+
+    const info = activeChatInfo || {};
+    const canManage = canManageActiveChat();
+    const members = activeChatMembers.length
+      ? activeChatMembers
+      : activeChatParticipants.map(n => ({ username: n, auth: 'none', role: 'member', profileIcon: '' }));
+    const messageCount = Number(info.messageCount) || activeChatMessages.length;
+
+    const rows = members.map(m => {
+      const isMe = sameUser(m.username, currentUsername);
+      const canRemove = canManage && !isMe && m.role !== 'owner';
+      return `
+        <div class="chat-member-row" data-username="${escapeChatHtml(m.username)}">
+          <div class="leaderboard-avatar"><img src="${escapeChatHtml(m.profileIcon || 'profile.png')}" alt=""></div>
+          <span class="chat-member-name" style="color:${authColor(m.auth)}">${escapeChatHtml(m.username)}${authBadge(m.auth)}</span>
+          ${isMe ? '<span class="chat-role-pill you">You</span>' : ''}
+          ${m.role === 'owner' ? '<span class="chat-role-pill owner">Owner</span>' : ''}
+          ${canRemove ? `<button class="friend-action-btn decline chat-remove-btn" type="button" data-remove="${escapeChatHtml(m.username)}">Remove</button>` : ''}
+        </div>`;
+    }).join('');
+
+    panel.innerHTML = `
+      <p class="chat-details-line">Created by <strong>${escapeChatHtml(info.createdBy || info.owner || 'Unknown')}</strong>${info.createdAt ? ' on ' + escapeChatHtml(formatChatDate(info.createdAt)) : ''}</p>
+      <p class="chat-details-line">${members.length} member${members.length === 1 ? '' : 's'} \u00b7 ${messageCount.toLocaleString()} message${messageCount === 1 ? '' : 's'}</p>
+      <h4 class="chat-details-heading">Members</h4>
+      ${rows}
+      <button class="auth-btn secondary chat-leave-btn" id="chat-leave-btn" type="button">Leave Chat</button>
+    `;
+
+    panel.querySelectorAll('.chat-member-name').forEach(el => {
+      el.addEventListener('click', () => openPublicProfile(el.closest('.chat-member-row').dataset.username));
+    });
+    panel.querySelectorAll('[data-remove]').forEach(b => {
+      b.addEventListener('click', () => removeChatMember(b.dataset.remove));
+    });
+    document.getElementById('chat-leave-btn').addEventListener('click', leaveActiveChat);
+  }
+
+  // Loads the member cards (with profile pictures) for the open chat.
+  async function refreshActiveChatMembers(){
+    const chatId = activeChatId;
+    if (!chatId) return;
+    try {
+      const result = await sheetRequest({ action: 'getChatMembers', chatId, username: currentUsername });
+      if (!result || !result.success || chatId !== activeChatId) return;
+      activeChatMembers = result.members || [];
+      activeChatParticipants = result.participants || activeChatParticipants;
+      if (activeChatInfo) {
+        activeChatInfo.owner = result.owner || activeChatInfo.owner;
+        activeChatInfo.memberCount = activeChatMembers.length;
+      }
+      updateChatMeta();
+      renderChatDetails();
+      renderChatMessages(false);
+    } catch (e) {}
+  }
+
+  async function removeChatMember(username){
+    if (!activeChatId || !confirm('Remove ' + username + ' from this chat?')) return;
+    try {
+      const result = await sheetRequest({ action: 'removeChatParticipant', chatId: activeChatId, username: currentUsername, targetUsername: username });
+      if (result.success) {
+        activeChatParticipants = result.participants || activeChatParticipants;
+        activeChatMembers = activeChatMembers.filter(m => !sameUser(m.username, username));
+        if (activeChatInfo) activeChatInfo.memberCount = activeChatMembers.length;
+        updateChatMeta();
+        renderChatDetails();
+        renderChatMessages(false);
+        loadChatsList();
+      } else {
+        showBanner(chatErrorText(result.error));
+      }
+    } catch (e) {
+      showBanner("Couldn't reach the database.");
+    }
+  }
+
+  async function leaveActiveChat(){
+    if (!activeChatId || !confirm('Leave this chat? You will not see its messages anymore.')) return;
+    try {
+      const result = await sheetRequest({ action: 'leaveChat', chatId: activeChatId, username: currentUsername });
+      if (result.success) {
+        activeChatDetailsOpen = false;
+        closeChatOverlay();
+        loadChatsList();
+        showBanner(result.deleted ? 'Chat deleted.' : 'You left the chat.');
+      } else {
+        showBanner(chatErrorText(result.error));
+      }
+    } catch (e) {
+      showBanner("Couldn't reach the database.");
+    }
+  }
+
+  async function deleteChatMessage(messageId){
+    if (!activeChatId || !confirm('Delete this message?')) return;
+    try {
+      const result = await sheetRequest({ action: 'deleteChatMessage', chatId: activeChatId, messageId, username: currentUsername });
+      if (result.success) {
+        activeChatMessages = activeChatMessages.filter(m => String(m.id) !== String(messageId));
+        if (activeChatInfo) activeChatInfo.messageCount = Math.max(0, (Number(activeChatInfo.messageCount) || 1) - 1);
+        updateChatMeta();
+        renderChatMessages(false);
+      } else {
+        showBanner(chatErrorText(result.error));
+      }
+    } catch (e) {
+      showBanner("Couldn't reach the database.");
+    }
+  }
+
+  // Puts a getChatMessages answer into the chat window.
+  function applyChatPayload(result){
+    activeChatInfo = result.chat || activeChatInfo;
+    activeChatParticipants = (result.chat && result.chat.participants) || activeChatParticipants;
+    if (result.chat && Array.isArray(result.chat.members)) activeChatMembers = result.chat.members;
+    activeChatMessages = result.messages || [];
+  }
+
   async function openChat(chatId){
     activeChatId = chatId;
+    activeChatInfo = null;
+    activeChatMembers = [];
+    activeChatParticipants = [];
+    activeChatMessages = [];
+    activeChatDetailsOpen = false;
     chatOverlay.classList.add('visible');
     document.getElementById('chat-name-input').value = '';
+    document.getElementById('chat-meta').textContent = '';
     document.getElementById('chat-messages').innerHTML = '<div class="empty-state loading-state">Loading...</div>';
+    renderChatDetails();
     chatLastOpenPoll = Date.now();
 
     try {
-      const result = await sheetRequest({ action: 'getChatMessages', chatId, username: currentUsername });
+      // includeMembers asks for the member cards with profile pictures, only needed when a chat opens.
+      const result = await sheetRequest({ action: 'getChatMessages', chatId, username: currentUsername, includeMembers: true });
+      if (chatId !== activeChatId) return; // the window was closed or switched while loading
       if (!result.success) {
         document.getElementById('chat-messages').innerHTML = '<div class="empty-state">Couldn\'t open that chat.</div>';
         return;
       }
-      document.getElementById('chat-name-input').value = result.chat.name || '';
-      activeChatParticipants = result.chat.participants || [];
-      activeChatMessages = result.messages || [];
+      applyChatPayload(result);
+      document.getElementById('chat-name-input').value = (result.chat && result.chat.name) || '';
+      updateChatMeta();
+      renderChatDetails();
       renderChatMessages();
     } catch (e) {
+      if (chatId !== activeChatId) return;
       document.getElementById('chat-messages').innerHTML = '<div class="empty-state">Couldn\'t reach the database.</div>';
     }
+  }
+
+  // The member card for a sender, or null if they are not in the chat anymore.
+  function chatSenderCard(name){
+    return activeChatMembers.find(m => sameUser(m.username, name)) || null;
   }
 
   // forceBottom: jump to the newest message (opening a chat, sending).
@@ -9455,38 +9866,61 @@
       return;
     }
 
+    const canManage = canManageActiveChat();
+    const membersLoaded = activeChatMembers.length > 0;
+
     messagesEl.innerHTML = activeChatMessages.map(msg => {
-      const mine = String(msg.sender).toLowerCase() === String(currentUsername || '').toLowerCase();
-      const canReport = !mine && !msg.pending && !msg.failed;
+      const mine = sameUser(msg.sender, currentUsername);
+      const card = chatSenderCard(msg.sender);
+      const ready = !msg.pending && !msg.failed;
+      const canReport = !mine && ready;
+      const canDelete = ready && (mine || canManage);
       const reported = reportedMessageIds.has(String(msg.id));
+
       const reportBtn = canReport
         ? `<button class="chat-report-btn" type="button" data-report-id="${escapeChatHtml(String(msg.id))}" ${reported ? 'disabled' : ''}>${reported ? 'Reported' : 'Report'}</button>`
         : '';
+      const deleteBtn = canDelete
+        ? `<button class="chat-report-btn chat-delete-btn" type="button" data-delete-id="${escapeChatHtml(String(msg.id))}">Delete</button>`
+        : '';
+      const avatar = card
+        ? `<img class="chat-msg-avatar" src="${escapeChatHtml(card.profileIcon || 'profile.png')}" alt="">`
+        : '';
+      const nameStyle = (!mine && card) ? ` style="color:${authColor(card.auth)}"` : '';
+      const badge = (!mine && card) ? authBadge(card.auth) : '';
+      const leftTag = (!mine && membersLoaded && !card) ? ' <span class="chat-left-tag">(left)</span>' : '';
+
       return `
       <div class="chat-message-row${mine ? ' mine' : ''}${msg.pending ? ' pending' : ''}${msg.failed ? ' failed' : ''}">
-        <span class="chat-message-sender">${escapeChatHtml(msg.sender)}</span>
+        <div class="chat-message-head">
+          ${avatar}
+          <span class="chat-message-sender"${nameStyle}>${escapeChatHtml(msg.sender)}${badge}${leftTag}</span>
+        </div>
         <span class="chat-message-text">${escapeChatHtml(msg.text)}</span>
         ${msg.pending
           ? '<span class="chat-message-status">Sending...</span>'
           : msg.failed
             ? '<span class="chat-message-status">Failed to send</span>'
-            : `<div class="chat-message-meta">${reportBtn}<span class="chat-message-time">${escapeChatHtml(formatChatTime(msg.createdAt))}</span></div>`}
+            : `<div class="chat-message-meta">${deleteBtn}${reportBtn}<span class="chat-message-time">${escapeChatHtml(formatChatTime(msg.createdAt))}</span></div>`}
       </div>
     `;
     }).join('');
 
-    messagesEl.querySelectorAll('.chat-report-btn:not(:disabled)').forEach(btn => {
+    messagesEl.querySelectorAll('.chat-report-btn[data-report-id]:not(:disabled)').forEach(btn => {
       btn.addEventListener('click', () => {
         const msg = activeChatMessages.find(m => String(m.id) === btn.dataset.reportId);
         if (msg) openReportMessageDialog(msg);
       });
+    });
+    messagesEl.querySelectorAll('.chat-delete-btn').forEach(btn => {
+      btn.addEventListener('click', () => deleteChatMessage(btn.dataset.deleteId));
     });
 
     messagesEl.scrollTop = (forceBottom || wasAtBottom) ? messagesEl.scrollHeight : previousTop;
   }
 
   /* ---------- REPORT A MESSAGE ----------
-     Keep this list in sync with REPORT_RULES in gs.gs (the API falls back to
+     Keep this list in sync with REPORT_RULES in the Edge Function (it falls back to
      "Other" for anything it doesn't recognize). */
   const REPORT_RULES = [
     'Bullying or harassment',
@@ -9590,6 +10024,8 @@
           const alreadyThere = activeChatMessages.some(m => m.id === result.message.id);
           if (alreadyThere) activeChatMessages.splice(idx, 1);
           else activeChatMessages[idx] = result.message;
+          if (activeChatInfo) activeChatInfo.messageCount = (Number(activeChatInfo.messageCount) || 0) + 1;
+          updateChatMeta();
         } else {
           activeChatMessages[idx].pending = false;
           activeChatMessages[idx].failed = true;
@@ -9624,13 +10060,35 @@
     const chatId = activeChatId;
     if (!chatId) return;
     const result = await sheetRequest({ action: 'getChatMessages', chatId, username: currentUsername });
+
+    // Removed from the chat (or it was deleted): close the window and say why.
+    if (result && (result.error === 'forbidden' || result.error === 'notfound') && chatId === activeChatId) {
+      closeChatOverlay();
+      showBanner('You are no longer in that chat.');
+      return;
+    }
     // Ignore the answer if the chat was closed or switched, or a send is in progress.
     if (!result || !result.success || chatId !== activeChatId || chatSendsInFlight > 0) return;
+
+    // Did people join or leave? Then reload the member cards (they carry the pictures).
+    const oldNames = activeChatParticipants.map(x => String(x).toLowerCase()).sort().join('|');
+    if (result.chat) {
+      const newParticipants = result.chat.participants || [];
+      const newNames = newParticipants.map(x => String(x).toLowerCase()).sort().join('|');
+      activeChatParticipants = newParticipants;
+      activeChatInfo = Object.assign({}, activeChatInfo || {}, result.chat);
+      // Pick up a rename from someone else, unless this person is typing a new name.
+      const nameInput = document.getElementById('chat-name-input');
+      if (nameInput && document.activeElement !== nameInput && result.chat.name !== undefined) {
+        nameInput.value = result.chat.name || '';
+      }
+      if (newNames !== oldNames) refreshActiveChatMembers();
+    }
+    updateChatMeta();
 
     const serverMessages = result.messages || [];
     const currentServerMessages = activeChatMessages.filter(m => !m.pending && !m.failed);
     const sig = list => list.map(m => m.id).join('|');
-    if (result.chat && Array.isArray(result.chat.participants)) activeChatParticipants = result.chat.participants;
     if (sig(serverMessages) === sig(currentServerMessages)) return;
 
     const localOnly = activeChatMessages.filter(m => m.pending || m.failed);
@@ -9641,8 +10099,9 @@
   async function refreshChatsListSilently(){
     const result = await sheetRequest({ action: 'getChats', username: currentUsername });
     if (!result || !result.success || !Array.isArray(result.chats)) return;
+    // Changes to the name, members, unread count or last message all redraw the list.
     const sig = list => list.map(c => [
-      c.id, c.name, c.updatedAt || '',
+      c.id, c.name, c.updatedAt || '', c.memberCount || 0, c.unreadCount || 0,
       c.lastMessage ? (c.lastMessage.createdAt || '') + (c.lastMessage.text || '') : ''
     ].join('~')).join('|');
     if (sig(result.chats) === sig(chatsListCache)) return;
