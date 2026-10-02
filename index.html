@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<!-- Game version: 1.13.0 | Deployment: 195 | Update both on every release, see README.md -->
-<meta name="game-version" content="1.13.0">
+<!-- Game version: 1.14.0 | Deployment: 197 | Update both on every release, see README.md -->
+<meta name="game-version" content="1.14.0">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>The Clicker Game!</title>
 <link rel="icon" type="image/x-icon" href="maksy.ico" id="favicon-link">
@@ -1391,27 +1391,15 @@
     user-select:none;
     white-space:pre;
   }
-  .dvd-logo.behind{
+  /* One canvas behind the page draws every DVD logo and every tiny Swing DVD.
+     The .dvd-logo class above is only used to measure one logo's size. */
+  #dvd-canvas{
+    position:fixed;
+    top:0;
+    left:0;
+    pointer-events:none;
     z-index:-1;
-  }
-
-  /* ---------- SWING MULTIPLIER CLONE ---------- */
-  /* The tiny DVD spawned by a corner hit. Half the size of a normal DVD. */
-  .dvd-logo.swing-clone{
-    font-size:13px;
-  }
-  /* Cycles the text color through the rainbow, forever. */
-  @keyframes swingRainbow{
-    0%{ color:#ff4d4d; }
-    17%{ color:#ffa94d; }
-    33%{ color:#ffe14d; }
-    50%{ color:#57e36b; }
-    67%{ color:#4dc3ff; }
-    83%{ color:#b07bff; }
-    100%{ color:#ff4d4d; }
-  }
-  .dvd-logo.swing-clone.rainbow{
-    animation:swingRainbow 1.2s linear infinite;
+    will-change:transform;
   }
 
   /* ---------- CONFETTI & SCREEN SHAKE ---------- */
@@ -6398,8 +6386,9 @@
       autoClickerOwned: 0,
       autoSpeedLevel: 0,
       dvdOwned: 0,
-      dvdBehind: false,
-      swingMultiplier: false, // SWING MULTIPLIER: true = corner hits spawn tiny rainbow clones
+      dvdBehind: true, // DVDs always sit behind the page (the DVD Layer toggle was removed in 1.13.1)
+      swingMultiplier: false, // SWING MULTIPLIER: true once any Swing level is owned (kept for old saves and the sheet)
+      swingLevel: 0,          // SWING MULTIPLIER: owned Swing level, 0 = none. Each level = clones spawned per corner hit
       amogusOwned: 0,
       amogusAlive: 0,
       musicPlayerOwned: false,
@@ -6789,27 +6778,70 @@
     renderShop();
   }
 
-  /* ---------- SWING MULTIPLIER DROPDOWN ---------- */
+  /* ---------- SWING MULTIPLIER DROPDOWN ----------
+     Swing levels are one-time buys, bought in order, like Auto Clicker speeds.
+     When a DVD hits a corner (or comes within SWING_CORNER_TOLERANCE px of one),
+     it spawns "clones" tiny rainbow DVDs. A tiny DVD bounces around until it hits
+     a corner (same tolerance), then disappears and pays clickPower * SWING_PAYOUT_MULT.
+     Add new levels to the end of the list. Resets on Prestige like other upgrades. */
+  const SWING_LEVELS = [
+    { label: 'None', clones: 0, cost: 0 },
+    { label: 'Swing I', clones: 1, cost: 5000 },
+    { label: 'Swing II', clones: 2, cost: 25000 },
+    { label: 'Swing III', clones: 3, cost: 100000 },
+    { label: 'Swing IV', clones: 4, cost: 400000 },
+    { label: 'Swing V', clones: 5, cost: 1500000 }
+  ];
+  const SWING_ICON_SVG = '<path d="M4 6c2.5 9 13.5 9 16 0" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/><circle cx="12" cy="17" r="3.2"/>';
+  const SWING_LEVEL_COLORS = [null, '#ff4d4d', '#ffa94d', '#eab308', '#22c55e', '#4dc3ff'];
   let dvdExpanded = false; // is the DVD Logo dropdown open?
+
+  // Owned Swing level. Old saves that had the free on/off Swing Multiplier turned on count as Swing I.
+  function swingLevel(){
+    let lvl = Math.floor(Number(game.swingLevel) || 0);
+    if (lvl <= 0 && game.swingMultiplier) lvl = 1;
+    return Math.min(Math.max(0, lvl), SWING_LEVELS.length - 1);
+  }
+  function swingClonesPerCorner(){ return SWING_LEVELS[swingLevel()].clones; }
+  function canBuySwing(level){
+    return (game.dvdOwned || 0) >= 1
+      && level === swingLevel() + 1
+      && level < SWING_LEVELS.length
+      && game.clicks >= SWING_LEVELS[level].cost;
+  }
+  function swingButtonLabel(level){
+    const lvl = SWING_LEVELS[level];
+    const what = lvl.clones + (lvl.clones === 1 ? ' clone' : ' clones');
+    if (level <= swingLevel()) return `${lvl.label}: ${what} (Owned)`;
+    return `${lvl.label}: ${what} (${lvl.cost.toLocaleString()})`;
+  }
 
   // Builds the dropdown panel under the DVD Logo card.
   function swingPanelHTML(){
-    const on = !!game.swingMultiplier;
     const hasDvd = (game.dvdOwned || 0) >= 1;
     const note = hasDvd ? '' : '<p class="workshop-settings-status" style="width:100%;margin:0 0 4px;">Buy a DVD Logo first.</p>';
+    const payout = Math.round(game.clickPower * SWING_PAYOUT_MULT * boostMultiplier()).toLocaleString();
+    const btns = SWING_LEVELS.slice(1).map((lvl, i) => {
+      const level = i + 1;
+      const owned = level <= swingLevel();
+      return `<button class="bulk-buy-btn speed-upgrade-btn${owned ? ' owned' : ''}" style="--speed-color:${SWING_LEVEL_COLORS[level] || 'var(--melon)'}" id="buy-swing-${level}" data-swing-level="${level}" ${canBuySwing(level) ? '' : 'disabled'}><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">${SWING_ICON_SVG}</svg><span>${swingButtonLabel(level)}</span></button>`;
+    }).join('');
     return `<div class="bulk-buy-panel" style="flex-wrap:wrap;">
       ${note}
-      <p class="workshop-settings-status" style="width:100%;margin:0 0 4px;text-align:left;"><b>Swing Multiplier:</b> when a DVD hits a corner, it spawns a tiny rainbow DVD. When the tiny one hits a wall, it disappears and pays ${Math.round(game.clickPower * SWING_PAYOUT_MULT * boostMultiplier()).toLocaleString()} clicks.</p>
-      <button class="bulk-buy-btn${on ? ' owned' : ''}" id="toggle-swing" ${hasDvd ? '' : 'disabled'}>${on ? 'Swing Multiplier: On' : 'Swing Multiplier: Off'}</button>
+      <p class="workshop-settings-status" style="width:100%;margin:0 0 4px;text-align:left;"><b>Swing Multiplier:</b> when a DVD hits a corner (or gets very close), it spawns tiny rainbow DVDs, one per clone. When a tiny DVD hits a corner, it disappears and pays ${payout} clicks.</p>
+      ${btns}
     </div>`;
   }
 
-  // Flips the Swing Multiplier on or off.
-  function toggleSwingMultiplier(){
-    game.swingMultiplier = !game.swingMultiplier;
-    if (!game.swingMultiplier) removeAllSwingClones(); // turning it off clears any tiny DVDs still flying
+  function buySwing(level){
+    if (!canBuySwing(level)) return;
+    playSound('money.mp3');
+    game.clicks -= SWING_LEVELS[level].cost;
+    game.swingLevel = level;
+    game.swingMultiplier = true;
+    updateCounter();
     saveGame();
-    syncToSheet(); // store the setting in the API
+    syncToSheet();
     renderShop();
     updateDvdStatsPanel();
   }
@@ -6983,21 +7015,12 @@
         ${shopIconHTML('DVD Logo')}
         <div class="shop-info">
           <h3>DVD Logo</h3>
-          <p>Spawns a bouncing logo that changes color on every wall bounce. <span class="owned">Owned: ${game.dvdOwned}</span></p>
+          <p>Spawns a bouncing logo that changes color on every wall bounce. Open the dropdown for Swing upgrades. <span class="owned">Owned: ${game.dvdOwned} &middot; Swing: ${SWING_LEVELS[swingLevel()].label}</span></p>
         </div>
         <button class="buy-btn" id="buy-dvd" ${game.clicks < dvdCost() ? 'disabled' : ''}>Buy (${dvdCost()})</button>
         <button class="bulk-expand-btn${dvdExpanded ? ' open' : ''}" id="dvd-expand-btn" title="Swing Multiplier">&#9662;</button>
       </div>
       ${dvdExpanded ? swingPanelHTML() : ''}` },
-      { category: 'visuals', html: `
-      <div class="shop-card">
-        ${shopIconHTML('DVD Layer')}
-        <div class="shop-info">
-          <h3>DVD Layer</h3>
-          <p>Send the DVD logos behind the page, or bring them back to the front.</p>
-        </div>
-        <button class="buy-btn" id="toggle-dvd-layer">${game.dvdBehind ? 'Bring Front' : 'Send Back'}</button>
-      </div>` },
       { category: 'visuals', html: `
       <div class="shop-card">
         ${shopIconHTML('Amogus')}
@@ -7197,8 +7220,7 @@
       btn.addEventListener('click', () => buyAutoSpeed(Number(btn.dataset.speedLevel)));
     });
     bind('buy-dvd', buyDvd);
-    bind('toggle-dvd-layer', toggleDvdLayer);
-    // SWING MULTIPLIER: open or close the dropdown, and flip the toggle inside it.
+    // SWING MULTIPLIER: open or close the dropdown.
     const dvdExpandBtn = document.getElementById('dvd-expand-btn');
     if (dvdExpandBtn) {
       dvdExpandBtn.addEventListener('click', () => {
@@ -7206,7 +7228,9 @@
         renderShop();
       });
     }
-    bind('toggle-swing', toggleSwingMultiplier);
+    list.querySelectorAll('[data-swing-level]').forEach(btn => {
+      btn.addEventListener('click', () => buySwing(Number(btn.dataset.swingLevel)));
+    });
     bind('buy-amogus', buyAmogus);
     bind('buy-music', buyMusicPlayer);
     bind('buy-cursors', buyCursors);
@@ -8390,9 +8414,10 @@
   const DVD_AVG_SPEED = 2.4;               // each DVD picks 1.8 to 3.0 px per frame per axis, so 2.4 is the middle
   const DVD_MATH_TICK_MS = 1000;           // Low Performance Mode pays out once per second
   const DVD_MATH_MAX_CATCHUP_MS = 60000;   // never pay for more than 60 seconds in a single tick
-  const SWING_PAYOUT_MULT = 1.25;          // SWING MULTIPLIER: a tiny DVD pays clickPower * 1.25 (boosts apply on top)
+  const SWING_PAYOUT_MULT = 1.35;          // SWING MULTIPLIER: a tiny DVD pays clickPower * 1.35 when it hits a corner (boosts apply on top)
+  const SWING_CORNER_TOLERANCE = 30;       // px: a wall hit this close to a corner counts as a corner for Swing
   const SWING_CLONE_SCALE = 0.5;           // tiny DVD size compared to a normal one
-  const SWING_MAX_CLONES = 40;             // cap so a huge DVD farm cannot lag the page
+  const SWING_MAX_CLONES = 200;            // cap so a huge DVD farm cannot lag the page (extra clones pay instantly)
   const DVD_UI_REFRESH_MS = 250;           // normal mode: score text and saving refresh at most this often
   let dvdSharedDims = null;                // {w,h} of one DVD logo, measured once and reused
   let dvdInstances = [];                   // live, moving DVD logos (normal mode only)
@@ -8436,12 +8461,16 @@
     const cornersPerSecEach = xHitsPerFrame * yHitsPerFrame * 60;
     const bouncesPerSec = bouncesPerSecEach * count;
     const cornersPerSec = cornersPerSecEach * count;
+    // Swing corners: a wall hit counts when the other axis is within the tolerance of a wall.
+    const nearX = Math.min(1, (2 * SWING_CORNER_TOLERANCE) / roomX);
+    const nearY = Math.min(1, (2 * SWING_CORNER_TOLERANCE) / roomY);
+    const swingCornersPerSec = (xHitsPerFrame * nearY + yHitsPerFrame * nearX) * 60 * count;
     // Same boosts the real bounce uses: the boost multiplier, plus the Lucky Charm's
     // 15% chance to double a payout (worth +15% on average).
     const multiplier = boostMultiplier() * (game.luckyCharmOwned ? 1.15 : 1);
-    // Swing Multiplier: every corner hit also pays one tiny-DVD payout.
-    const swingPerCorner = game.swingMultiplier ? game.clickPower * SWING_PAYOUT_MULT : 0;
-    const clicksPerSec = (bouncesPerSec * game.clickPower + cornersPerSec * (CORNER_BONUS + swingPerCorner)) * multiplier;
+    // Swing Multiplier: every Swing corner spawns clones, and each clone pays once when it hits a corner.
+    const swingPerCorner = swingClonesPerCorner() * game.clickPower * SWING_PAYOUT_MULT;
+    const clicksPerSec = (bouncesPerSec * game.clickPower + cornersPerSec * CORNER_BONUS + swingCornersPerSec * swingPerCorner) * multiplier;
     return {
       count,
       secondsBetweenBouncesEach: bouncesPerSecEach > 0 ? 1 / bouncesPerSecEach : Infinity,
@@ -8449,6 +8478,8 @@
       bouncesPerSec,
       secondsBetweenCorners: cornersPerSec > 0 ? 1 / cornersPerSec : Infinity,
       cornersPerSec,
+      swingCornersPerSec,
+      secondsBetweenSwingCorners: swingCornersPerSec > 0 ? 1 / swingCornersPerSec : Infinity,
       clicksPerSec
     };
   }
@@ -8478,7 +8509,10 @@
       'Bounces per second: ' + s.bouncesPerSec.toLocaleString(undefined, { maximumFractionDigits: 2 }),
       'Clicks per second from DVDs: ' + Math.round(s.clicksPerSec).toLocaleString(),
       'A corner hit about every: ' + formatDvdTime(s.secondsBetweenCorners)
-    ].join('<br>');
+    ].concat(swingLevel() > 0 ? [
+      'Swing: ' + SWING_LEVELS[swingLevel()].label + ' (' + swingClonesPerCorner() + ' per corner)',
+      'A Swing corner (or close) about every: ' + formatDvdTime(s.secondsBetweenSwingCorners)
+    ] : []).join('<br>');
   }
 
   // Saves and refreshes all the number displays after DVDs earn clicks.
@@ -8518,17 +8552,21 @@
     dvdMathBounceCarry -= bounces;
 
     // Corners are rare and worth a lot, so roll dice instead of paying a tiny amount every tick.
-    const expectedCorners = stats.cornersPerSec * seconds;
-    let corners = Math.floor(expectedCorners);
-    if (Math.random() < expectedCorners - corners) corners += 1;
+    function rollCount(expected){
+      let n = Math.floor(expected);
+      if (Math.random() < expected - n) n += 1;
+      return n;
+    }
+    const corners = rollCount(stats.cornersPerSec * seconds);
+    const swingCorners = swingLevel() > 0 ? rollCount(stats.swingCornersPerSec * seconds) : 0;
 
-    if (bounces <= 0 && corners <= 0) return;
+    if (bounces <= 0 && corners <= 0 && swingCorners <= 0) return;
 
     const multiplier = boostMultiplier() * (game.luckyCharmOwned ? 1.15 : 1);
-    // Swing Multiplier in Low Performance Mode: no tiny DVDs are drawn, so each corner
-    // simply pays the clone's wall-hit reward right away.
-    const swingPerCorner = game.swingMultiplier ? game.clickPower * SWING_PAYOUT_MULT : 0;
-    game.clicks += Math.round((bounces * game.clickPower + corners * (CORNER_BONUS + swingPerCorner)) * multiplier);
+    // Swing Multiplier in Low Performance Mode: no tiny DVDs are drawn, so each Swing corner
+    // pays all of its clones' corner rewards right away.
+    const swingPerCorner = swingClonesPerCorner() * game.clickPower * SWING_PAYOUT_MULT;
+    game.clicks += Math.round((bounces * game.clickPower + corners * CORNER_BONUS + swingCorners * swingPerCorner) * multiplier);
     dvdRefreshUi();
   }
 
@@ -8544,45 +8582,217 @@
     dvdMathTimerId = null;
   }
 
+  /* ---------- DVD CANVAS ----------
+     Every DVD logo and every tiny Swing DVD is drawn on ONE canvas behind the page,
+     moved by ONE animation loop. Before 1.13.1 each DVD was its own HTML element with its
+     own loop. With a lot of DVDs that forced the browser to repaint the whole page every
+     frame, which made everything on screen flicker. The canvas is its own layer, so moving
+     DVDs never repaints the page on top of it. */
+  let dvdCanvas = null;
+  let dvdCtx = null;
+  let dvdLoopId = null;                    // the single requestAnimationFrame loop for all DVDs
+  let dvdFontFamily = "'Poppins', sans-serif";
+  let dvdFontCheck = 0;                    // frames until the UI font is checked again
+  const SWING_RAINBOW = ['#ff4d4d', '#ffa94d', '#ffe14d', '#57e36b', '#4dc3ff', '#b07bff'];
+  const SWING_RAINBOW_MS = 1200;           // one full trip through the rainbow
+
+  function ensureDvdCanvas(){
+    if (dvdCanvas && document.body.contains(dvdCanvas)) return;
+    dvdCanvas = document.createElement('canvas');
+    dvdCanvas.id = 'dvd-canvas';
+    dvdCanvas.setAttribute('aria-hidden', 'true');
+    document.body.appendChild(dvdCanvas);
+    dvdCtx = dvdCanvas.getContext('2d');
+    dvdFontCheck = 0;
+    resizeDvdCanvas();
+  }
+
+  function resizeDvdCanvas(){
+    if (!dvdCanvas) return;
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    dvdCanvas.width = Math.round(window.innerWidth * dpr);
+    dvdCanvas.height = Math.round(window.innerHeight * dpr);
+    dvdCanvas.style.width = window.innerWidth + 'px';
+    dvdCanvas.style.height = window.innerHeight + 'px';
+    dvdCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+
+  function removeDvdCanvas(){
+    if (dvdLoopId) cancelAnimationFrame(dvdLoopId);
+    dvdLoopId = null;
+    if (dvdCanvas) dvdCanvas.remove();
+    dvdCanvas = null;
+    dvdCtx = null;
+  }
+
+  function startDvdLoop(){
+    ensureDvdCanvas();
+    if (!dvdLoopId) dvdLoopId = requestAnimationFrame(dvdFrame);
+  }
+
+  // Blends between two hex colors. t goes from 0 to 1.
+  function mixHex(a, b, t){
+    const pa = parseInt(a.slice(1), 16), pb = parseInt(b.slice(1), 16);
+    const r = Math.round(((pa >> 16) & 255) + (((pb >> 16) & 255) - ((pa >> 16) & 255)) * t);
+    const g = Math.round(((pa >> 8) & 255) + (((pb >> 8) & 255) - ((pa >> 8) & 255)) * t);
+    const bl = Math.round((pa & 255) + ((pb & 255) - (pa & 255)) * t);
+    return 'rgb(' + r + ',' + g + ',' + bl + ')';
+  }
+
+  function swingRainbowColor(now, born){
+    const pos = ((Math.max(0, now - born) % SWING_RAINBOW_MS) / SWING_RAINBOW_MS) * SWING_RAINBOW.length; // the frame can start a moment before the clone was born
+    const i = Math.floor(pos) % SWING_RAINBOW.length;
+    return mixHex(SWING_RAINBOW[i], SWING_RAINBOW[(i + 1) % SWING_RAINBOW.length], pos - Math.floor(pos));
+  }
+
+  // Draws "DVD" over "VIDEO", centered in the logo's box, like the old HTML logo.
+  function drawDvdText(x, y, w, h, size, color){
+    const lh = size * 1.05;
+    const top = y + (h - lh * 2) / 2;
+    const cx = x + w / 2;
+    dvdCtx.fillStyle = color;
+    dvdCtx.fillText('DVD', cx, top + lh * 0.5);
+    dvdCtx.fillText('VIDEO', cx, top + lh * 1.5);
+  }
+
+  // True when a wall hit is at a corner or within SWING_CORNER_TOLERANCE px of one.
+  function isNearCorner(obj, maxX, maxY, xBounced, yBounced){
+    if (xBounced && yBounced) return true;
+    const t = SWING_CORNER_TOLERANCE;
+    if (xBounced) return obj.y <= t || obj.y >= maxY - t;
+    if (yBounced) return obj.x <= t || obj.x >= maxX - t;
+    return false;
+  }
+
+  // Runs every time a normal DVD touches a wall.
+  function dvdOnBounce(state, xBounced, yBounced, maxX, maxY){
+    state.colorIndex = (state.colorIndex + 1) % DVD_COLORS.length;
+    earnClicks(game.clickPower);
+    if (xBounced && yBounced) earnClicks(CORNER_BONUS); // exact corner bonus is unchanged
+    // SWING MULTIPLIER: a corner (or very close) spawns one tiny rainbow DVD per clone level.
+    const clones = swingClonesPerCorner();
+    if (clones > 0 && isNearCorner(state, maxX, maxY, xBounced, yBounced)) {
+      for (let i = 0; i < clones; i++) spawnSwingClone(state);
+    }
+    dvdQueueUiRefresh(); // batched so many DVDs do not save the game hundreds of times a second
+  }
+
+  /* THE ONE LOOP: moves every DVD and tiny DVD, pays bounces, then draws them all. */
+  function dvdFrame(now){
+    dvdLoopId = null;
+    if (isLowPerfMode() || (!dvdInstances.length && !swingClones.length) || !dvdCtx) {
+      if (dvdCtx) dvdCtx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+      return;
+    }
+
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+
+    // Normal DVDs: bounce off the walls.
+    for (let i = 0; i < dvdInstances.length; i++) {
+      const state = dvdInstances[i];
+      const maxX = vw - state.w;
+      const maxY = vh - state.h;
+      state.x += state.vx;
+      state.y += state.vy;
+      let xBounced = false;
+      let yBounced = false;
+      if (state.x <= 0) { state.x = 0; state.vx = Math.abs(state.vx); xBounced = true; }
+      if (state.x >= maxX) { state.x = maxX; state.vx = -Math.abs(state.vx); xBounced = true; }
+      if (state.y <= 0) { state.y = 0; state.vy = Math.abs(state.vy); yBounced = true; }
+      if (state.y >= maxY) { state.y = maxY; state.vy = -Math.abs(state.vy); yBounced = true; }
+      if (xBounced || yBounced) dvdOnBounce(state, xBounced, yBounced, maxX, maxY);
+    }
+
+    // Tiny DVDs: bounce off walls. A corner hit (or very close) ends them and pays the reward.
+    if (swingClones.length) {
+      const alive = [];
+      for (let i = 0; i < swingClones.length; i++) {
+        const c = swingClones[i];
+        const maxX = vw - c.w;
+        const maxY = vh - c.h;
+        c.x += c.vx;
+        c.y += c.vy;
+        let xBounced = false;
+        let yBounced = false;
+        if (c.x <= 0) { c.x = 0; c.vx = Math.abs(c.vx); xBounced = true; }
+        if (c.x >= maxX) { c.x = maxX; c.vx = -Math.abs(c.vx); xBounced = true; }
+        if (c.y <= 0) { c.y = 0; c.vy = Math.abs(c.vy); yBounced = true; }
+        if (c.y >= maxY) { c.y = maxY; c.vy = -Math.abs(c.vy); yBounced = true; }
+        if ((xBounced || yBounced) && c.age > 0 && isNearCorner(c, maxX, maxY, xBounced, yBounced)) {
+          earnClicks(game.clickPower * SWING_PAYOUT_MULT); // earnClicks applies boosts and Lucky Charm
+          dvdQueueUiRefresh();
+        } else {
+          c.age++;
+          alive.push(c);
+        }
+      }
+      swingClones = alive;
+    }
+
+    // The UI font setting can change the DVD font, so check it about once a second.
+    if (dvdFontCheck <= 0) {
+      dvdFontFamily = getComputedStyle(dvdCanvas).fontFamily || dvdFontFamily;
+      dvdFontCheck = 60;
+    }
+    dvdFontCheck--;
+
+    // Draw everything.
+    const ctx = dvdCtx;
+    ctx.clearRect(0, 0, vw, vh);
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.font = '700 26px ' + dvdFontFamily;
+    for (let i = 0; i < dvdInstances.length; i++) {
+      const st = dvdInstances[i];
+      drawDvdText(st.x, st.y, st.w, st.h, 26, DVD_COLORS[st.colorIndex]);
+    }
+    if (swingClones.length) {
+      ctx.font = '700 13px ' + dvdFontFamily;
+      for (let i = 0; i < swingClones.length; i++) {
+        const c = swingClones[i];
+        drawDvdText(c.x, c.y, c.w, c.h, 13, swingRainbowColor(now, c.born));
+      }
+    }
+
+    dvdLoopId = requestAnimationFrame(dvdFrame);
+  }
+
   /* Makes the page match the current mode. Safe to call any time
      (buying a DVD, toggling Low Performance Mode, loading, reset, prestige).
-       Low Performance Mode ON : every DVD element is deleted and the math timer runs.
+       Low Performance Mode ON : nothing is drawn, the canvas is removed and the math timer runs.
        Low Performance Mode OFF: the math timer stops and exactly game.dvdOwned moving DVDs exist. */
   function updateDvdVisibility(){
-    swingClones = swingClones.filter(c => { if (document.body.contains(c.el)) return true; c.stop(); return false; });
-    // Forget logos whose element was already removed (reset or prestige).
-    dvdInstances = dvdInstances.filter(inst => {
-      if (document.body.contains(inst.el)) return true;
-      inst.stop();
-      return false;
-    });
-
     if (isLowPerfMode()) {
-      dvdInstances.forEach(inst => { inst.stop(); inst.el.remove(); });
       dvdInstances = [];
       removeAllSwingClones(); // tiny DVDs are deleted too
-      document.querySelectorAll('.dvd-logo').forEach(el => el.remove());
+      removeDvdCanvas();
       startDvdMath();
     } else {
       stopDvdMath();
       while (dvdInstances.length < (game.dvdOwned || 0)) spawnDvd();
-      while (dvdInstances.length > (game.dvdOwned || 0)) {
-        const extra = dvdInstances.pop();
-        extra.stop();
-        extra.el.remove();
-      }
+      if (dvdInstances.length > (game.dvdOwned || 0)) dvdInstances.length = (game.dvdOwned || 0);
+      if (dvdInstances.length || swingClones.length) startDvdLoop();
+      else removeDvdCanvas();
     }
     updateDvdStatsPanel();
   }
 
+  // Deletes every DVD and tiny DVD right away (reset and prestige).
+  function clearAllDvds(){
+    dvdInstances = [];
+    swingClones = [];
+    removeDvdCanvas();
+  }
+
   // Deletes every tiny DVD (Low Performance Mode, Swing Multiplier turned off).
   function removeAllSwingClones(){
-    swingClones.forEach(c => { c.stop(); c.el.remove(); });
     swingClones = [];
   }
 
   /* SWING MULTIPLIER: makes one tiny rainbow DVD at a parent DVD's position.
-     It flies until it touches ANY wall, then deletes itself and pays clickPower * 1.25. */
+     It bounces around until it hits a corner (or very close), then disappears and pays
+     clickPower * SWING_PAYOUT_MULT. */
   function spawnSwingClone(parent){
     // Too many tiny DVDs already? Pay this one instantly so the reward is not lost.
     if (swingClones.length >= SWING_MAX_CLONES) {
@@ -8591,150 +8801,49 @@
       return;
     }
 
-    const el = document.createElement('div');
-    el.className = 'dvd-logo swing-clone rainbow';
-    if (game.dvdBehind) el.classList.add('behind');
-    el.textContent = 'DVD\nVIDEO';
-    document.body.appendChild(el);
-
     // The clone is about half the size of its parent.
-    const w = el.offsetWidth || Math.round(parent.w * SWING_CLONE_SCALE);
-    const h = el.offsetHeight || Math.round(parent.h * SWING_CLONE_SCALE);
+    const w = Math.round(parent.w * SWING_CLONE_SCALE);
+    const h = Math.round(parent.h * SWING_CLONE_SCALE);
     const maxX = window.innerWidth - w;
     const maxY = window.innerHeight - h;
 
-    const clone = {
-      el, w, h,
-      // Start in the middle of the parent. A corner hit leaves the parent touching two walls,
-      // so the clone is pushed 1px inside the screen to avoid being deleted on its first frame.
-      x: Math.max(1, Math.min(maxX - 1, parent.x + (parent.w - w) / 2)),
-      y: Math.max(1, Math.min(maxY - 1, parent.y + (parent.h - h) / 2)),
-      // Faster than a normal DVD (3 to 4.5 px per frame) in a random direction.
-      vx: (Math.random() < 0.5 ? -1 : 1) * (3 + Math.random() * 1.5),
-      vy: (Math.random() < 0.5 ? -1 : 1) * (3 + Math.random() * 1.5),
-      running: true,
-      rafId: null
-    };
-
-    clone.stop = function(){
-      clone.running = false;
-      if (clone.rafId) cancelAnimationFrame(clone.rafId);
-      clone.rafId = null;
-    };
-
-    function tick(){
-      if (!clone.running || !document.body.contains(clone.el)) { clone.stop(); return; }
-
-      clone.x += clone.vx;
-      clone.y += clone.vy;
-
-      // Touching any wall ends the clone's life and pays the reward.
-      const hitWall = clone.x <= 0 || clone.y <= 0
-        || clone.x >= window.innerWidth - clone.w
-        || clone.y >= window.innerHeight - clone.h;
-      if (hitWall) {
-        clone.stop();
-        clone.el.remove();
-        swingClones = swingClones.filter(c => c !== clone);
-        earnClicks(game.clickPower * SWING_PAYOUT_MULT); // earnClicks applies boosts and Lucky Charm
-        dvdQueueUiRefresh();
-        return;
-      }
-
-      clone.el.style.transform = `translate(${clone.x}px, ${clone.y}px)`;
-      clone.rafId = requestAnimationFrame(tick);
-    }
-
-    swingClones.push(clone);
-    clone.el.style.transform = `translate(${clone.x}px, ${clone.y}px)`;
-    clone.rafId = requestAnimationFrame(tick);
+    swingClones.push({
+      w, h,
+      // Start in the middle of the parent.
+      x: Math.max(0, Math.min(maxX, parent.x + (parent.w - w) / 2)),
+      y: Math.max(0, Math.min(maxY, parent.y + (parent.h - h) / 2)),
+      // Faster than a normal DVD (3 to 4.5 px per frame), flying away from the corner it was born in
+      // so it cannot cash in on the same corner straight away.
+      vx: (parent.x + parent.w / 2 < window.innerWidth / 2 ? 1 : -1) * (3 + Math.random() * 1.5),
+      vy: (parent.y + parent.h / 2 < window.innerHeight / 2 ? 1 : -1) * (3 + Math.random() * 1.5),
+      age: 0,
+      born: performance.now()
+    });
+    startDvdLoop();
   }
 
-  /* Creates ONE moving DVD logo (normal mode only). */
+  /* Adds ONE moving DVD logo (normal mode only). */
   function spawnDvd(){
-    if (isLowPerfMode()) return; // Low Performance Mode never creates DVD elements
-
-    const dvd = document.createElement('div');
-    dvd.className = 'dvd-logo';
-    if (game.dvdBehind) dvd.classList.add('behind');
-    dvd.textContent = 'DVD\nVIDEO';
-    document.body.appendChild(dvd);
-
-    if (!dvdSharedDims) {
-      dvdSharedDims = { w: dvd.offsetWidth || 90, h: dvd.offsetHeight || 60 };
-    }
-    const w = dvdSharedDims.w;
-    const h = dvdSharedDims.h;
-
-    const state = {
-      el: dvd,
+    if (isLowPerfMode()) return; // Low Performance Mode never draws DVDs
+    const dims = measureDvdDims();
+    const w = dims.w;
+    const h = dims.h;
+    dvdInstances.push({
       w, h,
-      x: Math.random() * (window.innerWidth - w),
-      y: Math.random() * (window.innerHeight - h),
+      x: Math.random() * Math.max(0, window.innerWidth - w),
+      y: Math.random() * Math.max(0, window.innerHeight - h),
       vx: (Math.random() < 0.5 ? -1 : 1) * (1.8 + Math.random() * 1.2),
       vy: (Math.random() < 0.5 ? -1 : 1) * (1.8 + Math.random() * 1.2),
-      colorIndex: Math.floor(Math.random() * DVD_COLORS.length),
-      running: true,
-      rafId: null
-    };
-    dvd.style.color = DVD_COLORS[state.colorIndex];
-
-    // Runs every time this DVD touches a wall.
-    function onBounce(xBounced, yBounced){
-      state.colorIndex = (state.colorIndex + 1) % DVD_COLORS.length;
-      state.el.style.color = DVD_COLORS[state.colorIndex];
-      earnClicks(game.clickPower);
-      if (xBounced && yBounced) {
-        earnClicks(CORNER_BONUS);
-        if (game.swingMultiplier) spawnSwingClone(state); // SWING MULTIPLIER: corner hit spawns a tiny rainbow DVD
-      }
-      dvdQueueUiRefresh(); // batched so many DVDs do not save the game hundreds of times a second
-    }
-
-    function renderTick(){
-      if (!state.running || !document.body.contains(state.el)) return;
-
-      const maxX = window.innerWidth - state.w;
-      const maxY = window.innerHeight - state.h;
-
-      state.x += state.vx;
-      state.y += state.vy;
-
-      let xBounced = false;
-      let yBounced = false;
-
-      if (state.x <= 0) { state.x = 0; state.vx = Math.abs(state.vx); xBounced = true; }
-      if (state.x >= maxX) { state.x = maxX; state.vx = -Math.abs(state.vx); xBounced = true; }
-      if (state.y <= 0) { state.y = 0; state.vy = Math.abs(state.vy); yBounced = true; }
-      if (state.y >= maxY) { state.y = maxY; state.vy = -Math.abs(state.vy); yBounced = true; }
-
-      if (xBounced || yBounced) onBounce(xBounced, yBounced);
-
-      state.el.style.transform = `translate(${state.x}px, ${state.y}px)`;
-      state.rafId = requestAnimationFrame(renderTick);
-    }
-
-    // Stops this DVD's animation loop (used when the DVD is deleted).
-    state.stop = function(){
-      state.running = false;
-      if (state.rafId) cancelAnimationFrame(state.rafId);
-      state.rafId = null;
-    };
-
-    dvdInstances.push(state);
-    state.el.style.transform = `translate(${state.x}px, ${state.y}px)`;
-    state.rafId = requestAnimationFrame(renderTick);
+      colorIndex: Math.floor(Math.random() * DVD_COLORS.length)
+    });
+    startDvdLoop();
   }
 
-  // A resized window changes the DVD math, so refresh the numbers box.
-  window.addEventListener('resize', updateDvdStatsPanel);
-
-  function toggleDvdLayer(){
-    game.dvdBehind = !game.dvdBehind;
-    document.querySelectorAll('.dvd-logo').forEach(el => el.classList.toggle('behind', game.dvdBehind));
-    saveGame();
-    renderShop();
-  }
+  // A resized window changes the canvas size and the DVD math.
+  window.addEventListener('resize', () => {
+    resizeDvdCanvas();
+    updateDvdStatsPanel();
+  });
 
   /* ---------- BOUNCING EMOJI ---------- */
   /* ---------- CONFETTI & SCREEN SHAKE ---------- */
@@ -9093,6 +9202,9 @@
     });
     const dvdBtn = document.getElementById('buy-dvd');
     if (dvdBtn) { dvdBtn.disabled = game.clicks < dvdCost(); dvdBtn.textContent = 'Buy (' + dvdCost() + ')'; }
+    document.querySelectorAll('[data-swing-level]').forEach(btn => {
+      btn.disabled = !canBuySwing(Number(btn.dataset.swingLevel));
+    });
     const amogusBtn = document.getElementById('buy-amogus');
     if (amogusBtn) amogusBtn.disabled = game.clicks < AMOGUS_COST;
     const musicBtn = document.getElementById('buy-music');
@@ -12306,7 +12418,8 @@
       clickBoostOwned: game.clickBoostOwned,
       autoClickerOwned: game.autoClickerOwned,
       autoSpeedLevel: game.autoSpeedLevel || 0,
-      swingMultiplier: !!game.swingMultiplier, // SWING MULTIPLIER: saved to the Accounts sheet (column 57)
+      swingMultiplier: swingLevel() > 0, // SWING MULTIPLIER: saved to the Accounts sheet (column 57)
+      swingLevel: swingLevel(),          // SWING MULTIPLIER: owned level, needs its own backend column
       dvdOwned: game.dvdOwned,
       amogusOwned: game.amogusOwned,
       amogusAlive: game.amogusAlive,
@@ -12417,6 +12530,8 @@
       dvdOwned: source.dvdOwned || 0,
       // Falls back to the local save until the backend returns the column.
       swingMultiplier: source.swingMultiplier !== undefined ? !!source.swingMultiplier : !!(savedRaw && savedRaw.swingMultiplier),
+      // Falls back to the local save until the backend returns the column.
+      swingLevel: source.swingLevel !== undefined ? (Number(source.swingLevel) || 0) : (Number(savedRaw && savedRaw.swingLevel) || 0),
       amogusOwned: source.amogusOwned || 0,
       amogusAlive: source.amogusAlive || 0,
       musicPlayerOwned: !!source.musicPlayerOwned,
@@ -12584,7 +12699,6 @@
 
   function actuallyHideLoadingScreen(){
     game.dvdBehind = true;
-    document.querySelectorAll('.dvd-logo').forEach(el => el.classList.add('behind'));
     saveGame();
 
     if (!loadingScreenEl) return;
@@ -14128,7 +14242,8 @@
   }
 
   function doResetData(){
-    document.querySelectorAll('.dvd-logo, .crewmate, .noob').forEach(el => el.remove());
+    clearAllDvds();
+    document.querySelectorAll('.crewmate, .noob').forEach(el => el.remove());
     activeCrewmates.clear();
     updateOverallTaskMeter();
     const keepAchievements = game.unlockedAchievements || [];
@@ -14160,7 +14275,8 @@
 
   function doPrestige(){
     if (game.clicks < PRESTIGE_COST) { closeConfirm(); return; }
-    document.querySelectorAll('.dvd-logo, .crewmate, .noob').forEach(el => el.remove());
+    clearAllDvds();
+    document.querySelectorAll('.crewmate, .noob').forEach(el => el.remove());
     activeCrewmates.clear();
     updateOverallTaskMeter();
     const prestigeGain = 1 + (game.prestigeMultOwned || 0);
