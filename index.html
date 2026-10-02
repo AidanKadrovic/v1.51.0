@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<!-- Game version: 1.14.0 | Deployment: 197 | Update both on every release, see README.md -->
-<meta name="game-version" content="1.14.0">
+<!-- Game version: 1.15.0 | Deployment: 198 | Update both on every release, see README.md -->
+<meta name="game-version" content="1.15.0">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>The Clicker Game!</title>
 <link rel="icon" type="image/x-icon" href="maksy.ico" id="favicon-link">
@@ -1452,7 +1452,8 @@
   }
   body.low-perf .noob-head,
   body.low-perf .noob-torso,
-  body.low-perf .noob-legs{
+  body.low-perf .noob-arm,
+  body.low-perf .noob-leg{
     display:none;
   }
   body.low-perf .noob-body{
@@ -1659,12 +1660,17 @@
   }
 
   /* ---------- ROBLOX NOOB ---------- */
+  /* Six parts (head, torso, 2 arms, 2 legs) so he can explode into 6 pieces. */
   .noob{
     position:fixed;
     bottom:16px;
     width:32px;
     height:52px;
     z-index:998;
+    cursor:pointer;
+  }
+  .noob.exploded{
+    visibility:hidden;
     pointer-events:none;
   }
   .noob-body{
@@ -1690,31 +1696,88 @@
   .noob-head{
     position:absolute;
     top:0;
-    left:4px;
-    width:24px;
-    height:20px;
+    left:8px;
+    width:16px;
+    height:15px;
     background:#f5cd30;
     border-radius:3px;
   }
   .noob-torso{
     position:absolute;
-    top:20px;
-    left:2px;
-    width:28px;
-    height:20px;
+    top:16px;
+    left:8px;
+    width:16px;
+    height:18px;
     border-radius:2px;
   }
-  .noob-legs{
+  .noob-arm{
     position:absolute;
-    top:40px;
-    left:2px;
-    width:28px;
-    height:12px;
+    top:16px;
+    width:7px;
+    height:18px;
+    background:#f5cd30;
+    border-radius:2px;
+  }
+  .noob-arm.left{ left:0; }
+  .noob-arm.right{ left:25px; }
+  .noob-leg{
+    position:absolute;
+    top:34px;
+    width:8px;
+    height:18px;
     border-radius:0 0 2px 2px;
+  }
+  .noob-leg.left{ left:8px; }
+  .noob-leg.right{ left:16px; }
+  /* Green "money generated so far" text above his head. */
+  .noob-bank{
+    position:absolute;
+    bottom:56px;
+    left:50%;
+    transform:translateX(-50%);
+    font-family:'Poppins', sans-serif;
+    font-size:11px;
+    font-weight:700;
+    color:#22c55e;
+    text-shadow:0 1px 2px rgba(0,0,0,0.6);
+    white-space:nowrap;
+    pointer-events:none;
+  }
+  /* One flying body part after a noob is clicked. */
+  .noob-piece{
+    position:fixed;
+    z-index:999;
+    pointer-events:none;
+    border-radius:2px;
+    animation:noob-piece-fly 1s ease-out forwards;
+  }
+  @keyframes noob-piece-fly{
+    0%{ transform:translate(0, 0) rotate(0deg); opacity:1; }
+    35%{ transform:translate(calc(var(--dx) * 0.45), var(--up)) rotate(calc(var(--rot) * 0.4)); opacity:1; }
+    100%{ transform:translate(var(--dx), var(--dy)) rotate(var(--rot)); opacity:0; }
+  }
+  /* "+123" that rises out of an exploded noob. */
+  .noob-payout{
+    position:fixed;
+    z-index:1000;
+    pointer-events:none;
+    font-family:'Poppins', sans-serif;
+    font-size:16px;
+    font-weight:800;
+    color:#22c55e;
+    text-shadow:0 1px 3px rgba(0,0,0,0.7);
+    white-space:nowrap;
+    transform:translateX(-50%);
+    animation:noob-payout-rise 1.3s ease-out forwards;
+  }
+  @keyframes noob-payout-rise{
+    0%{ transform:translate(-50%, 0); opacity:1; }
+    100%{ transform:translate(-50%, -60px); opacity:0; }
   }
   .noob-bubble{
     position:absolute;
-    bottom:58px;
+    bottom:72px;
+    pointer-events:none;
     left:50%;
     transform:translateX(-50%);
     background:#fff;
@@ -6412,6 +6475,7 @@
       lastIconPick: null,
       autoKillOwned: false,
       noobOwned: 0,
+      noobLevel: 0, // NOOB LEVEL: each level adds +1 moneys per second to every noob
       hideCursor: false,
       sfxMuted: false,
       lightMode: false,
@@ -6636,6 +6700,62 @@
     updateCounter();
     saveGame();
     renderShop();
+  }
+
+  /* ---------- NOOB LEVELS ----------
+     Every noob generates (1 + noobLevel) * boost multiplier moneys per second.
+     Levels are bought from the Roblox Noob dropdown: Level Up, x10, x25 or Max,
+     like the Click Boost dropdown. Level n+1 costs NOOB_LEVEL_BASE_COST * (n + 1).
+     Resets on Prestige like other upgrades. */
+  const NOOB_LEVEL_BASE_COST = 100;
+  let noobExpanded = false; // is the Roblox Noob dropdown open?
+
+  function noobLevel(){ return Math.max(0, Math.floor(Number(game.noobLevel) || 0)); }
+  function noobRatePerSec(){ return (1 + noobLevel()) * boostMultiplier(); }
+  function noobLevelBulkCost(n){
+    let total = 0;
+    let lvl = noobLevel();
+    for (let i = 0; i < n; i++) {
+      total += NOOB_LEVEL_BASE_COST * (lvl + 1);
+      lvl++;
+    }
+    return total;
+  }
+  function noobLevelMaxAffordable(){
+    let n = 0;
+    let lvl = noobLevel();
+    let remaining = game.clicks;
+    while (n < 100000) {
+      const next = NOOB_LEVEL_BASE_COST * (lvl + 1);
+      if (remaining < next) break;
+      remaining -= next;
+      lvl++;
+      n++;
+    }
+    return n;
+  }
+  function buyNoobLevels(n){
+    if (n <= 0) return;
+    const cost = noobLevelBulkCost(n);
+    if (game.clicks < cost) return;
+    playSound('money.mp3');
+    game.clicks -= cost;
+    game.noobLevel = noobLevel() + n;
+    updateCounter();
+    saveGame();
+    syncToSheet();
+    renderShop();
+  }
+  function noobLevelPanelHTML(){
+    const rate = Math.round(noobRatePerSec()).toLocaleString();
+    const next = Math.round((2 + noobLevel()) * boostMultiplier()).toLocaleString();
+    return `<div class="bulk-buy-panel" style="flex-wrap:wrap;">
+      <p class="workshop-settings-status" style="width:100%;margin:0 0 4px;text-align:left;"><b>Noob Level ${noobLevel()}:</b> every noob makes ${rate} moneys per second. Next level: ${next} per second.</p>
+      <button class="bulk-buy-btn" id="buy-nooblvl-x1" ${game.clicks < noobLevelBulkCost(1) ? 'disabled' : ''}>Level Up (${noobLevelBulkCost(1).toLocaleString()})</button>
+      <button class="bulk-buy-btn" id="buy-nooblvl-x10" ${game.clicks < noobLevelBulkCost(10) ? 'disabled' : ''}>Buy x10 (${noobLevelBulkCost(10).toLocaleString()})</button>
+      <button class="bulk-buy-btn" id="buy-nooblvl-x25" ${game.clicks < noobLevelBulkCost(25) ? 'disabled' : ''}>Buy x25 (${noobLevelBulkCost(25).toLocaleString()})</button>
+      <button class="bulk-buy-btn" id="buy-nooblvl-max" ${noobLevelMaxAffordable() <= 0 ? 'disabled' : ''}>Buy Max (${noobLevelMaxAffordable()})</button>
+    </div>`;
   }
 
   function buyNoob(){
@@ -7035,10 +7155,12 @@
         ${shopIconHTML('Roblox Noob')}
         <div class="shop-info">
           <h3>Roblox Noob</h3>
-          <p>Spawns a noob who walks, jumps, dances, and chats. Pays out like a DVD logo every time he bounces off a wall. <span class="owned">Owned: ${game.noobOwned}</span></p>
+          <p>Spawns a noob who walks, jumps, dances, and chats. Every second he generates moneys (the green number above him). Click him to blow him up and collect it. Open the dropdown for Noob Levels. <span class="owned">Owned: ${game.noobOwned} &middot; Level: ${noobLevel()}</span></p>
         </div>
         <button class="buy-btn" id="buy-noob" ${game.clicks < NOOB_COST ? 'disabled' : ''}>Buy (${NOOB_COST})</button>
-      </div>` },
+        <button class="bulk-expand-btn${noobExpanded ? ' open' : ''}" id="noob-expand-btn" title="Noob Levels">&#9662;</button>
+      </div>
+      ${noobExpanded ? noobLevelPanelHTML() : ''}` },
       { category: 'customization', html: `
       <div class="shop-card">
         ${shopIconHTML('Custom Cursors')}
@@ -7241,6 +7363,17 @@
     bind('buy-font-manager', buyFontManager);
     bind('buy-autokill', buyAutoKill);
     bind('buy-noob', buyNoob);
+    const noobExpandBtn = document.getElementById('noob-expand-btn');
+    if (noobExpandBtn) {
+      noobExpandBtn.addEventListener('click', () => {
+        noobExpanded = !noobExpanded;
+        renderShop();
+      });
+    }
+    bind('buy-nooblvl-x1', () => buyNoobLevels(1));
+    bind('buy-nooblvl-x10', () => buyNoobLevels(10));
+    bind('buy-nooblvl-x25', () => buyNoobLevels(25));
+    bind('buy-nooblvl-max', () => buyNoobLevels(noobLevelMaxAffordable()));
     bind('buy-luckycharm', buyLuckyCharm);
     bind('do-prestige', openConfirmPrestige);
     bind('buy-boost-trade', buyBoost);
@@ -8900,56 +9033,161 @@
     });
   }
 
-  /* ---------- ROBLOX NOOB ---------- */
+  /* ---------- ROBLOX NOOB ----------
+     Each noob banks (1 + noobLevel) * boost multiplier moneys every second, shown in green
+     above him. Clicking him blows him into 6 pieces (head, torso, 2 arms, 2 legs), pays out
+     the bank, and he rebuilds a moment later with an empty bank.
+     Banks are saved in localStorage (per account) so they survive a reload. */
   const NOOB_CHATS = ["Yeah!", "oof", "Confirm\u26a1\ufe0e", "Haha!", "oo look at me walk oo"];
+  const NOOB_TORSO_COLORS = ['#1a5fb4', '#c0392b', '#8e44ad', '#e67e22', '#16a085', '#e91e63', '#795548'];
+  const NOOB_LEG_COLORS = ['#2e7d32', '#1a1a1a', '#5d4037', '#455a64', '#3949ab', '#00838f', '#6d4c41'];
+  const NOOB_REBUILD_MS = 1500;   // how long an exploded noob stays gone
+  let noobInstances = [];         // every live noob: { el, bank, torso, legs, exploded, ... }
 
-  function spawnNoob(){
+  function noobStoreKey(){ return SAVE_KEY + ':noobs'; }
+  function saveNoobStore(){
+    try {
+      localStorage.setItem(noobStoreKey(), JSON.stringify(noobInstances.map(n => ({
+        bank: Math.floor(n.bank), torso: n.torso, legs: n.legs
+      }))));
+    } catch(e) {}
+  }
+  function loadNoobStore(){
+    try {
+      const list = JSON.parse(localStorage.getItem(noobStoreKey()) || '[]');
+      return Array.isArray(list) ? list : [];
+    } catch(e) { return []; }
+  }
+  // Reset and prestige: forget every noob and its saved bank.
+  function clearNoobs(){
+    noobInstances = [];
+    try { localStorage.removeItem(noobStoreKey()); } catch(e) {}
+  }
+
+  function updateNoobBankText(inst){
+    inst.bankEl.textContent = '+' + Math.floor(inst.bank).toLocaleString();
+  }
+
+  // ONE timer for all noobs: add a second of generation to every bank, then save.
+  setInterval(() => {
+    if (!noobInstances.length) return;
+    noobInstances = noobInstances.filter(n => document.body.contains(n.el));
+    const rate = noobRatePerSec();
+    noobInstances.forEach(n => {
+      if (n.exploded) return;
+      n.bank += rate;
+      updateNoobBankText(n);
+    });
+    saveNoobStore();
+  }, 1000);
+
+  // Throws one body part from where it is on screen.
+  function throwNoobPiece(partEl){
+    const r = partEl.getBoundingClientRect();
+    if (!r.width || !r.height) return; // hidden in Low Performance Mode
+    const piece = document.createElement('div');
+    piece.className = 'noob-piece';
+    piece.style.left = r.left + 'px';
+    piece.style.top = r.top + 'px';
+    piece.style.width = r.width + 'px';
+    piece.style.height = r.height + 'px';
+    piece.style.background = getComputedStyle(partEl).backgroundColor;
+    piece.style.setProperty('--dx', (Math.random() * 160 - 80) + 'px');
+    piece.style.setProperty('--up', (-40 - Math.random() * 60) + 'px');
+    piece.style.setProperty('--dy', (30 + Math.random() * 60) + 'px');
+    piece.style.setProperty('--rot', (Math.random() * 720 - 360) + 'deg');
+    document.body.appendChild(piece);
+    setTimeout(() => piece.remove(), 1050);
+  }
+
+  function explodeNoob(inst){
+    if (inst.exploded) return;
+    inst.exploded = true;
+    const amount = Math.floor(inst.bank);
+    const rect = inst.el.getBoundingClientRect();
+
+    inst.el.querySelectorAll('.noob-head, .noob-torso, .noob-arm, .noob-leg').forEach(throwNoobPiece);
+    inst.el.classList.add('exploded');
+
+    const payout = document.createElement('div');
+    payout.className = 'noob-payout';
+    payout.textContent = '+' + amount.toLocaleString();
+    payout.style.left = (rect.left + rect.width / 2) + 'px';
+    payout.style.top = (rect.top - 10) + 'px';
+    document.body.appendChild(payout);
+    setTimeout(() => payout.remove(), 1350);
+
+    playSound('money.mp3');
+    game.clicks += amount;
+    inst.bank = 0;
+    updateNoobBankText(inst);
+    updateCounter();
+    saveGame();
+    saveNoobStore();
+    refreshShopAffordability();
+    refreshStatsMoneys();
+
+    // Rebuild him somewhere new with an empty bank.
+    setTimeout(() => {
+      if (!document.body.contains(inst.el)) return;
+      inst.x = Math.random() * Math.max(0, window.innerWidth - 32);
+      inst.el.style.left = inst.x + 'px';
+      inst.el.classList.remove('exploded');
+      inst.exploded = false;
+    }, NOOB_REBUILD_MS);
+  }
+
+  // saved = { bank, torso, legs } from localStorage, or nothing for a brand new noob.
+  function spawnNoob(saved){
     const el = document.createElement('div');
     el.className = 'noob';
     el.innerHTML = `
       <div class="noob-bubble"></div>
+      <div class="noob-bank"></div>
       <div class="noob-body">
         <div class="noob-head"></div>
+        <div class="noob-arm left"></div>
         <div class="noob-torso"></div>
-        <div class="noob-legs"></div>
+        <div class="noob-arm right"></div>
+        <div class="noob-leg left"></div>
+        <div class="noob-leg right"></div>
       </div>
     `;
     document.body.appendChild(el);
 
-    const NOOB_TORSO_COLORS = ['#1a5fb4', '#c0392b', '#8e44ad', '#e67e22', '#16a085', '#e91e63', '#795548'];
-    const NOOB_LEG_COLORS = ['#2e7d32', '#1a1a1a', '#5d4037', '#455a64', '#3949ab', '#00838f', '#6d4c41'];
-    const torsoColor = NOOB_TORSO_COLORS[Math.floor(Math.random() * NOOB_TORSO_COLORS.length)];
-    el.querySelector('.noob-torso').style.background = torsoColor;
-    el.querySelector('.noob-legs').style.background = NOOB_LEG_COLORS[Math.floor(Math.random() * NOOB_LEG_COLORS.length)];
-    el.querySelector('.noob-body').style.setProperty('--noob-color', torsoColor);
+    const pick = arr => arr[Math.floor(Math.random() * arr.length)];
+    const inst = {
+      el,
+      bankEl: el.querySelector('.noob-bank'),
+      bank: Math.max(0, Number(saved && saved.bank) || 0),
+      torso: (saved && NOOB_TORSO_COLORS.includes(saved.torso)) ? saved.torso : pick(NOOB_TORSO_COLORS),
+      legs: (saved && NOOB_LEG_COLORS.includes(saved.legs)) ? saved.legs : pick(NOOB_LEG_COLORS),
+      exploded: false,
+      x: Math.random() * Math.max(0, window.innerWidth - 32)
+    };
+    el.querySelector('.noob-torso').style.background = inst.torso;
+    el.querySelectorAll('.noob-leg').forEach(l => { l.style.background = inst.legs; });
+    el.querySelector('.noob-body').style.setProperty('--noob-color', inst.torso);
+    updateNoobBankText(inst);
+    noobInstances.push(inst);
+    saveNoobStore();
+
+    el.addEventListener('click', () => explodeNoob(inst));
 
     const bubble = el.querySelector('.noob-bubble');
-
-    let x = Math.random() * (window.innerWidth - 32);
     let direction = Math.random() < 0.5 ? -1 : 1;
     const speed = 0.5 + Math.random() * 0.7;
-
-    el.style.left = x + 'px';
+    el.style.left = inst.x + 'px';
 
     function walk(){
       if (!document.body.contains(el)) return;
-
-      x += direction * speed;
-      const maxX = window.innerWidth - 32;
-      let bounced = false;
-
-      if (x <= 0) { x = 0; direction = 1; bounced = true; }
-      if (x >= maxX) { x = maxX; direction = -1; bounced = true; }
-
-      if (bounced) {
-        earnClicks(game.clickPower);
-        updateCounter();
-        saveGame();
-        refreshShopAffordability();
-        refreshStatsMoneys();
+      if (!inst.exploded) {
+        inst.x += direction * speed;
+        const maxX = window.innerWidth - 32;
+        if (inst.x <= 0) { inst.x = 0; direction = 1; }
+        if (inst.x >= maxX) { inst.x = maxX; direction = -1; }
+        el.style.left = inst.x + 'px';
       }
-
-      el.style.left = x + 'px';
       requestAnimationFrame(walk);
     }
     requestAnimationFrame(walk);
@@ -8986,6 +9224,29 @@
     scheduleDance();
   }
 
+  /* ---------- AMOGUS TASK SAVE ----------
+     Every living crewmate's task progress and position is saved in localStorage
+     (per account) so tasks pick up where they left off after a reload. */
+  function crewStoreKey(){ return SAVE_KEY + ':crew'; }
+  function saveCrewStore(){
+    try {
+      const list = [];
+      activeCrewmates.forEach(c => { if (c.state) list.push(c.state()); });
+      localStorage.setItem(crewStoreKey(), JSON.stringify(list));
+    } catch(e) {}
+  }
+  function loadCrewStore(){
+    try {
+      const list = JSON.parse(localStorage.getItem(crewStoreKey()) || '[]');
+      return Array.isArray(list) ? list : [];
+    } catch(e) { return []; }
+  }
+  function clearCrewStore(){
+    try { localStorage.removeItem(crewStoreKey()); } catch(e) {}
+  }
+  // Positions change constantly, so save them every 2 seconds instead of every frame.
+  setInterval(() => { if (activeCrewmates.size) saveCrewStore(); }, 2000);
+
   // TASK METERS: every living crewmate registers here so the overall meter
   // (top left) can add up their progress. Each entry has a progress() that
   // returns 0 to TASK_COUNT (partial while working on a task).
@@ -9015,7 +9276,8 @@
   }
   setInterval(updateOverallTaskMeter, 200);
 
-  function spawnCrewmate(){
+  // saved = { taskIndex, tasksDone, x } from localStorage, or nothing for a brand new crewmate.
+  function spawnCrewmate(saved){
     ensureTaskMarkers();
 
     const el = document.createElement('div');
@@ -9039,6 +9301,12 @@
     let dead = false;
     let taskIndex = 0;
     let tasksDone = false;
+    if (saved) {
+      const savedX = Number(saved.x);
+      if (isFinite(savedX)) x = Math.min(Math.max(0, savedX), Math.max(0, window.innerWidth - 36));
+      taskIndex = Math.min(Math.max(0, Math.floor(Number(saved.taskIndex) || 0)), TASK_COUNT);
+      tasksDone = !!saved.tasksDone || taskIndex >= TASK_COUNT;
+    }
     let workingUntil = null;
     const TASK_WORK_MS = 1300;
 
@@ -9050,13 +9318,18 @@
       }
       return Math.min(TASK_COUNT, p);
     }
-    const crewEntry = { progress: taskProgress };
+    const crewEntry = {
+      progress: taskProgress,
+      state: () => ({ taskIndex, tasksDone, x: Math.round(x) })
+    };
     activeCrewmates.add(crewEntry);
 
     el.style.bottom = '16px';
     el.style.left = x + 'px';
-    el.classList.add('tasking');
+    if (tasksDone) el.classList.add('done');
+    else el.classList.add('tasking');
     if (direction < 0) el.classList.add('facing-left');
+    saveCrewStore();
 
     function kill(reward){
       if (dead) return;
@@ -9065,6 +9338,7 @@
       el.classList.add('dead');
       el.classList.remove('working', 'tasking', 'done');
       activeCrewmates.delete(crewEntry);
+      saveCrewStore();
       updateOverallTaskMeter();
       earnClicks(reward);
       game.amogusAlive = Math.max(0, game.amogusAlive - 1);
@@ -9103,6 +9377,7 @@
                 el.classList.add('done');
                 if (game.autoKillOwned) kill(175);
               }
+              saveCrewStore();
             }
           } else {
             const dx = targetX - x;
@@ -9221,6 +9496,16 @@
     if (autoKillBtn && !game.autoKillOwned) autoKillBtn.disabled = game.clicks < AUTO_KILL_COST;
     const noobBtn = document.getElementById('buy-noob');
     if (noobBtn) noobBtn.disabled = game.clicks < NOOB_COST;
+    [1, 10, 25].forEach(n => {
+      const b = document.getElementById('buy-nooblvl-x' + n);
+      if (b) b.disabled = game.clicks < noobLevelBulkCost(n);
+    });
+    const noobMaxBtn = document.getElementById('buy-nooblvl-max');
+    if (noobMaxBtn) {
+      const maxN = noobLevelMaxAffordable();
+      noobMaxBtn.disabled = maxN <= 0;
+      noobMaxBtn.textContent = 'Buy Max (' + maxN + ')';
+    }
   }
 
   function refreshStatsMoneys(){
@@ -12430,6 +12715,7 @@
       iconModifierOwned: game.iconModifierOwned,
       autoKillOwned: game.autoKillOwned,
       noobOwned: game.noobOwned,
+      noobLevel: noobLevel(), // NOOB LEVEL: needs the noob_level column
       prestige: game.prestige || 0,
       boosts: game.boosts || 0,
       achievements: game.unlockedAchievements || [],
@@ -12541,6 +12827,8 @@
       iconModifierOwned: !!source.iconModifierOwned,
       autoKillOwned: !!source.autoKillOwned,
       noobOwned: source.noobOwned || 0,
+      // Falls back to the local save until the backend returns the column.
+      noobLevel: source.noobLevel !== undefined ? (Number(source.noobLevel) || 0) : (Number(savedRaw && savedRaw.noobLevel) || 0),
       prestige: source.prestige || 0,
       boosts: source.boosts || 0,
       unlockedAchievements: mergedAchievements,
@@ -14245,6 +14533,8 @@
     clearAllDvds();
     document.querySelectorAll('.crewmate, .noob').forEach(el => el.remove());
     activeCrewmates.clear();
+    clearNoobs();
+    clearCrewStore();
     updateOverallTaskMeter();
     const keepAchievements = game.unlockedAchievements || [];
     const keepFeatured = game.featuredAchievement || '';
@@ -14278,6 +14568,8 @@
     clearAllDvds();
     document.querySelectorAll('.crewmate, .noob').forEach(el => el.remove());
     activeCrewmates.clear();
+    clearNoobs();
+    clearCrewStore();
     updateOverallTaskMeter();
     const prestigeGain = 1 + (game.prestigeMultOwned || 0);
     const keepPrestige = (game.prestige || 0) + prestigeGain;
@@ -15284,8 +15576,12 @@
     if (game.effectsOwned) showEffectPicker();
     if (game.fontManagerOwned) showFontManager();
     updateDvdVisibility(); // spawns the right number of DVDs, or starts the math timer
-    for (let i = 0; i < game.amogusAlive; i++) spawnCrewmate();
-    for (let i = 0; i < game.noobOwned; i++) spawnNoob();
+    // Restore saved crewmate tasks and noob banks (localStorage), then fill up with new ones.
+    const savedCrew = loadCrewStore();
+    const savedNoobs = loadNoobStore();
+    noobInstances = [];
+    for (let i = 0; i < game.amogusAlive; i++) spawnCrewmate(savedCrew[i]);
+    for (let i = 0; i < game.noobOwned; i++) spawnNoob(savedNoobs[i]);
 
     renderTabs();
     renderActiveTab();
