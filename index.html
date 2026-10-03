@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<!-- Game version: 1.16.0 | Deployment: 199 | Update both on every release, see README.md -->
-<meta name="game-version" content="1.16.0">
+<!-- Game version: 1.17.0 | Deployment: 215 | Update both on every release, see README.md -->
+<meta name="game-version" content="1.17.0">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>The Clicker Game!</title>
 <link rel="icon" type="image/x-icon" href="maksy.ico" id="favicon-link">
@@ -5652,6 +5652,109 @@
     background:var(--card);
     color:var(--rind);
   }
+  /* Folder button next to the music link box. */
+  .mod-editor-link-row .mod-editor-folder-btn{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:6px 10px;
+  }
+  .mod-editor-folder-btn svg{ width:18px; height:18px; }
+
+  /* ---------- EXTRAS BROWSER (music files in extras/) ---------- */
+  .extras-overlay{
+    position:fixed;
+    inset:0;
+    z-index:5600;
+    background:rgba(10,8,16,0.85);
+    display:none;
+    align-items:center;
+    justify-content:center;
+    padding:20px;
+  }
+  .extras-overlay.visible{ display:flex; }
+  .extras-box{
+    width:100%;
+    max-width:460px;
+    max-height:80vh;
+    display:flex;
+    flex-direction:column;
+    background:var(--card);
+    border:2px solid var(--ink);
+    border-radius:18px;
+    box-shadow:var(--pop-lg);
+    overflow:hidden;
+  }
+  .extras-head{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+    padding:14px 16px;
+    border-bottom:2px solid var(--ink);
+  }
+  .extras-head h3{
+    font-family:'Fredoka One', cursive;
+    font-size:16px;
+    color:var(--rind);
+    margin:0;
+  }
+  .extras-close{
+    background:none;
+    border:none;
+    color:var(--rind);
+    font-size:22px;
+    line-height:1;
+    cursor:pointer;
+  }
+  .extras-list{
+    overflow-y:auto;
+    padding:6px 10px 10px;
+  }
+  .extras-note{
+    font-family:'Poppins', sans-serif;
+    font-size:12.5px;
+    color:var(--rind);
+    opacity:0.8;
+    text-align:center;
+    padding:18px 8px;
+  }
+  .extras-row{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:8px 4px;
+    border-bottom:1px solid rgba(255,255,255,0.08);
+  }
+  .extras-row:last-child{ border-bottom:none; }
+  .extras-play{
+    flex-shrink:0;
+    width:34px;
+    height:34px;
+    border-radius:50%;
+    border:2px solid var(--ink);
+    background:#ec4899;
+    color:#fff;
+    cursor:pointer;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+  .extras-play svg{ width:14px; height:14px; }
+  .extras-name{
+    flex:1;
+    min-width:0;
+    font-family:'Poppins', sans-serif;
+    font-size:13px;
+    font-weight:600;
+    color:var(--rind);
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+  }
+  .extras-add{ flex-shrink:0; }
+  .extras-add:disabled{ opacity:0.5; cursor:default; }
+
   .mod-editor-side #mod-editor-preview .workshop-item-card{
     cursor:default;
   }
@@ -11478,6 +11581,7 @@
               <div class="mio-panel mio-action-panel">
                 <button class="auth-btn${installed ? ' workshop-update-btn' : ''}" id="workshop-real-download-btn">${installed ? 'Update' : (item.price ? `Download (${esc(item.price)} Gems)` : 'Download')}</button>
                 ${installed ? '<button class="auth-btn secondary" id="workshop-uninstall-btn">Uninstall</button>' : ''}
+                ${isModAuthor ? '<button class="auth-btn secondary" id="workshop-edit-btn">Edit mod</button>' : ''}
                 ${item.repoUrl ? '<button class="auth-btn secondary" id="workshop-manual-download-btn">Manual download (GitHub)</button>' : '<p class="mio-side-note" style="text-align:center;">Made in the mod editor</p>'}
               </div>
 
@@ -11538,6 +11642,8 @@
     });
     const uninstallBtn = document.getElementById('workshop-uninstall-btn');
     if (uninstallBtn) uninstallBtn.addEventListener('click', () => uninstallMod(item));
+    const editBtn = document.getElementById('workshop-edit-btn');
+    if (editBtn) editBtn.addEventListener('click', () => openModEditorForEdit(item));
     const manualDlBtn = document.getElementById('workshop-manual-download-btn');
     if (manualDlBtn) manualDlBtn.addEventListener('click', () => {
       if (item.repoUrl) window.open(item.repoUrl, '_blank');
@@ -11862,7 +11968,8 @@
   // work, and the backend still accepts them, but new ones are made in the editor.
   function openWorkshopUploadDialog(){
     const gems = game.gems || 0;
-    const hasDraft = !!loadModEditorDraft();
+    let hasDraft = false;
+    try { hasDraft = !!localStorage.getItem(MOD_EDITOR_DRAFT_KEY); } catch (e) {}
     const enough = gems >= MOD_EDITOR_COST;
     confirmBox.innerHTML = `
       <h1 class="auth-heading">New Mod</h1>
@@ -11896,6 +12003,12 @@
 
   let modEditorDraft = null;
   let modEditorPublishing = false;
+  // EDIT MODE: id of the published mod being edited, or null when making a new mod.
+  // Edit drafts use their own localStorage key so they never overwrite a new-mod draft.
+  let modEditorEditingId = null;
+  function modEditorDraftKey(){
+    return modEditorEditingId ? MOD_EDITOR_DRAFT_KEY + ':edit:' + modEditorEditingId : MOD_EDITOR_DRAFT_KEY;
+  }
 
   function newModEditorDraft(){
     return {
@@ -11912,7 +12025,7 @@
 
   function loadModEditorDraft(){
     try {
-      const raw = localStorage.getItem(MOD_EDITOR_DRAFT_KEY);
+      const raw = localStorage.getItem(modEditorDraftKey());
       if (!raw) return null;
       const d = JSON.parse(raw);
       if (!d || typeof d !== 'object') return null;
@@ -11924,18 +12037,62 @@
   }
 
   function saveModEditorDraft(){
-    try { localStorage.setItem(MOD_EDITOR_DRAFT_KEY, JSON.stringify(modEditorDraft)); } catch (e) {}
+    try { localStorage.setItem(modEditorDraftKey(), JSON.stringify(modEditorDraft)); } catch (e) {}
   }
 
   function clearModEditorDraft(){
-    try { localStorage.removeItem(MOD_EDITOR_DRAFT_KEY); } catch (e) {}
+    try { localStorage.removeItem(modEditorDraftKey()); } catch (e) {}
   }
 
   function openModEditor(){
     if ((game.gems || 0) < MOD_EDITOR_COST) return;
+    modEditorEditingId = null;
     modEditorDraft = loadModEditorDraft() || newModEditorDraft();
     closeConfirm();
     workshopView = 'create';
+    renderWorkshopBody();
+  }
+
+  // Turns a published mod back into an editor draft.
+  function modEditorDraftFromItem(item){
+    const d = newModEditorDraft();
+    const isNsfw = String(item.category || '').toLowerCase() === String(WORKSHOP_NSFW_CATEGORY).toLowerCase();
+    d.name = item.name || '';
+    d.description = item.description || '';
+    d.mature = isNsfw;
+    d.category = isNsfw ? 'Other' : (item.category || 'Other');
+    d.version = item.version || '1.0';
+    d.price = Number(item.price) || 0;
+    d.iconData = item.iconUrl || '';
+    const files = item.customFiles || {};
+    Object.keys(d.files).forEach(type => {
+      d.files[type] = (Array.isArray(files[type]) ? files[type] : [])
+        .filter(f => f && f.url)
+        .map(f => ({ name: String(f.name || ''), url: String(f.url) }));
+    });
+    return d;
+  }
+
+  // EDIT MODE: opens a published mod in the editor. Only its author can do this.
+  function openModEditorForEdit(item){
+    if (!isMyWorkshopItem(item)) return;
+    modEditorEditingId = item.id;
+    modEditorDraft = loadModEditorDraft() || modEditorDraftFromItem(item);
+    workshopView = 'create';
+    renderWorkshopBody();
+  }
+
+  // Leaves the editor. Edit mode goes back to that mod's page, new mods go back to the list.
+  function leaveModEditor(){
+    if (modEditorEditingId) {
+      workshopDetailModId = modEditorEditingId;
+      workshopView = 'detail';
+    } else {
+      workshopView = 'browse';
+    }
+    modEditorEditingId = null;
+    modEditorDraft = null;
+    stopExtrasPreview();
     renderWorkshopBody();
   }
 
@@ -12046,6 +12203,7 @@
           <div class="mod-editor-files">${rows || `<div class="mod-editor-empty">No ${t.label.toLowerCase()} yet.</div>`}</div>
           <div class="mod-editor-link-row">
             <input type="url" class="auth-input mod-editor-link-input" data-type="${t.id}" placeholder="${t.linkHint}">
+            ${t.id === 'music' ? `<button class="workshop-icon-btn mod-editor-folder-btn" id="mod-editor-extras-btn" title="Pick a song from the game's extras folder" aria-label="Browse extras folder"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M3 6.5A1.5 1.5 0 0 1 4.5 5h4.6l2 2.2h8.4A1.5 1.5 0 0 1 21 8.7v9.8a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 18.5z"/></svg></button>` : ''}
             <button class="workshop-icon-btn mod-editor-link-add" data-type="${t.id}">Add link</button>
           </div>
         </section>
@@ -12055,9 +12213,9 @@
     workshopBody.innerHTML = `
       <div class="mod-editor">
         <div class="mod-editor-top">
-          <button class="workshop-icon-btn mod-editor-back" id="mod-editor-back">&larr; Back to mods</button>
-          <h2 class="mod-editor-title">Mod editor</h2>
-          <span class="mio-side-note">Your work saves automatically on this device.</span>
+          <button class="workshop-icon-btn mod-editor-back" id="mod-editor-back">&larr; ${modEditorEditingId ? 'Back to mod' : 'Back to mods'}</button>
+          <h2 class="mod-editor-title">${modEditorEditingId ? 'Edit mod' : 'Mod editor'}</h2>
+          <span class="mio-side-note">${modEditorEditingId ? 'Changes save on this device until you click Save changes.' : 'Your work saves automatically on this device.'}</span>
         </div>
         <div class="mod-editor-grid">
           <div class="mod-editor-main">
@@ -12114,9 +12272,9 @@
                 <div class="mod-editor-meter-head"><span>Storage used</span><span id="mod-editor-meter-text"></span></div>
                 <div class="mio-rating-bar mod-editor-meter-bar"><span id="mod-editor-meter-fill"></span></div>
               </div>
-              <button class="auth-btn" id="mod-editor-publish">Publish for ${MOD_EDITOR_COST} Gems</button>
-              <p class="mio-side-note" style="text-align:center;">You have ${(game.gems || 0).toLocaleString()} Gems.</p>
-              <button class="auth-btn secondary" id="mod-editor-reset">Start over</button>
+              <button class="auth-btn" id="mod-editor-publish">${modEditorEditingId ? 'Save changes' : `Publish for ${MOD_EDITOR_COST} Gems`}</button>
+              ${modEditorEditingId ? '<p class="mio-side-note" style="text-align:center;">Editing is free. People who installed it get the changes when they click Update.</p>' : `<p class="mio-side-note" style="text-align:center;">You have ${(game.gems || 0).toLocaleString()} Gems.</p>`}
+              <button class="auth-btn secondary" id="mod-editor-reset">${modEditorEditingId ? 'Discard changes' : 'Start over'}</button>
               <p class="mod-editor-status" id="mod-editor-status" role="status"></p>
             </div>
           </aside>
@@ -12184,9 +12342,10 @@
 
     document.getElementById('mod-editor-back').addEventListener('click', () => {
       saveModEditorDraft();
-      workshopView = 'browse';
-      renderWorkshopBody();
+      leaveModEditor();
     });
+    const extrasBtn = document.getElementById('mod-editor-extras-btn');
+    if (extrasBtn) extrasBtn.addEventListener('click', openExtrasBrowser);
 
     const nameEl = document.getElementById('mod-editor-name');
     const descEl = document.getElementById('mod-editor-desc');
@@ -12296,6 +12455,12 @@
     });
 
     document.getElementById('mod-editor-reset').addEventListener('click', () => {
+      if (modEditorEditingId) {
+        if (!confirm('Throw away your unsaved changes to this mod?')) return;
+        clearModEditorDraft();
+        leaveModEditor();
+        return;
+      }
       if (!confirm('Clear everything in the editor and start a new mod?')) return;
       modEditorDraft = newModEditorDraft();
       clearModEditorDraft();
@@ -12304,7 +12469,207 @@
     document.getElementById('mod-editor-publish').addEventListener('click', publishModFromEditor);
   }
 
+  // EDIT MODE: saves changes to a published mod. Free, author only (checked on the server too).
+  async function saveModEdits(){
+    if (modEditorPublishing) return;
+    const d = modEditorDraft;
+    const modId = modEditorEditingId;
+    const btn = document.getElementById('mod-editor-publish');
+    const name = String(d.name || '').trim();
+    const category = d.mature ? WORKSHOP_NSFW_CATEGORY : (String(d.category || '').trim() || 'Other');
+
+    if (!name) { modEditorStatus('Give your mod a name.', true); document.getElementById('mod-editor-name').focus(); return; }
+    if (!modEditorFileCount()) { modEditorStatus('Add at least one icon, cursor, background or song.', true); return; }
+    if (modEditorSize() > MOD_EDITOR_SIZE_LIMIT) { modEditorStatus('Storage is full. Remove a file or use links instead of uploads.', true); return; }
+    if ((d.iconData || '').length > MOD_EDITOR_SIZE_LIMIT) { modEditorStatus('The mod icon is too big. Try a simpler image.', true); return; }
+
+    modEditorPublishing = true;
+    btn.disabled = true;
+    btn.textContent = 'Saving...';
+    modEditorStatus('');
+    const changes = {
+      name,
+      description: String(d.description || '').trim(),
+      category,
+      iconUrl: d.iconData || '',
+      version: String(d.version || '').trim(),
+      customFiles: modEditorCustomFiles(),
+      price: Math.max(0, Math.floor(Number(d.price) || 0))
+    };
+
+    try {
+      const result = await sheetRequest(Object.assign({ action: 'updateWorkshopItem', username: currentUsername, modId }, changes));
+      if (result.success) {
+        const cached = workshopItemsCache.find(i => i.id === modId);
+        if (cached) Object.assign(cached, changes);
+        clearModEditorDraft();
+        leaveModEditor();
+      } else if (result.error === 'forbidden') {
+        modEditorStatus('Only the person who made this mod can edit it.', true);
+      } else if (result.error === 'toolarge') {
+        modEditorStatus('This mod is too big to save. Remove a file or use links instead of uploads.', true);
+      } else if (result.error === 'notfound') {
+        modEditorStatus('This mod no longer exists.', true);
+      } else {
+        modEditorStatus('Something went wrong saving your changes. They are still here, try again.', true);
+      }
+    } catch (e) {
+      modEditorStatus("Couldn't reach the database. Your changes are saved on this device, try again in a moment.", true);
+    } finally {
+      modEditorPublishing = false;
+      const b = document.getElementById('mod-editor-publish');
+      if (b) { b.disabled = false; b.textContent = 'Save changes'; }
+    }
+  }
+
+  /* ---------- EXTRAS BROWSER ----------
+     The folder button next to the music link box lists the audio files in the game's
+     extras/ folder. Players can preview each one and add it to the mod.
+     A static site can't list a folder, so the list comes from extras/files.json if it
+     exists (a plain JSON array of file names), otherwise from the GitHub API for the repo.
+     Songs are added as "extras/<file>" so they load from the same site as the game. */
+  const EXTRAS_FOLDER = 'extras/';
+  const EXTRAS_GITHUB_API = 'https://api.github.com/repos/FallGameDev/clicker/contents/extras';
+  const EXTRAS_AUDIO_EXT = /\.(mp3|wav|ogg|m4a|aac|flac|opus|webm)$/i;
+  const EXTRAS_PLAY_SVG = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 4.5v15l13-7.5z"/></svg>';
+  const EXTRAS_STOP_SVG = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="5" y="5" width="14" height="14" rx="2"/></svg>';
+  let extrasFilesCache = null;
+  let extrasPreviewAudio = null;
+  let extrasPreviewBtn = null;
+
+  async function loadExtrasAudioFiles(){
+    if (extrasFilesCache) return extrasFilesCache;
+    let names = null;
+    try {
+      const r = await fetch(EXTRAS_FOLDER + 'files.json', { cache: 'no-store' });
+      if (r.ok) {
+        const list = await r.json();
+        if (Array.isArray(list)) names = list.map(String);
+      }
+    } catch (e) {}
+    if (!names) {
+      // GitHub allows 60 requests an hour per player, so keep the answer for 10 minutes.
+      const CACHE_KEY = 'fallgamedev-extras-list';
+      try {
+        const cached = JSON.parse(localStorage.getItem(CACHE_KEY) || 'null');
+        if (cached && Array.isArray(cached.names) && Date.now() - cached.at < 600000) names = cached.names;
+      } catch (e) {}
+      if (!names) {
+        const r = await fetch(EXTRAS_GITHUB_API);
+        if (!r.ok) throw new Error('list');
+        const list = await r.json();
+        names = (Array.isArray(list) ? list : []).filter(f => f && f.type === 'file').map(f => String(f.name));
+        try { localStorage.setItem(CACHE_KEY, JSON.stringify({ at: Date.now(), names })); } catch (e) {}
+      }
+    }
+    extrasFilesCache = names.filter(n => EXTRAS_AUDIO_EXT.test(n)).sort((a, b) => a.localeCompare(b));
+    return extrasFilesCache;
+  }
+
+  function extrasFileUrl(name){ return EXTRAS_FOLDER + encodeURIComponent(name); }
+
+  function stopExtrasPreview(){
+    if (extrasPreviewAudio) {
+      extrasPreviewAudio.pause();
+      extrasPreviewAudio = null;
+    }
+    if (extrasPreviewBtn) {
+      extrasPreviewBtn.innerHTML = EXTRAS_PLAY_SVG;
+      extrasPreviewBtn.setAttribute('aria-label', 'Preview');
+      extrasPreviewBtn = null;
+    }
+  }
+
+  function toggleExtrasPreview(btn, name){
+    const same = extrasPreviewBtn === btn;
+    stopExtrasPreview();
+    if (same) return;
+    const audio = new Audio(extrasFileUrl(name));
+    audio.volume = 0.6;
+    audio.addEventListener('ended', stopExtrasPreview);
+    audio.play().catch(() => stopExtrasPreview());
+    extrasPreviewAudio = audio;
+    extrasPreviewBtn = btn;
+    btn.innerHTML = EXTRAS_STOP_SVG;
+    btn.setAttribute('aria-label', 'Stop preview');
+  }
+
+  function closeExtrasBrowser(){
+    stopExtrasPreview();
+    const overlay = document.getElementById('extras-overlay');
+    if (overlay) overlay.classList.remove('visible');
+  }
+
+  function ensureExtrasOverlay(){
+    let overlay = document.getElementById('extras-overlay');
+    if (overlay) return overlay;
+    overlay = document.createElement('div');
+    overlay.className = 'extras-overlay';
+    overlay.id = 'extras-overlay';
+    overlay.innerHTML = `
+      <div class="extras-box" role="dialog" aria-modal="true" aria-labelledby="extras-title">
+        <div class="extras-head">
+          <h3 id="extras-title">Songs in extras/</h3>
+          <button class="extras-close" id="extras-close" aria-label="Close">&times;</button>
+        </div>
+        <div class="extras-list" id="extras-list"></div>
+      </div>`;
+    document.body.appendChild(overlay);
+    overlay.addEventListener('click', (e) => { if (e.target === overlay) closeExtrasBrowser(); });
+    overlay.querySelector('#extras-close').addEventListener('click', closeExtrasBrowser);
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && overlay.classList.contains('visible')) closeExtrasBrowser();
+    });
+    return overlay;
+  }
+
+  function renderExtrasList(names){
+    const listEl = document.getElementById('extras-list');
+    if (!listEl) return;
+    const esc = escapeChatHtml;
+    if (!names.length) {
+      listEl.innerHTML = '<div class="extras-note">No audio files in extras/ yet.</div>';
+      return;
+    }
+    const added = new Set((modEditorDraft && modEditorDraft.files.music || []).map(f => f.url));
+    listEl.innerHTML = names.map((n, i) => {
+      const isAdded = added.has(extrasFileUrl(n));
+      return `<div class="extras-row">
+        <button class="extras-play" data-i="${i}" aria-label="Preview">${EXTRAS_PLAY_SVG}</button>
+        <span class="extras-name" title="${esc(n)}">${esc(n.replace(EXTRAS_AUDIO_EXT, ''))}</span>
+        <button class="workshop-icon-btn extras-add" data-i="${i}" ${isAdded ? 'disabled' : ''}>${isAdded ? 'Added' : 'Add'}</button>
+      </div>`;
+    }).join('');
+    listEl.querySelectorAll('.extras-play').forEach(btn => {
+      btn.addEventListener('click', () => toggleExtrasPreview(btn, names[Number(btn.dataset.i)]));
+    });
+    listEl.querySelectorAll('.extras-add').forEach(btn => {
+      btn.addEventListener('click', () => {
+        if (!modEditorDraft) return;
+        const name = names[Number(btn.dataset.i)];
+        modEditorDraft.files.music.push({ name: name.replace(EXTRAS_AUDIO_EXT, '').slice(0, 40), url: extrasFileUrl(name) });
+        saveModEditorDraft();
+        btn.disabled = true;
+        btn.textContent = 'Added';
+        renderModEditor(); // the overlay sits on top, so the editor list updates behind it
+      });
+    });
+  }
+
+  async function openExtrasBrowser(){
+    const overlay = ensureExtrasOverlay();
+    overlay.classList.add('visible');
+    const listEl = document.getElementById('extras-list');
+    listEl.innerHTML = '<div class="extras-note">Loading songs...</div>';
+    try {
+      renderExtrasList(await loadExtrasAudioFiles());
+    } catch (e) {
+      listEl.innerHTML = '<div class="extras-note">Couldn\'t load the extras folder. Try again in a minute.</div>';
+    }
+  }
+
   async function publishModFromEditor(){
+    if (modEditorEditingId) return saveModEdits();
     if (modEditorPublishing) return;
     const d = modEditorDraft;
     const btn = document.getElementById('mod-editor-publish');
