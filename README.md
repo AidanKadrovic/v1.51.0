@@ -1,6 +1,6 @@
 # The Clicker Game!
 
-A browser-based clicker/idle game by **Wildcard Studios**. Tap the avatar, earn moneys, buy upgrades, prestige, and compete on a shared leaderboard. Built as a single self-contained `index.html` file (vanilla HTML/CSS/JS, no build step) backed by a Google Sheets database via Google Apps Script.
+A browser-based clicker/idle game by **Here Studios**. Tap the avatar, earn moneys, buy upgrades, prestige, and compete on a shared leaderboard. Built as a single self-contained `index.html` file (vanilla HTML/CSS/JS, no build step) backed by a Supabase database.
 
 ## Running it
 
@@ -38,6 +38,7 @@ If you fork this project or move it to a new Sheet/Apps Script deployment, updat
 - **Workshop / Mods** — browse, install, and upload user mods; installed mods list.
 - **Friends & Messages** — friend requests, friend picker, and a simple chat system.
 - **Tutorial** — first-time walkthrough that highlights each tab; replayable from Settings.
+- **Click Effects:** Confetti, Screen Shake, Bubbles and Squish, picked from the Click Effects picker after buying it in the shop.
 - **Settings** — mute SFX, light/dark theme, low performance mode (simplifies effects + shows an FPS counter), layout switcher (center/left/right, PC & tablet only), reset data, reset tutorial, view team applications, credits, log out, delete account, and **Debug Mode**.
 - **Debug Mode** — a draggable panel (Settings → Debug Mode → Open) showing live FPS, a few key stats (username, moneys, prestige, gems, click power), a Test Notification button, and a Page Ratio selector (Default / Phone / Tablet / PC) that previews the page at a real device viewport width in an embedded iframe, so responsive breakpoints trigger for real.
 - **Responsive UI** — the game runs on desktop, tablet, and phones (Samsung and iPhone browsers included). On narrow phone widths the main tab bar (Stats / Leaderboard / Shop / Achievements / Settings) switches from labeled pill tabs to a row of circular icon buttons.
@@ -51,6 +52,32 @@ Expected in the same folder as `index.html`:
 - **Audio**: the default background track, the tutorial and auth-screen tracks, and the selectable Music Player tracks (see the `SONGS` array in the script for the current filename list).
 
 Missing assets won't crash the game, but will show as broken images or silent audio.
+
+## Settings files
+
+Built-in lists live in the `settings/` folder, so they can be changed without editing `index.html`. The game loads them when the page opens. If a file is missing or has a JSON mistake, the game falls back to the copy written inside `index.html`. Songs, cursors and backgrounds added by mods or uploads always appear after the built-in ones.
+
+| File | What it controls |
+|---|---|
+| `settings/messages.json` | Loading screen messages. A plain list of text. |
+| `settings/music.json` | Songs in the Music Player. |
+| `settings/cursors.json` | Cursors in the Cursor Picker. |
+| `settings/backgrounds.json` | Backgrounds in the Background Switcher. |
+| `settings/fonts.json` | Fonts in the Font Manager. |
+
+**music.json, cursors.json, backgrounds.json:** a list of `{ "label": "Name shown in the picker", "file": "file name" }`. File names work like every other asset: put the file next to `index.html` (or in `extras/` and write `extras/name.mp3`). For cursors and backgrounds, `"default"` means the normal cursor or plain color background.
+
+**fonts.json:** a list of `{ "label", "value", "family", "fallback", "file", "google" }`.
+- `value`: short id, letters, numbers, `-` and `_` only. Never change it for an existing font, players' saved choice uses it.
+- `family`: the font's name.
+- `fallback`: used while it loads, like `cursive` or `sans-serif`.
+- `file` (optional): a font file next to `index.html`, like `caveat.ttf`.
+- `google` (optional): `true` to load the family from Google Fonts.
+
+Rules:
+- Valid JSON only: double quotes, commas between entries, no comma after the last one, no comments.
+- Players keep their picked song when songs are added or reordered (it is matched by file name).
+- Keep the lists inside `index.html` roughly in sync as a backup.
 
 ## Versioning
 
