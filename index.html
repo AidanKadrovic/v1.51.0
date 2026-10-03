@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<!-- Game version: 1.20.0 | Deployment: 204 | Update both on every release, see README.md -->
-<meta name="game-version" content="1.20.0">
+<!-- Game version: 1.21.0 | Deployment: 205 | Update both on every release, see README.md -->
+<meta name="game-version" content="1.21.0">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>The Clicker Game!</title>
 <link rel="icon" type="image/x-icon" href="maksy.ico" id="favicon-link">
@@ -6607,6 +6607,373 @@
     .sd-balloon, .sd-fog{ animation:none; }
     .sd-balloon{ display:none; }
   }
+
+  /* =====================================================================
+     CGC (1.21.0): mod code runtime stage, editor code box, payload,
+     test preview, console, actions/currencies and the guide (open book).
+     ===================================================================== */
+  .cgc-stage{
+    position:fixed;
+    inset:0;
+    /* Above the game (crewmates/noobs 999), below the workshop (4700) and dialogs (5550). */
+    z-index:3000;
+    pointer-events:none;
+    overflow:hidden;
+  }
+  .cgc-layer{
+    position:absolute;
+    inset:0;
+    pointer-events:none;
+  }
+  .cgc-obj{
+    position:absolute;
+    box-sizing:border-box;
+    pointer-events:none;
+    user-select:none;
+    -webkit-user-select:none;
+    touch-action:none;
+    transition:transform .1s linear;
+  }
+  .cgc-circle{ border-radius:50%; }
+  .cgc-tri{ clip-path:polygon(50% 0, 100% 100%, 0 100%); }
+  .cgc-circle, .cgc-rect, .cgc-tri{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+    color:#fff;
+    font-family:'Poppins', sans-serif;
+    font-weight:600;
+    line-height:1.2;
+    padding:0 8px;
+    overflow:hidden;
+    white-space:pre;
+  }
+  .cgc-text{
+    font-family:'Poppins', sans-serif;
+    font-weight:600;
+    line-height:1.25;
+    white-space:pre;
+    text-align:center;
+    text-shadow:0 2px 6px rgba(0,0,0,0.35);
+  }
+  .cgc-image{ object-fit:contain; -webkit-user-drag:none; }
+  .cgc-obj[style*="pointer"]:active{ filter:brightness(0.9); }
+  .cgc-obj.cgc-dragging{ transition:none; filter:drop-shadow(0 8px 14px rgba(0,0,0,0.45)); }
+
+  .cgc-currencies{
+    display:flex;
+    flex-wrap:wrap;
+    justify-content:center;
+    gap:6px;
+    margin:-4px 0 8px;
+  }
+  .cgc-cur-chip{
+    display:inline-flex;
+    align-items:center;
+    gap:5px;
+    padding:3px 10px 3px 4px;
+    border-radius:999px;
+    background:var(--card);
+    border:2px solid var(--ink);
+    box-shadow:var(--pop-sm);
+    color:var(--rind);
+    font-family:'Poppins', sans-serif;
+    font-size:12.5px;
+    line-height:1;
+  }
+  .cgc-cur-chip img, .cgc-cur-chip svg{
+    width:20px;
+    height:20px;
+    object-fit:contain;
+    color:var(--cgc-color, var(--zap));
+  }
+  .cgc-cur-chip strong{ color:var(--cgc-color, var(--zap)); font-weight:700; }
+  .cgc-cur-chip span{ opacity:0.8; }
+
+  .cgc-row-actions{
+    display:flex;
+    flex-wrap:wrap;
+    gap:6px;
+    justify-content:flex-end;
+  }
+  .cgc-row-actions:empty{ display:none; }
+  .buy-btn.cgc-action-btn{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    background:var(--cgc-color, var(--zap));
+    color:#1a1426;
+  }
+  .cgc-action-btn img{ width:18px; height:18px; object-fit:contain; }
+  .installed-mod-row{ flex-wrap:wrap; }
+  .cgc-row-extra{
+    flex-basis:100%;
+    display:flex;
+    flex-wrap:wrap;
+    align-items:center;
+    gap:8px;
+  }
+  .cgc-row-extra:empty{ display:none; }
+  .cgc-row-curs{ display:flex; flex-wrap:wrap; gap:6px; }
+  .cgc-err-badge{
+    display:inline-block;
+    min-width:16px;
+    padding:0 4px;
+    border-radius:8px;
+    background:#ff6b6b;
+    color:#fff;
+    font-size:10px;
+    line-height:16px;
+    text-align:center;
+  }
+
+  /* Book button and code box */
+  .cgc-book-btn{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+  }
+  .cgc-book-btn svg{ width:16px; height:16px; }
+  .mod-editor-top .cgc-book-btn{ margin-left:auto; }
+  .cgc-code-tools{ display:flex; gap:8px; flex-wrap:wrap; }
+  .cgc-secondary-btn{ background:var(--card-hover); color:var(--rind); }
+  .cgc-secondary-btn:disabled{ opacity:0.45; cursor:default; transform:none; box-shadow:var(--pop-sm); }
+  .cgc-code-wrap{
+    display:flex;
+    height:360px;
+    border:2px solid var(--ink);
+    border-radius:10px;
+    background:#120e22;
+    overflow:hidden;
+    resize:vertical;
+    min-height:160px;
+  }
+  .cgc-gutter, .cgc-code-hl, .cgc-code-input{
+    font-family:ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
+    font-size:13px;
+    line-height:20px;
+    tab-size:2;
+    margin:0;
+  }
+  .cgc-gutter{
+    flex:0 0 auto;
+    min-width:38px;
+    padding:10px 8px 10px 6px;
+    text-align:right;
+    color:rgba(246,239,221,0.32);
+    background:rgba(0,0,0,0.25);
+    overflow:hidden;
+    user-select:none;
+  }
+  .cgc-code-area{ position:relative; flex:1; min-width:0; }
+  .cgc-code-hl, .cgc-code-input{
+    position:absolute;
+    inset:0;
+    padding:10px 12px;
+    white-space:pre;
+    overflow:auto;
+    border:0;
+    box-sizing:border-box;
+  }
+  .cgc-code-hl{ color:#e9e4f7; pointer-events:none; overflow:hidden; }
+  .cgc-code-input{
+    color:transparent;
+    caret-color:#fff;
+    background:transparent;
+    resize:none;
+    outline:none;
+  }
+  .cgc-code-input::selection{ background:rgba(193,174,240,0.35); color:transparent; }
+  .cgc-hl-comment{ color:#7f8aa3; font-style:italic; }
+  .cgc-hl-string{ color:#9ee493; }
+  .cgc-hl-number{ color:#ffb86b; }
+  .cgc-hl-keyword{ color:#ff79c6; font-weight:600; }
+  .cgc-hl-prefix{ color:#ffcb3d; }
+  .cgc-hl-func{ color:#7cc7ff; }
+  .cgc-check{ font-size:12px; margin:8px 0 0; min-height:1em; }
+  .cgc-check.ok{ color:var(--moneys-green); }
+  .cgc-check.error{ color:#ff6b6b; }
+
+  .cgc-test-bar{
+    display:flex;
+    flex-wrap:wrap;
+    align-items:center;
+    gap:8px;
+    margin-top:12px;
+  }
+  .cgc-test-bar .auth-btn{ width:auto; margin:0; padding:9px 18px; }
+  .cgc-test-note{ margin:0 0 0 auto; }
+  .cgc-test{
+    display:grid;
+    grid-template-columns:minmax(0, 1fr) 190px;
+    gap:12px;
+    margin-top:12px;
+  }
+  .cgc-test-stage{
+    position:relative;
+    aspect-ratio:16 / 9;
+    border:2px solid var(--ink);
+    border-radius:10px;
+    background:var(--night);
+    overflow:hidden;
+  }
+  .cgc-test-label{
+    position:absolute;
+    left:8px;
+    bottom:6px;
+    font-size:10px;
+    opacity:0.4;
+    pointer-events:none;
+  }
+  .cgc-test-ui{ display:flex; flex-direction:column; gap:10px; font-size:12px; }
+  .cgc-test-row{ display:flex; flex-wrap:wrap; gap:6px; align-items:center; }
+  .cgc-test-head{ opacity:0.7; }
+  .cgc-test-actions{ display:flex; flex-direction:column; gap:6px; }
+  .cgc-console-head{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    margin-top:12px;
+    font-family:'Fredoka One', cursive;
+    font-size:13px;
+    color:var(--rind);
+  }
+  .cgc-console{
+    margin:6px 0 0;
+    max-height:160px;
+    min-height:48px;
+    overflow:auto;
+    padding:8px 10px;
+    border-radius:8px;
+    background:#0e0b1b;
+    border:2px solid var(--ink);
+    font-family:ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
+    font-size:12px;
+    line-height:1.5;
+    color:#e9e4f7;
+    white-space:pre-wrap;
+    word-break:break-word;
+  }
+  .cgc-console-small{ flex-basis:100%; max-height:120px; }
+  .cgc-log-error{ color:#ff7b7b; }
+  .cgc-log-warn{ color:#ffcb3d; }
+  .cgc-log-muted{ color:rgba(233,228,247,0.45); }
+
+  /* The guide */
+  .cgc-guide-overlay{
+    position:fixed;
+    inset:0;
+    z-index:4800;
+    background:rgba(10,8,16,0.8);
+    backdrop-filter:blur(3px);
+    display:none;
+    align-items:center;
+    justify-content:center;
+    padding:24px;
+  }
+  .cgc-guide-overlay.visible{ display:flex; }
+  .cgc-guide{
+    width:min(1000px, 100%);
+    height:min(760px, 100%);
+    display:flex;
+    flex-direction:column;
+    background:var(--card);
+    border:2px solid var(--ink);
+    border-radius:16px;
+    box-shadow:var(--pop-lg);
+    overflow:hidden;
+    color:var(--rind);
+  }
+  .cgc-guide-head{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:14px 18px;
+    border-bottom:2px solid var(--ink);
+    background:var(--brand-gradient);
+    color:var(--night);
+  }
+  .cgc-guide-head h2{ margin:0; font-family:'Fredoka One', cursive; font-size:20px; }
+  .cgc-guide-icon svg{ width:24px; height:24px; display:block; }
+  .cgc-guide-close{ margin-left:auto; }
+  .cgc-guide-body{ display:flex; flex:1; min-height:0; }
+  .cgc-guide-nav{
+    flex:0 0 200px;
+    display:flex;
+    flex-direction:column;
+    gap:4px;
+    padding:12px;
+    border-right:2px solid var(--ink);
+    overflow:auto;
+  }
+  .cgc-guide-tab{
+    text-align:left;
+    padding:8px 10px;
+    border-radius:8px;
+    border:0;
+    background:transparent;
+    color:var(--rind);
+    font-family:'Poppins', sans-serif;
+    font-size:13px;
+    cursor:pointer;
+  }
+  .cgc-guide-tab:hover{ background:var(--card-hover); }
+  .cgc-guide-tab.active{ background:var(--zap); color:#1a1426; font-weight:600; }
+  .cgc-guide-content{
+    flex:1;
+    min-width:0;
+    overflow:auto;
+    padding:18px 24px 28px;
+    font-family:'Poppins', sans-serif;
+    font-size:14px;
+    line-height:1.65;
+  }
+  .cgc-guide-content h3{ font-family:'Fredoka One', cursive; font-size:22px; margin:0 0 10px; }
+  .cgc-guide-content h4{ font-family:'Fredoka One', cursive; font-size:15px; margin:20px 0 6px; color:var(--zap); }
+  .cgc-guide-content p{ margin:0 0 10px; }
+  .cgc-guide-content ul{ margin:0 0 10px; padding-left:20px; }
+  .cgc-guide-content li{ margin-bottom:6px; }
+  .cgc-guide-content code{
+    font-family:ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
+    font-size:12.5px;
+    background:rgba(0,0,0,0.25);
+    padding:1px 5px;
+    border-radius:5px;
+  }
+  .cgc-doc-code{
+    margin:8px 0 14px;
+    padding:12px 14px;
+    background:#120e22;
+    color:#e9e4f7;
+    border:2px solid var(--ink);
+    border-radius:10px;
+    overflow:auto;
+    font-family:ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
+    font-size:12.5px;
+    line-height:1.55;
+  }
+  .cgc-doc-table{
+    width:100%;
+    border-collapse:collapse;
+    margin:8px 0 14px;
+    font-size:13px;
+  }
+  .cgc-doc-table th, .cgc-doc-table td{
+    text-align:left;
+    padding:6px 8px;
+    border-bottom:1px solid rgba(255,255,255,0.08);
+    vertical-align:top;
+  }
+  .cgc-doc-table th{ font-family:'Fredoka One', cursive; font-weight:normal; opacity:0.8; }
+  .cgc-doc-load{ width:auto; padding:10px 18px; }
+  body.light-mode .cgc-guide-content code{ background:rgba(0,0,0,0.07); }
+
+  @media (max-width:860px){
+    .cgc-test{ grid-template-columns:minmax(0, 1fr); }
+    .cgc-guide-body{ flex-direction:column; }
+    .cgc-guide-nav{ flex:0 0 auto; flex-direction:row; flex-wrap:wrap; border-right:0; border-bottom:2px solid var(--ink); }
+  }
 </style>
 </head>
 <body>
@@ -6782,6 +7149,9 @@
   <div class="auth-box confirm-box" id="confirm-box"></div>
 </div>
 
+<!-- CGC: objects that mods draw on the screen -->
+<div class="cgc-stage" id="cgc-stage" aria-live="off"></div>
+
 <div class="workshop-overlay" id="workshop-overlay">
   <div class="workshop-box">
     <button class="edit-profile-close" id="workshop-close">&times;</button>
@@ -6899,6 +7269,7 @@
 
   <div class="page-sidebar" id="page-sidebar">
     <div class="click-counter" id="click-counter">0 clicks</div>
+    <div class="cgc-currencies" id="cgc-currencies" style="display:none;"></div>
 
     <div class="avatar" id="avatar">
       <img src="profile.png" alt="FallGameDev profile picture">
@@ -7221,6 +7592,7 @@
       autoBuyerOwned: false,
       gems: 0,
       installedMods: [],
+      modData: {}, // CGC: { modId: { currency: {}, storage: {} } }, saved to the API as a list
       // LIMITED SHOP (1.13.0): owned profile fonts/frames and what is equipped.
       cosmeticsOwned: [],
       equippedFont: '',
@@ -7286,7 +7658,8 @@
 
   avatarEl.addEventListener('click', () => {
     playSound('click.mp3');
-    earnClicks(game.clickPower);
+    const earnedThisClick = earnClicks(game.clickPower);
+    cgcFire('c.click', rt => ({ click: rt.cv.click + 1, earned: earnedThisClick })); // CGC
     updateCounter();
     saveGame();
     refreshShopAffordability();
@@ -10841,14 +11214,17 @@
     }
 
     listEl.innerHTML = mods.map(mod => `
-      <div class="shop-card installed-mod-row" data-mod-id="${mod.id}">
+      <div class="shop-card installed-mod-row" data-mod-id="${escapeChatHtml(mod.id)}">
         <div class="shop-info">
-          <h3>${mod.name}</h3>
-          <p>${mod.version ? 'Version ' + mod.version : 'No version info'}</p>
+          <h3>${escapeChatHtml(mod.name)}</h3>
+          <p>${mod.version ? 'Version ' + escapeChatHtml(mod.version) : 'No version info'}</p>
         </div>
+        <div class="cgc-row-actions"></div>
         <button class="buy-btn uninstall" data-action="uninstall">Uninstall</button>
+        <div class="cgc-row-extra"></div>
       </div>
     `).join('');
+    cgcRenderStatsModUi(); // CGC: action buttons, currencies and console
 
     listEl.querySelectorAll('.installed-mod-row').forEach(row => {
       const modId = row.dataset.modId;
@@ -12011,7 +12387,11 @@
     } catch (e) {}
   }
 
-  workshopClose.addEventListener('click', () => workshopOverlay.classList.remove('visible'));
+  workshopClose.addEventListener('click', () => {
+    cgcStopTest(); // CGC: a running test stops when the workshop closes
+    closeCgcGuide();
+    workshopOverlay.classList.remove('visible');
+  });
   document.getElementById('workshop-refresh-btn').addEventListener('click', () => location.reload());
   workshopProfileBtn.addEventListener('click', () => {
     workshopView = 'profile';
@@ -12532,11 +12912,13 @@
     game.installedMods.push({ id: item.id, name: item.name, version: item.version || '', customFiles: item.customFiles || {} });
     saveGame();
     syncToSheet();
+    cgcStartMod(findInstalledMod(item.id)); // CGC: restart its code with the new version
     showWorkshopRefreshBanner();
     renderWorkshopBody();
   }
 
   function uninstallMod(item){
+    cgcStopMod(item.id); // CGC: its saved currencies and storage stay in modData for a reinstall
     game.installedMods = (game.installedMods || []).filter(m => m && m.id !== item.id);
     saveGame();
     syncToSheet();
@@ -12566,6 +12948,7 @@
           game.installedMods.push({ id: item.id, name: item.name, version: item.version || '', customFiles: item.customFiles || {} });
           saveGame();
           syncToSheet();
+          cgcStartMod(findInstalledMod(item.id)); // CGC
           showWorkshopRefreshBanner();
         }
         renderWorkshopBody();
@@ -12820,13 +13203,2204 @@
     confirmOverlay.classList.add('visible');
   }
 
+  /* =====================================================================
+     CGC (Clicker Game Code) 1.21.0
+     The scripting language for mods made in the mod editor.
+     Pipeline: source text -> tokenize() -> parse() -> CGC.Runtime runs it.
+     Nothing here uses eval or new Function. Mod code can only reach the game
+     through the `host` object it is given, so the rules for moneys, prestige
+     and gems are enforced in one place (the host), never by the mod.
+     ===================================================================== */
+  const CGC = (() => {
+    const VERSION = '1.0';
+    const MATH_METHODS = ['add', 'subtract', 'multiply', 'divide', 'set'];
+    const OBJECT_COMMANDS = ['play', 'stop', 'remove', 'show', 'hide'];
+    const KEYWORDS = new Set(['when', 'end', 'if', 'then', 'elseif', 'else', 'local', 'att', 'repeat', 'and', 'or', 'not', 'true', 'false', 'nil']);
+    const GAME_EVENTS = ['load', 'click', 'tick', 'second', 'buy', 'prestige'];
+    const OBJECT_EVENTS = ['click', 'drop', 'hover', 'leave'];
+    const AUDIO_EXT = /\.(mp3|wav|ogg|m4a|aac|opus|webm)$/i;
+    const IMAGE_EXT = /\.(png|jpe?g|gif|webp|svg)$/i;
+    const MAX_STEPS = 20000;      // per event run, stops runaway code
+    const MAX_DEPTH = 25;         // do.ev inside do.ev inside ...
+    const MAX_OBJECTS = 400;
+    const MAX_REPEAT = 1000;
+
+    class CgcError extends Error {
+      constructor(message, line){ super(message); this.line = line || 0; }
+    }
+
+    /* ---------- LEXER ---------- */
+    function tokenize(src){
+      const tokens = [];
+      // Curly quotes are common when code is pasted from notes or chats.
+      src = String(src || '').replace(/[\u201C\u201D\u201E]/g, '"').replace(/[\u2018\u2019]/g, "'").replace(/\r\n?/g, '\n');
+      let i = 0, line = 1;
+      const push = (type, value) => tokens.push({ type, value, line });
+      const prevIs = (k, type, value) => {
+        const t = tokens[tokens.length - k];
+        return t && t.type === type && (value === undefined || t.value === value);
+      };
+      while (i < src.length) {
+        const ch = src[i];
+        if (ch === '\n') { line++; i++; continue; }
+        if (ch === ' ' || ch === '\t' || ch === ';') { i++; continue; }
+        if ((ch === '-' && src[i + 1] === '-') || (ch === '/' && src[i + 1] === '/')) {
+          while (i < src.length && src[i] !== '\n') i++;
+          continue;
+        }
+        // canvas.<filename>: read the whole name (cookie.png, my-cat_2.gif) as one token.
+        if (prevIs(1, 'op', '.') && prevIs(2, 'id', 'canvas') && /[A-Za-z0-9_]/.test(ch)) {
+          let j = i;
+          while (j < src.length && /[A-Za-z0-9_.\-]/.test(src[j])) j++;
+          const raw = src.slice(i, j).replace(/\.+$/, '');
+          push('name', raw);
+          i += raw.length;
+          continue;
+        }
+        if (/[0-9]/.test(ch) || (ch === '.' && /[0-9]/.test(src[i + 1] || ''))) {
+          let j = i;
+          while (j < src.length && /[0-9_]/.test(src[j])) j++;
+          if (src[j] === '.' && /[0-9]/.test(src[j + 1] || '')) { j++; while (j < src.length && /[0-9]/.test(src[j])) j++; }
+          push('num', Number(src.slice(i, j).replace(/_/g, '')));
+          i = j;
+          continue;
+        }
+        if (/[A-Za-z_]/.test(ch)) {
+          let j = i;
+          while (j < src.length && /[A-Za-z0-9_]/.test(src[j])) j++;
+          const word = src.slice(i, j);
+          push(KEYWORDS.has(word) ? 'kw' : 'id', word);
+          i = j;
+          continue;
+        }
+        if (ch === '"' || ch === "'") {
+          let j = i + 1, out = '';
+          while (j < src.length && src[j] !== ch) {
+            if (src[j] === '\n') throw new CgcError('This text is missing its closing quote ' + ch, line);
+            if (src[j] === '\\' && j + 1 < src.length) {
+              const n = src[j + 1];
+              out += n === 'n' ? '\n' : n === 't' ? '\t' : n;
+              j += 2;
+              continue;
+            }
+            out += src[j++];
+          }
+          if (j >= src.length) throw new CgcError('This text is missing its closing quote ' + ch, line);
+          push('str', out);
+          i = j + 1;
+          continue;
+        }
+        const two = src.substr(i, 2);
+        if (['==', '~=', '!=', '<=', '>=', '..'].includes(two)) { push('op', two === '!=' ? '~=' : two); i += 2; continue; }
+        if ('.,()=<>+-*/%^#'.includes(ch)) { push('op', ch); i++; continue; }
+        throw new CgcError(`"${ch}" can't be used here`, line);
+      }
+      tokens.push({ type: 'eof', value: '', line });
+      return tokens;
+    }
+
+    /* ---------- PARSER ---------- */
+    function parse(src){
+      const toks = tokenize(src);
+      let p = 0;
+      const peek = (o = 0) => toks[p + o];
+      const next = () => toks[p++];
+      const is = (type, value, o = 0) => { const t = peek(o); return t.type === type && (value === undefined || t.value === value); };
+      const isOp = (v, o = 0) => is('op', v, o);
+      const isKw = (v, o = 0) => is('kw', v, o);
+      const describe = (t) => t.type === 'eof' ? 'the end of the code' : `"${t.value}"`;
+      const fail = (msg, t = peek()) => { throw new CgcError(msg, t.line); };
+      const expectOp = (v, why) => { if (!isOp(v)) fail(why || `Expected "${v}" but found ${describe(peek())}`); return next(); };
+      const expectId = (why) => {
+        const t = peek();
+        if (t.type !== 'id') fail(why || `Expected a name but found ${describe(t)}`);
+        return next().value;
+      };
+
+      function block(stops){
+        const body = [];
+        while (!(peek().type === 'eof' || (peek().type === 'kw' && stops.includes(peek().value)))) body.push(statement());
+        return body;
+      }
+      function closeBlock(opener, line){
+        if (!isKw('end')) fail(`The "${opener}" on line ${line} needs an "end"`, peek());
+        next();
+      }
+      function args(){
+        expectOp('(');
+        const list = [];
+        if (!isOp(')')) {
+          list.push(expr());
+          while (isOp(',')) { next(); list.push(expr()); }
+        }
+        expectOp(')', `Missing ")" to close the brackets`);
+        return list;
+      }
+      function optionalParens(){ if (isOp('(') && isOp(')', 1)) { next(); next(); } }
+
+      // c.click, ev.bake, cookie.click
+      function eventRef(){
+        const t = peek();
+        const first = expectId('Expected an event like c.click or ev.myEvent');
+        expectOp('.', `Events are written like c.click, ev.${first} or ${first}.click`);
+        const name = expectId();
+        if (first === 'c') {
+          if (!GAME_EVENTS.includes(name)) fail(`c.${name} isn't a game event. Try one of: ${GAME_EVENTS.map(e => 'c.' + e).join(', ')}`, t);
+          return { scope: 'c', name, line: t.line };
+        }
+        if (first === 'ev') return { scope: 'ev', name, line: t.line };
+        if (!OBJECT_EVENTS.includes(name)) fail(`${first}.${name} isn't an object event. Objects have: ${OBJECT_EVENTS.join(', ')}`, t);
+        return { scope: 'obj', local: first, name, line: t.line };
+      }
+
+      function statement(){
+        const t = peek();
+        const line = t.line;
+
+        if (isKw('when')) {
+          next();
+          const paren = isOp('(');
+          if (paren) next();
+          const ev = eventRef();
+          if (paren) expectOp(')', 'Missing ")" after the event');
+          if (isKw('then')) next();
+          const body = block(['end']);
+          closeBlock('when', line);
+          return { t: 'when', ev, body, line };
+        }
+        if (isKw('if')) {
+          next();
+          const branches = [];
+          let cond = expr();
+          if (!isKw('then')) fail('An "if" needs "then" after the condition');
+          next();
+          let body = block(['elseif', 'else', 'end']);
+          branches.push({ cond, body });
+          let otherwise = null;
+          while (isKw('elseif')) {
+            next();
+            cond = expr();
+            if (!isKw('then')) fail('An "elseif" needs "then" after the condition');
+            next();
+            body = block(['elseif', 'else', 'end']);
+            branches.push({ cond, body });
+          }
+          if (isKw('else')) { next(); otherwise = block(['end']); }
+          closeBlock('if', line);
+          return { t: 'if', branches, otherwise, line };
+        }
+        if (isKw('repeat')) {
+          next();
+          const paren = isOp('(');
+          if (paren) next();
+          const count = expr();
+          if (paren) expectOp(')');
+          if (isKw('then')) next();
+          const body = block(['end']);
+          closeBlock('repeat', line);
+          return { t: 'repeat', count, body, line };
+        }
+        if (isKw('local')) {
+          next();
+          const name = expectId('"local" needs a name, like: local cookie = canvas.circle');
+          if (isOp('=')) {
+            next();
+            const items = [expr()];
+            while (isOp(',')) { next(); items.push(expr()); }
+            return { t: 'local', name, items, line };
+          }
+          return { t: 'local', name, items: [], line };
+        }
+        if (isKw('att')) {
+          next();
+          if (isOp('.')) next(); // att.cookie.color works too
+          const target = expectId('"att" needs an object, like: att cookie.color = "red"');
+          const path = [];
+          while (isOp('.')) { next(); path.push(expectId()); }
+          if (!path.length) fail(`Say which attribute to set, like: att ${target}.color = "red"`);
+          expectOp('=', `Use "=" to set an attribute, like: att ${target}.${path.join('.')} = 10`);
+          return { t: 'att', target, path, value: expr(), line };
+        }
+        if (t.type === 'kw') fail(`"${t.value}" can't start a line here`);
+        if (t.type !== 'id') fail(`A line can't start with ${describe(t)}`);
+
+        const word = t.value;
+        if (word === 'print') { next(); return { t: 'print', args: args(), line }; }
+        if (word === 'do') {
+          next();
+          expectOp('.', 'Run an event like: do.ev.myEvent or do.c.click');
+          const ev = eventRef();
+          optionalParens();
+          return { t: 'do', ev, line };
+        }
+        if (OBJECT_COMMANDS.includes(word) && isOp('(', 1)) { next(); return { t: 'cmd', name: word, args: args(), line }; }
+
+        // A chain like var.cookies.add(1), storage.create("x"), price = 5, cookie.play()
+        next();
+        const chain = [word];
+        while (isOp('.')) { next(); chain.push(expectId()); }
+
+        if (isOp('=')) {
+          if (chain.length > 1) fail(`To change ${chain.join('.')} use att ${chain.join('.')} = ... or a math word like .set()`);
+          next();
+          return { t: 'assign', name: word, value: expr(), line };
+        }
+        const last = chain[chain.length - 1];
+        if (isOp('(')) {
+          const a = args();
+          if (last === 'create' && chain.length === 2 && ['var', 'ev', 'storage'].includes(chain[0])) {
+            if (!a.length) fail(`${chain[0]}.create needs a name, like ${chain[0]}.create("score")`);
+            return { t: 'create', kind: chain[0], name: a[0], init: a[1] || null, line };
+          }
+          if (MATH_METHODS.includes(last)) {
+            if (chain.length === 2 && ['var', 'storage', 'v'].includes(chain[0])) {
+              // var.add("cookies", 5) style
+              if (a.length < 2 && last !== 'set') fail(`${chain.join('.')} needs a name and a number, like ${chain[0]}.${last}("score", 1)`);
+              return { t: 'math', target: { root: chain[0], nameExpr: a[0] }, method: last, value: a[1] === undefined ? null : a[1], line };
+            }
+            if (chain.length < 2) fail(`"${last}" needs something to change, like var.score.${last}(1)`);
+            const holder = chain.slice(0, -1);
+            return { t: 'math', target: refFromChain(holder, line), method: last, value: a[0] === undefined ? null : a[0], line };
+          }
+          if (OBJECT_COMMANDS.includes(last) && chain.length === 2) return { t: 'cmd', name: last, args: [{ t: 'ref', root: 'local', name: chain[0], path: [], line }], line };
+          fail(`"${chain.join('.')}" isn't something CGC knows how to run`, t);
+        }
+        fail(`"${chain.join('.')}" doesn't do anything on its own. Did you forget att, a math word like .add(1), or "="?`, t);
+      }
+
+      function refFromChain(chain, line){
+        if (['var', 'storage', 'v', 'cv'].includes(chain[0])) {
+          if (chain.length < 2) fail(`Write ${chain[0]}.something, like ${chain[0]}.score`, { line });
+          return { t: 'ref', root: chain[0], name: chain[1], path: chain.slice(2), line };
+        }
+        return { t: 'ref', root: 'local', name: chain[0], path: chain.slice(1), line };
+      }
+
+      /* expressions, lowest to highest: or, and, compare, .., + -, * / %, unary, ^, primary */
+      function expr(){ return orExpr(); }
+      function orExpr(){
+        let a = andExpr();
+        while (isKw('or')) { const line = next().line; a = { t: 'bin', op: 'or', a, b: andExpr(), line }; }
+        return a;
+      }
+      function andExpr(){
+        let a = cmpExpr();
+        while (isKw('and')) { const line = next().line; a = { t: 'bin', op: 'and', a, b: cmpExpr(), line }; }
+        return a;
+      }
+      function cmpExpr(){
+        let a = catExpr();
+        while (['==', '~=', '<', '>', '<=', '>='].some(o => isOp(o))) {
+          const t = next();
+          a = { t: 'bin', op: t.value, a, b: catExpr(), line: t.line };
+        }
+        // "if x = 5 then" is a very common slip. A value is never followed by a single "=".
+        if (isOp('=')) fail('Use "==" to compare two things. A single "=" only sets a value.');
+        return a;
+      }
+      function catExpr(){
+        let a = addExpr();
+        while (isOp('..')) { const line = next().line; a = { t: 'bin', op: '..', a, b: addExpr(), line }; }
+        return a;
+      }
+      function addExpr(){
+        let a = mulExpr();
+        while (isOp('+') || isOp('-')) { const t = next(); a = { t: 'bin', op: t.value, a, b: mulExpr(), line: t.line }; }
+        return a;
+      }
+      function mulExpr(){
+        let a = unary();
+        while (isOp('*') || isOp('/') || isOp('%')) { const t = next(); a = { t: 'bin', op: t.value, a, b: unary(), line: t.line }; }
+        return a;
+      }
+      function unary(){
+        if (isKw('not')) { const line = next().line; return { t: 'un', op: 'not', a: unary(), line }; }
+        if (isOp('-')) { const line = next().line; return { t: 'un', op: '-', a: unary(), line }; }
+        if (isOp('#')) { const line = next().line; return { t: 'un', op: '#', a: unary(), line }; }
+        return power();
+      }
+      function power(){
+        const a = primary();
+        if (isOp('^')) { const line = next().line; return { t: 'bin', op: '^', a, b: unary(), line }; }
+        return a;
+      }
+      function primary(){
+        const t = peek();
+        const line = t.line;
+        if (t.type === 'num') { next(); return { t: 'lit', v: t.value }; }
+        if (t.type === 'str') { next(); return { t: 'lit', v: t.value }; }
+        if (isKw('true')) { next(); return { t: 'lit', v: true }; }
+        if (isKw('false')) { next(); return { t: 'lit', v: false }; }
+        if (isKw('nil')) { next(); return { t: 'lit', v: null }; }
+        if (isOp('(')) { next(); const e = expr(); expectOp(')', 'Missing ")"'); return e; }
+        if (t.type !== 'id') fail(`Expected a value but found ${describe(t)}`);
+        next();
+        const word = t.value;
+
+        if (word === 'canvas') {
+          if (isOp('(')) {
+            const a = args();
+            return { t: 'canvas', kind: 'text', arg: a[0] || { t: 'lit', v: '' }, line };
+          }
+          expectOp('.', 'Spawn something like canvas.circle, canvas.rect, canvas.tri, canvas.cookie.png or canvas("Hello")');
+          const nt = next();
+          if (nt.type !== 'name') fail('Expected a shape or a file name after canvas.', nt);
+          const name = nt.value;
+          if (name === 'text') {
+            const a = isOp('(') ? args() : [];
+            return { t: 'canvas', kind: 'text', arg: a[0] || { t: 'lit', v: '' }, line };
+          }
+          if (['circle', 'rect', 'tri'].includes(name)) { optionalParens(); return { t: 'canvas', kind: name, line }; }
+          optionalParens();
+          return { t: 'canvas', kind: 'file', file: name, line };
+        }
+        if (word === 'game') {
+          expectOp('.', 'Use game.action or game.cur');
+          const kind = expectId();
+          if (kind !== 'action' && kind !== 'cur') fail(`game.${kind} doesn't exist. Use game.action or game.cur`, t);
+          let arg = null;
+          if (isOp('(')) { const a = args(); arg = a[0] || null; }
+          return { t: 'game', kind, arg, line };
+        }
+        if (isOp('(')) return { t: 'fn', name: word, args: args(), line };
+
+        const chain = [word];
+        while (isOp('.')) { next(); chain.push(expectId()); }
+        return refFromChain(chain, line);
+      }
+
+      const body = block([]);
+      if (peek().type !== 'eof') fail(`"${peek().value}" doesn't belong here`);
+      return body;
+    }
+
+    /* ---------- VALUES ---------- */
+    const isObj = (v) => !!v && typeof v === 'object' && v.__cgcObj === true;
+    const isGroup = (v) => !!v && typeof v === 'object' && v.__cgcGroup === true;
+
+    function formatNumber(n, decimals){
+      if (!Number.isFinite(n)) return String(n);
+      const d = decimals === undefined ? (Number.isInteger(n) ? 0 : (Math.abs(n) < 100 ? 1 : 0)) : Math.max(0, Math.min(6, decimals));
+      const big = [[1e15, ' quadrillion'], [1e12, ' trillion'], [1e9, ' billion'], [1e6, ' million']];
+      for (const [size, word] of big) {
+        if (Math.abs(n) >= size) return (n / size).toFixed(3).replace(/\.?0+$/, '') + word;
+      }
+      return n.toLocaleString('en-US', { minimumFractionDigits: d, maximumFractionDigits: d });
+    }
+
+    /* ---------- RUNTIME ---------- */
+    let objectCounter = 0;
+
+    class Runtime {
+      /* opts: { modId, modName, code, files: {name: url}, host, stageEl, scale }
+         host: print(level, text), getGameVar(name), mathGameVar(name, method, value) -> {ok, msg},
+               gameEvent(name) -> {ok, msg}, loadData() -> {currency, storage}, saveData(data),
+               uiChanged(runtime), playAllowed() -> bool */
+      constructor(opts){
+        this.modId = opts.modId;
+        this.modName = opts.modName || 'Mod';
+        this.code = opts.code || '';
+        this.files = opts.files || {};
+        this.host = opts.host;
+        this.stageEl = opts.stageEl || null;
+        this.scale = opts.scale || 1;
+        this.running = false;
+        this.handlers = {};      // key -> [{ body, env }]
+        this.vars = {};
+        this.events = new Set();
+        this.storage = {};
+        this.storageNames = new Set();
+        this.objects = [];
+        this.actions = [];
+        this.currencies = [];
+        this.cv = { click: 0, earned: 0, tick: 0, second: 0, buy: '', prestige: 0, mousex: 0, mousey: 0 };
+        this.timers = [];
+        this.audioCache = {};
+        this.steps = 0;
+        this.depth = 0;
+        this.warned = new Set();
+        const saved = (this.host.loadData && this.host.loadData()) || {};
+        this.savedCurrency = Object.assign({}, saved.currency || {});
+        this.savedStorage = Object.assign({}, saved.storage || {});
+        this.saveTimer = null;
+        this.layer = null;
+      }
+
+      /* ----- lifecycle ----- */
+      start(){
+        let program;
+        try {
+          program = parse(this.code);
+        } catch (e) {
+          this.report(e);
+          return false;
+        }
+        this.running = true;
+        if (this.stageEl) {
+          this.layer = document.createElement('div');
+          this.layer.className = 'cgc-layer';
+          this.layer.dataset.mod = this.modId;
+          this.stageEl.appendChild(this.layer);
+        }
+        this.globalEnv = { vars: {}, parent: null };
+        this.runBlock(program, this.globalEnv, 'the mod');
+        this.fire('c.load');
+        // c.tick runs 10 times a second, c.second once a second.
+        this.timers.push(setInterval(() => {
+          if (!this.running) return;
+          this.cv.tick++;
+          this.fire('c.tick');
+          if (this.cv.tick % 10 === 0) { this.cv.second++; this.fire('c.second'); }
+        }, 100));
+        this.uiChanged();
+        return true;
+      }
+
+      stop(){
+        this.running = false;
+        this.timers.forEach(clearInterval);
+        this.timers = [];
+        this.flushSave();
+        this.objects.forEach(o => this.stopAudio(o));
+        if (this.layer && this.layer.parentNode) this.layer.parentNode.removeChild(this.layer);
+        this.layer = null;
+        this.objects = [];
+        this.actions = [];
+        this.currencies = [];
+        this.handlers = {};
+        this.uiChanged();
+      }
+
+      report(e, where){
+        if (e instanceof CgcError) {
+          this.host.print('error', `Line ${e.line}: ${e.message}`);
+        } else {
+          this.host.print('error', `Something broke${where ? ' in ' + where : ''}: ${e && e.message ? e.message : e}`);
+        }
+      }
+      warnOnce(key, text){
+        if (this.warned.has(key)) return;
+        this.warned.add(key);
+        this.host.print('warn', text);
+      }
+      uiChanged(){ if (this.host.uiChanged) this.host.uiChanged(this); }
+
+      /* ----- persistence (currencies + storage) ----- */
+      dataSnapshot(){
+        const currency = Object.assign({}, this.savedCurrency);
+        this.currencies.forEach(c => { if (c.key) currency[c.key] = c.amount; });
+        const storage = Object.assign({}, this.savedStorage);
+        this.storageNames.forEach(n => { storage[n] = this.storage[n]; });
+        return { currency, storage };
+      }
+      queueSave(){
+        if (this.saveTimer) return;
+        this.saveTimer = setTimeout(() => { this.saveTimer = null; this.flushSave(); }, 1000);
+      }
+      flushSave(){
+        if (this.saveTimer) { clearTimeout(this.saveTimer); this.saveTimer = null; }
+        if (this.host.saveData) this.host.saveData(this.dataSnapshot());
+      }
+
+      /* ----- events ----- */
+      on(key, body, env){
+        (this.handlers[key] = this.handlers[key] || []).push({ body, env });
+      }
+      fire(key, cvUpdate){
+        if (!this.running) return;
+        const list = this.handlers[key];
+        if (cvUpdate) Object.assign(this.cv, cvUpdate);
+        if (!list || !list.length) return;
+        if (this.depth >= MAX_DEPTH) {
+          this.warnOnce('depth', `Stopped: events are running each other in a loop (${key}).`);
+          return;
+        }
+        const top = this.depth === 0;
+        if (top) this.steps = 0;
+        this.depth++;
+        try {
+          list.slice().forEach(h => {
+            if (!this.running) return;
+            this.runBlock(h.body, { vars: {}, parent: h.env }, key);
+          });
+        } finally {
+          this.depth--;
+        }
+      }
+      eventKey(ev, env){
+        if (ev.scope === 'c') return 'c.' + ev.name;
+        if (ev.scope === 'ev') {
+          if (!this.events.has(ev.name)) throw new CgcError(`ev.${ev.name} hasn't been made yet. Add ev.create("${ev.name}") above this line.`, ev.line);
+          return 'ev.' + ev.name;
+        }
+        const target = this.lookup(env, ev.local, ev.line);
+        const list = isGroup(target) ? target.items : [target];
+        if (!list.every(isObj)) throw new CgcError(`${ev.local} isn't an object, so it has no .${ev.name} event`, ev.line);
+        return list.map(o => 'obj:' + o.id + '.' + ev.name);
+      }
+
+      /* ----- statements ----- */
+      runBlock(body, env, where){
+        try {
+          for (const st of body) {
+            if (!this.running) return;
+            this.exec(st, env);
+          }
+        } catch (e) {
+          this.report(e, where);
+        }
+      }
+      tick(line){
+        if (++this.steps > MAX_STEPS) throw new CgcError('Stopped: this code ran too many steps at once', line);
+      }
+      exec(st, env){
+        this.tick(st.line);
+        switch (st.t) {
+          case 'print': {
+            this.host.print('log', st.args.map(a => this.toText(this.eval(a, env))).join(' '));
+            return;
+          }
+          case 'create': {
+            const name = String(this.eval(st.name, env) || '').trim();
+            if (!/^[A-Za-z_][A-Za-z0-9_]*$/.test(name)) throw new CgcError(`"${name}" can't be a name. Use letters, numbers and _ (no spaces, can't start with a number).`, st.line);
+            const init = st.init ? this.plain(this.eval(st.init, env)) : 0;
+            if (isObj(init) || isGroup(init)) throw new CgcError(`${st.kind}.create can only hold numbers, text or true/false`, st.line);
+            if (st.kind === 'var') { if (!(name in this.vars)) this.vars[name] = init; }
+            else if (st.kind === 'ev') this.events.add(name);
+            else {
+              if (!this.storageNames.has(name)) {
+                this.storageNames.add(name);
+                this.storage[name] = Object.prototype.hasOwnProperty.call(this.savedStorage, name) ? this.savedStorage[name] : init;
+              }
+            }
+            return;
+          }
+          case 'when': {
+            const keys = this.eventKey(st.ev, env);
+            (Array.isArray(keys) ? keys : [keys]).forEach(k => this.on(k, st.body, env));
+            // hover/leave handlers make an object react to the mouse, so redraw it.
+            if (st.ev.scope === 'obj') this.objects.forEach(o => { if (o.el) this.render(o); });
+            return;
+          }
+          case 'do': return this.runEvent(st.ev, env);
+          case 'local': {
+            let value = null;
+            if (st.items.length === 1) value = this.eval(st.items[0], env);
+            else if (st.items.length > 1) {
+              const items = [];
+              st.items.forEach(it => {
+                const v = this.eval(it, env);
+                if (isGroup(v)) items.push(...v.items);
+                else if (isObj(v)) items.push(v);
+                else throw new CgcError(`Only objects can be grouped with commas (${st.name})`, st.line);
+              });
+              value = { __cgcGroup: true, items };
+            }
+            env.vars[st.name] = value;
+            if (isObj(value) && !value.localName) value.localName = st.name;
+            return;
+          }
+          case 'assign': {
+            const scope = this.findScope(env, st.name);
+            if (!scope) throw new CgcError(`${st.name} doesn't exist yet. Make it first with: local ${st.name} = ...`, st.line);
+            const cur = scope.vars[st.name];
+            if (isObj(cur) && cur.kind === 'cur') { this.setCurrency(cur, this.num(this.eval(st.value, env), st.line)); return; }
+            scope.vars[st.name] = this.eval(st.value, env);
+            return;
+          }
+          case 'att': {
+            const target = this.lookup(env, st.target, st.line);
+            const list = isGroup(target) ? target.items : [target];
+            const value = this.plain(this.eval(st.value, env));
+            list.forEach(o => {
+              if (!isObj(o)) throw new CgcError(`${st.target} isn't an object, so it has no attributes`, st.line);
+              this.setAttr(o, st.path, value, st.line);
+            });
+            return;
+          }
+          case 'math': return this.doMath(st, env);
+          case 'if': {
+            for (const b of st.branches) {
+              if (this.truthy(this.eval(b.cond, env))) return this.execBody(b.body, env);
+            }
+            if (st.otherwise) this.execBody(st.otherwise, env);
+            return;
+          }
+          case 'repeat': {
+            const n = Math.floor(this.num(this.eval(st.count, env), st.line));
+            if (n > MAX_REPEAT) this.warnOnce('repeat', `repeat is limited to ${MAX_REPEAT} times`);
+            for (let i = 0; i < Math.min(n, MAX_REPEAT); i++) this.execBody(st.body, env);
+            return;
+          }
+          case 'cmd': {
+            const target = this.eval(st.args[0], env);
+            const list = isGroup(target) ? target.items : [target];
+            list.forEach(o => {
+              if (!isObj(o)) throw new CgcError(`${st.name}() needs an object`, st.line);
+              if (st.name === 'play') this.playAudio(o, st.line);
+              else if (st.name === 'stop') this.stopAudio(o);
+              else if (st.name === 'remove') this.removeObject(o);
+              else this.setAttr(o, ['visible'], st.name === 'show', st.line);
+            });
+            return;
+          }
+        }
+      }
+      execBody(body, env){
+        const inner = { vars: {}, parent: env };
+        for (const st of body) {
+          if (!this.running) return;
+          this.exec(st, inner);
+        }
+      }
+      runEvent(ev, env){
+        if (ev.scope === 'c') {
+          if (ev.name === 'click' || ev.name === 'prestige') {
+            const r = this.host.gameEvent(ev.name);
+            if (r && !r.ok) this.warnOnce('do.' + ev.name + r.msg, r.msg);
+            return;
+          }
+          return this.fire('c.' + ev.name);
+        }
+        const keys = this.eventKey(ev, env);
+        (Array.isArray(keys) ? keys : [keys]).forEach(k => this.fire(k));
+      }
+
+      /* ----- variables ----- */
+      findScope(env, name){
+        for (let e = env; e; e = e.parent) if (Object.prototype.hasOwnProperty.call(e.vars, name)) return e;
+        return null;
+      }
+      lookup(env, name, line){
+        const scope = this.findScope(env, name);
+        if (!scope) throw new CgcError(`${name} doesn't exist. Make it first, like: local ${name} = canvas.circle`, line);
+        return scope.vars[name];
+      }
+      doMath(st, env){
+        const target = st.target;
+        const value = st.value === null ? null : this.plain(this.eval(st.value, env));
+        const apply = (old) => {
+          if (st.method === 'set') return value;
+          const n = this.num(value, st.line);
+          const o = this.num(old, st.line);
+          if (st.method === 'add') return o + n;
+          if (st.method === 'subtract') return o - n;
+          if (st.method === 'multiply') return o * n;
+          if (n === 0) throw new CgcError('Can\'t divide by 0', st.line);
+          return o / n;
+        };
+        if (target.t === 'ref' || target.nameExpr) {
+          const root = target.root;
+          const name = target.nameExpr ? String(this.eval(target.nameExpr, env)) : target.name;
+          if (root === 'var') {
+            if (!(name in this.vars)) throw new CgcError(`var.${name} hasn't been made yet. Add var.create("${name}") first.`, st.line);
+            this.vars[name] = apply(this.vars[name]);
+            return;
+          }
+          if (root === 'storage') {
+            if (!this.storageNames.has(name)) throw new CgcError(`storage.${name} hasn't been made yet. Add storage.create("${name}") first.`, st.line);
+            const nv = apply(this.storage[name]);
+            if (isObj(nv) || isGroup(nv)) throw new CgcError('storage can only hold numbers, text or true/false', st.line);
+            this.storage[name] = typeof nv === 'string' ? nv.slice(0, 500) : nv;
+            this.queueSave();
+            return;
+          }
+          if (root === 'v') {
+            const r = this.host.mathGameVar(name, st.method, st.method === 'set' ? value : this.num(value, st.line));
+            if (r && !r.ok) this.warnOnce('v.' + name + st.method + r.msg, r.msg);
+            return;
+          }
+          if (root === 'cv') throw new CgcError(`cv.${name} is read only`, st.line);
+          // local
+          const scope = this.findScope(env, name);
+          if (!scope) throw new CgcError(`${name} doesn't exist yet`, st.line);
+          const cur = scope.vars[name];
+          if (target.path && target.path.length) throw new CgcError(`Use att ${name}.${target.path.join('.')} = ... to change attributes`, st.line);
+          if (isObj(cur)) {
+            if (cur.kind !== 'cur') throw new CgcError(`${name} is an object. Only numbers and currencies can use .${st.method}()`, st.line);
+            this.setCurrency(cur, apply(cur.amount));
+            return;
+          }
+          scope.vars[name] = apply(cur);
+        }
+      }
+      setCurrency(obj, amount){
+        obj.amount = Number.isFinite(amount) ? amount : 0;
+        this.queueSave();
+        this.uiChanged();
+      }
+
+      /* ----- expressions ----- */
+      eval(e, env){
+        switch (e.t) {
+          case 'lit': return e.v;
+          case 'ref': return this.evalRef(e, env);
+          case 'un': {
+            const a = this.eval(e.a, env);
+            if (e.op === 'not') return !this.truthy(a);
+            if (e.op === '#') return this.toText(a).length;
+            return -this.num(a, e.line);
+          }
+          case 'bin': {
+            if (e.op === 'and') { const a = this.eval(e.a, env); return this.truthy(a) ? this.eval(e.b, env) : a; }
+            if (e.op === 'or') { const a = this.eval(e.a, env); return this.truthy(a) ? a : this.eval(e.b, env); }
+            const a = this.plain(this.eval(e.a, env));
+            const b = this.plain(this.eval(e.b, env));
+            switch (e.op) {
+              case '..': return this.toText(a) + this.toText(b);
+              case '+':
+                if (typeof a === 'string' || typeof b === 'string') return this.toText(a) + this.toText(b);
+                return this.num(a, e.line) + this.num(b, e.line);
+              case '-': return this.num(a, e.line) - this.num(b, e.line);
+              case '*': return this.num(a, e.line) * this.num(b, e.line);
+              case '/': {
+                const d = this.num(b, e.line);
+                if (d === 0) throw new CgcError('Can\'t divide by 0', e.line);
+                return this.num(a, e.line) / d;
+              }
+              case '%': { const d = this.num(b, e.line); return d === 0 ? 0 : ((this.num(a, e.line) % d) + d) % d; }
+              case '^': return Math.pow(this.num(a, e.line), this.num(b, e.line));
+              case '==': return a === b;
+              case '~=': return a !== b;
+              case '<': return this.num(a, e.line) < this.num(b, e.line);
+              case '>': return this.num(a, e.line) > this.num(b, e.line);
+              case '<=': return this.num(a, e.line) <= this.num(b, e.line);
+              case '>=': return this.num(a, e.line) >= this.num(b, e.line);
+            }
+            return null;
+          }
+          case 'fn': return this.callFn(e, env);
+          case 'canvas': return this.spawn(e, env);
+          case 'game': return this.spawnGame(e, env);
+        }
+        return null;
+      }
+      evalRef(e, env){
+        if (e.root === 'var') {
+          if (!(e.name in this.vars)) throw new CgcError(`var.${e.name} hasn't been made yet. Add var.create("${e.name}") first.`, e.line);
+          return this.vars[e.name];
+        }
+        if (e.root === 'storage') {
+          if (!this.storageNames.has(e.name)) throw new CgcError(`storage.${e.name} hasn't been made yet. Add storage.create("${e.name}") first.`, e.line);
+          return this.storage[e.name];
+        }
+        if (e.root === 'v') {
+          const v = this.host.getGameVar(e.name);
+          if (v === undefined) throw new CgcError(`v.${e.name} isn't a game variable. Try v.moneys, v.prestige, v.gems, v.clickpower or v.username`, e.line);
+          return v;
+        }
+        if (e.root === 'cv') {
+          if (!(e.name in this.cv)) throw new CgcError(`cv.${e.name} isn't an event output. Try cv.click, cv.earned, cv.tick, cv.second, cv.buy, cv.prestige, cv.mousex, cv.mousey`, e.line);
+          return this.cv[e.name];
+        }
+        let v = this.lookup(env, e.name, e.line);
+        if (e.path.length) {
+          if (isGroup(v)) v = v.items[0];
+          if (!isObj(v)) throw new CgcError(`${e.name} isn't an object, so it has no .${e.path.join('.')}`, e.line);
+          return this.getAttr(v, e.path, e.line);
+        }
+        return v;
+      }
+      callFn(e, env){
+        const a = e.args.map(x => this.plain(this.eval(x, env)));
+        const n = (i) => this.num(a[i], e.line);
+        switch (e.name) {
+          case 'floor': return Math.floor(n(0));
+          case 'ceil': return Math.ceil(n(0));
+          case 'round': { const d = a.length > 1 ? Math.max(0, Math.min(6, n(1))) : 0; const f = Math.pow(10, d); return Math.round(n(0) * f) / f; }
+          case 'abs': return Math.abs(n(0));
+          case 'min': return Math.min(...a.map((_, i) => n(i)));
+          case 'max': return Math.max(...a.map((_, i) => n(i)));
+          case 'sqrt': return Math.sqrt(n(0));
+          case 'random': {
+            if (!a.length) return Math.random();
+            const lo = Math.ceil(n(0)), hi = Math.floor(a.length > 1 ? n(1) : n(0));
+            if (a.length === 1) return Math.floor(Math.random() * hi) + 1;
+            return Math.floor(Math.random() * (hi - lo + 1)) + lo;
+          }
+          case 'pick': return a.length ? a[Math.floor(Math.random() * a.length)] : null;
+          case 'format': return formatNumber(n(0), a.length > 1 ? n(1) : undefined);
+          case 'text': return this.toText(a[0]);
+          case 'number': { const v = Number(a[0]); return Number.isFinite(v) ? v : 0; }
+          case 'upper': return this.toText(a[0]).toUpperCase();
+          case 'lower': return this.toText(a[0]).toLowerCase();
+        }
+        throw new CgcError(`${e.name}() isn't a CGC function. Functions: floor, ceil, round, abs, min, max, sqrt, random, pick, format, text, number, upper, lower`, e.line);
+      }
+
+      /* ----- conversions ----- */
+      plain(v){ return isObj(v) && v.kind === 'cur' ? v.amount : v; }
+      num(v, line){
+        v = this.plain(v);
+        if (typeof v === 'number') return v;
+        if (typeof v === 'boolean') return v ? 1 : 0;
+        if (v === null || v === undefined) return 0;
+        if (typeof v === 'string' && v.trim() !== '' && Number.isFinite(Number(v))) return Number(v);
+        throw new CgcError(`Expected a number but got ${typeof v === 'string' ? '"' + v + '"' : (isObj(v) || isGroup(v) ? 'an object' : String(v))}`, line);
+      }
+      truthy(v){ v = this.plain(v); return !(v === false || v === null || v === undefined || v === 0 || v === ''); }
+      toText(v){
+        v = this.plain(v);
+        if (v === null || v === undefined) return 'nil';
+        if (typeof v === 'number') return Number.isInteger(v) ? String(v) : String(Math.round(v * 100) / 100);
+        if (isObj(v)) return `[${v.kind} ${v.localName || ''}]`.replace(' ]', ']');
+        if (isGroup(v)) return `[group of ${v.items.length}]`;
+        return String(v);
+      }
+
+      /* ----- objects ----- */
+      fileUrl(name, line){
+        const key = String(name || '').trim();
+        const url = this.files[key] || this.files[key.toLowerCase()];
+        if (!url) throw new CgcError(`"${key}" isn't in the payload folder. Add it under Payload first.`, line);
+        return url;
+      }
+      newObject(kind, extra){
+        if (this.objects.length >= MAX_OBJECTS) throw new CgcError(`A mod can have at most ${MAX_OBJECTS} objects`, extra && extra.line);
+        const o = Object.assign({
+          __cgcObj: true, id: ++objectCounter, kind, el: null, localName: '',
+          attrs: { clickable: false, dragable: false, 'size.x': 100, 'size.y': 100, scale: 1, color: '#ffffff', 'pos.x': 50, 'pos.y': 50,
+            visible: true, opacity: 1, rotate: 0, layer: 1, round: 0, text: '', fontsize: 24, volume: 1, speed: 1, loop: false, file: '', event: '' }
+        }, extra || {});
+        delete o.line;
+        return o;
+      }
+      spawn(e, env){
+        let o;
+        if (e.kind === 'file') {
+          const url = this.fileUrl(e.file, e.line);
+          if (AUDIO_EXT.test(e.file) || /^data:audio/.test(url)) {
+            o = this.newObject('audio', { line: e.line });
+            o.attrs.file = e.file;
+            this.objects.push(o);
+            return o;
+          }
+          o = this.newObject('image', { line: e.line });
+          o.src = url;
+          o.attrs.image = e.file;
+        } else {
+          o = this.newObject(e.kind, { line: e.line });
+          if (e.kind === 'text') {
+            o.attrs.text = this.toText(this.eval(e.arg, env));
+            o.attrs['size.x'] = 0; // 0 = fit the text
+            o.attrs['size.y'] = 0;
+          }
+        }
+        this.objects.push(o);
+        this.mount(o);
+        return o;
+      }
+      spawnGame(e, env){
+        const arg = e.arg ? this.toText(this.eval(e.arg, env)) : '';
+        if (e.kind === 'action') {
+          if (this.actions.length >= 12) throw new CgcError('A mod can have at most 12 actions', e.line);
+          const o = this.newObject('action', { line: e.line });
+          o.attrs.color = '';
+          o.attrs.action = arg;
+          o.attrs.icon = '';
+          this.actions.push(o);
+          this.objects.push(o);
+          this.uiChanged();
+          return o;
+        }
+        if (this.currencies.length >= 8) throw new CgcError('A mod can have at most 8 currencies', e.line);
+        const o = this.newObject('cur', { line: e.line });
+        o.attrs.color = '';
+        o.attrs.icon = '';
+        o.attrs.cur = '';
+        o.amount = 0;
+        o.key = '';
+        this.currencies.push(o);
+        this.objects.push(o);
+        if (arg) this.setAttr(o, ['cur'], arg, e.line);
+        return o;
+      }
+      removeObject(o){
+        this.stopAudio(o);
+        if (o.el && o.el.parentNode) o.el.parentNode.removeChild(o.el);
+        o.el = null;
+        o.removed = true;
+        this.objects = this.objects.filter(x => x !== o);
+        this.actions = this.actions.filter(x => x !== o);
+        this.currencies = this.currencies.filter(x => x !== o);
+        this.uiChanged();
+      }
+
+      getAttr(o, path, line){
+        const key = path.join('.').toLowerCase();
+        if (o.kind === 'cur' && (key === 'amount' || key === 'value')) return o.amount;
+        if (key === 'draggable') return o.attrs.dragable;
+        if (key === 'size') return o.attrs['size.x'];
+        if (!(key in o.attrs)) throw new CgcError(`${o.localName || 'This object'} has no attribute "${key}"`, line);
+        return o.attrs[key];
+      }
+      setAttr(o, path, value, line){
+        let key = path.join('.').toLowerCase();
+        if (key === 'draggable') key = 'dragable';
+        if (key === 'clickable' || key === 'click') key = 'clickable';
+        const visualOnly = ['clickable', 'dragable', 'size.x', 'size.y', 'scale', 'pos.x', 'pos.y', 'opacity', 'rotate', 'layer', 'fontsize', 'round'];
+        const isVisual = ['circle', 'rect', 'tri', 'image', 'text'].includes(o.kind);
+        const bool = (v) => this.truthy(v);
+        const n = (v) => this.num(v, line);
+
+        if (key === 'size') { this.setAttr(o, ['size', 'x'], value, line); this.setAttr(o, ['size', 'y'], value, line); return; }
+        if (visualOnly.includes(key) && !isVisual) throw new CgcError(`${key} only works on canvas objects`, line);
+
+        if (o.kind === 'action' || o.kind === 'cur') {
+          if (key === 'color') {
+            const c = String(value);
+            if (!this.validColor(c)) throw new CgcError(`"${c}" isn't a color. Try "red", "#ffcc00" or "rgb(255,200,0)"`, line);
+            o.attrs.color = c;
+          } else if (key === 'icon') {
+            o.attrs.icon = value ? String(value) : '';
+            o.iconUrl = value ? this.fileUrl(value, line) : '';
+          } else if (key === 'action' && o.kind === 'action') {
+            o.attrs.action = this.toText(value).slice(0, 30);
+          } else if (key === 'event' && o.kind === 'action') {
+            o.attrs.event = this.eventName(value, line);
+          } else if (key === 'cur' && o.kind === 'cur') {
+            const name = this.toText(value).trim().slice(0, 24);
+            o.attrs.cur = name;
+            const newKey = name.toLowerCase();
+            if (newKey && newKey !== o.key) {
+              if (o.key) this.savedCurrency[o.key] = o.amount;
+              o.key = newKey;
+              if (Object.prototype.hasOwnProperty.call(this.savedCurrency, newKey)) o.amount = Number(this.savedCurrency[newKey]) || 0;
+            }
+          } else if ((key === 'amount' || key === 'value') && o.kind === 'cur') {
+            this.setCurrency(o, n(value));
+            return;
+          } else {
+            throw new CgcError(`${o.kind === 'cur' ? 'Currencies' : 'Actions'} have: ${o.kind === 'cur' ? 'cur, color, icon' : 'action, color, icon, event'}`, line);
+          }
+          this.uiChanged();
+          return;
+        }
+
+        switch (key) {
+          case 'clickable': case 'dragable': case 'visible': case 'loop':
+            o.attrs[key] = bool(value); break;
+          case 'size.x': case 'size.y': case 'pos.x': case 'pos.y':
+            if (typeof value === 'string' && /%$/.test(value.trim())) o.attrs[key] = value.trim();
+            else o.attrs[key] = n(value);
+            break;
+          case 'scale': case 'rotate': case 'layer': case 'fontsize':
+            o.attrs[key] = n(value); break;
+          case 'round': o.attrs.round = Math.max(0, n(value)); break;
+          case 'opacity': o.attrs.opacity = Math.max(0, Math.min(1, n(value))); break;
+          case 'volume': o.attrs.volume = Math.max(0, Math.min(1, n(value))); if (o.audio) o.audio.volume = o.attrs.volume; break;
+          case 'speed': o.attrs.speed = Math.max(-4, Math.min(4, n(value))); break;
+          case 'color': {
+            const c = String(value);
+            if (!this.validColor(c)) throw new CgcError(`"${c}" isn't a color. Try "red", "#ffcc00" or "rgb(255,200,0)"`, line);
+            o.attrs.color = c;
+            break;
+          }
+          case 'text': o.attrs.text = this.toText(value).slice(0, 500); break;
+          case 'file': {
+            const f = value ? String(value) : '';
+            if (f) this.fileUrl(f, line);
+            o.attrs.file = f;
+            break;
+          }
+          case 'image': {
+            if (o.kind !== 'image') throw new CgcError('image only works on image objects', line);
+            o.src = this.fileUrl(value, line);
+            o.attrs.image = String(value);
+            break;
+          }
+          case 'event': o.attrs.event = this.eventName(value, line); break;
+          default:
+            throw new CgcError(`"${key}" isn't an attribute. Canvas objects have: clickable, dragable, size.x, size.y, scale, color, pos.x, pos.y, text, fontsize, visible, opacity, rotate, layer, round, file, volume, speed, loop, event`, line);
+        }
+        this.render(o);
+      }
+      eventName(value, line){
+        const name = String(value || '').replace(/^ev\./, '').trim();
+        if (name && !this.events.has(name)) throw new CgcError(`ev.${name} hasn't been made yet. Add ev.create("${name}") first.`, line);
+        return name;
+      }
+      validColor(c){
+        if (typeof CSS !== 'undefined' && CSS.supports) return CSS.supports('color', c);
+        return /^(#[0-9a-f]{3,8}|[a-z]+|rgba?\([\d\s.,%]+\)|hsla?\([\d\s.,%deg]+\))$/i.test(c);
+      }
+
+      /* ----- drawing ----- */
+      mount(o){
+        if (!this.layer || typeof document === 'undefined') return;
+        const el = document.createElement(o.kind === 'image' ? 'img' : 'div');
+        el.className = 'cgc-obj cgc-' + o.kind;
+        if (o.kind === 'image') { el.alt = ''; el.draggable = false; }
+        el.dataset.z = this.objects.length;
+        o.el = el;
+        this.layer.appendChild(el);
+        this.bindPointer(o);
+        this.render(o);
+      }
+      unit(v, axis){
+        if (typeof v === 'string' && /%$/.test(v)) return v;
+        return (Number(v) * this.scale) + 'px';
+      }
+      render(o){
+        const el = o.el;
+        if (!el) return;
+        const a = o.attrs;
+        const s = el.style;
+        s.left = (typeof a['pos.x'] === 'string' ? a['pos.x'] : a['pos.x'] + '%');
+        s.top = (typeof a['pos.y'] === 'string' ? a['pos.y'] : a['pos.y'] + '%');
+        s.transform = `translate(-50%, -50%) rotate(${a.rotate}deg) scale(${a.scale})`;
+        s.opacity = a.opacity;
+        s.display = a.visible ? '' : 'none';
+        s.zIndex = Math.round(a.layer * 1000 + Number(el.dataset.z || 0));
+        s.pointerEvents = (a.clickable || a.dragable || this.handlers['obj:' + o.id + '.hover']) ? 'auto' : 'none';
+        s.cursor = a.dragable ? 'grab' : (a.clickable ? 'pointer' : '');
+        if (o.kind === 'text') {
+          el.textContent = a.text;
+          s.color = a.color;
+          s.fontSize = (a.fontsize * this.scale) + 'px';
+          s.width = a['size.x'] ? this.unit(a['size.x']) : '';
+          s.height = a['size.y'] ? this.unit(a['size.y']) : '';
+        } else {
+          s.width = this.unit(a['size.x']);
+          s.height = this.unit(a['size.y']);
+          if (o.kind === 'image') { if (el.getAttribute('src') !== o.src) el.src = o.src; }
+          else s.background = a.color;
+          if (o.kind === 'rect' || o.kind === 'image') s.borderRadius = a.round ? (a.round * this.scale) + 'px' : '';
+          if (a.text && o.kind !== 'image') {
+            el.textContent = a.text;
+            s.fontSize = (a.fontsize * this.scale) + 'px';
+          } else if (o.kind !== 'image' && el.textContent) {
+            el.textContent = '';
+          }
+        }
+      }
+      bindPointer(o){
+        const el = o.el;
+        let start = null;
+        el.addEventListener('pointerdown', (ev) => {
+          if (!this.running) return;
+          if (!o.attrs.clickable && !o.attrs.dragable) return;
+          ev.preventDefault();
+          ev.stopPropagation();
+          start = { x: ev.clientX, y: ev.clientY, moved: false };
+          if (o.attrs.dragable) {
+            el.setPointerCapture && el.setPointerCapture(ev.pointerId);
+            el.style.cursor = 'grabbing';
+            el.classList.add('cgc-dragging');
+          }
+        });
+        el.addEventListener('pointermove', (ev) => {
+          if (!start || !o.attrs.dragable || !this.layer) return;
+          if (Math.abs(ev.clientX - start.x) + Math.abs(ev.clientY - start.y) > 4) start.moved = true;
+          if (!start.moved) return;
+          const r = this.layer.getBoundingClientRect();
+          o.attrs['pos.x'] = Math.round(Math.max(0, Math.min(100, ((ev.clientX - r.left) / r.width) * 100)) * 10) / 10;
+          o.attrs['pos.y'] = Math.round(Math.max(0, Math.min(100, ((ev.clientY - r.top) / r.height) * 100)) * 10) / 10;
+          this.render(o);
+        });
+        const end = (ev) => {
+          if (!start) return;
+          const wasMoved = start.moved;
+          start = null;
+          el.classList.remove('cgc-dragging');
+          el.style.cursor = o.attrs.dragable ? 'grab' : (o.attrs.clickable ? 'pointer' : '');
+          if (!this.running || (ev && ev.type === 'pointercancel')) return;
+          this.setMouse(ev);
+          if (wasMoved) { this.fire('obj:' + o.id + '.drop'); return; }
+          if (o.attrs.clickable) this.objectClicked(o);
+        };
+        el.addEventListener('pointerup', end);
+        el.addEventListener('pointercancel', end);
+        el.addEventListener('pointerenter', (ev) => { if (this.running) { this.setMouse(ev); this.fire('obj:' + o.id + '.hover'); } });
+        el.addEventListener('pointerleave', () => { if (this.running) this.fire('obj:' + o.id + '.leave'); });
+      }
+      setMouse(ev){
+        if (!ev || !this.layer) return;
+        const r = this.layer.getBoundingClientRect();
+        if (!r.width) return;
+        this.cv.mousex = Math.round(((ev.clientX - r.left) / r.width) * 1000) / 10;
+        this.cv.mousey = Math.round(((ev.clientY - r.top) / r.height) * 1000) / 10;
+      }
+      objectClicked(o){
+        if (o.attrs.file) this.playAudio(o, 0);
+        this.fire('obj:' + o.id + '.click');
+        if (o.attrs.event) this.fire('ev.' + o.attrs.event);
+      }
+      actionClicked(o){
+        if (!this.running || o.removed) return;
+        this.fire('obj:' + o.id + '.click');
+        if (o.attrs.event) this.fire('ev.' + o.attrs.event);
+      }
+
+      /* ----- audio ----- */
+      playAudio(o, line){
+        const file = o.attrs.file;
+        if (!file) throw new CgcError(`${o.localName || 'This object'} has no sound. Set one with att ${o.localName || 'name'}.file = "sound.mp3"`, line);
+        if (this.host.playAllowed && !this.host.playAllowed()) return;
+        const url = this.fileUrl(file, line);
+        const speed = Number(o.attrs.speed);
+        const volume = Number(o.attrs.volume);
+        this.stopAudio(o);
+        if (!speed) return;
+        if (speed < 0) { this.playReversed(o, url, Math.abs(speed), volume); return; }
+        try {
+          const audio = new Audio(url);
+          audio.volume = volume;
+          audio.loop = !!o.attrs.loop;
+          audio.preservesPitch = false;
+          audio.playbackRate = Math.max(0.0625, Math.min(4, speed));
+          audio.play().catch(() => {});
+          o.audio = audio;
+        } catch (e) {}
+      }
+      async playReversed(o, url, rate, volume){
+        try {
+          const Ctx = window.AudioContext || window.webkitAudioContext;
+          if (!Ctx) return;
+          if (!Runtime.audioCtx) Runtime.audioCtx = new Ctx();
+          const ctx = Runtime.audioCtx;
+          if (ctx.state === 'suspended') ctx.resume();
+          let buffer = this.audioCache[url];
+          if (!buffer) {
+            const data = await (await fetch(url)).arrayBuffer();
+            buffer = await ctx.decodeAudioData(data);
+            for (let c = 0; c < buffer.numberOfChannels; c++) buffer.getChannelData(c).reverse();
+            this.audioCache[url] = buffer;
+          }
+          if (!this.running) return;
+          const src = ctx.createBufferSource();
+          const gain = ctx.createGain();
+          src.buffer = buffer;
+          src.loop = !!o.attrs.loop;
+          src.playbackRate.value = Math.max(0.0625, Math.min(4, rate));
+          gain.gain.value = volume;
+          src.connect(gain).connect(ctx.destination);
+          src.start();
+          o.audioNode = src;
+        } catch (e) {
+          this.warnOnce('reverse', "Couldn't play that sound backwards (the file may block it). Uploaded files always work.");
+        }
+      }
+      stopAudio(o){
+        if (o.audio) { try { o.audio.pause(); } catch (e) {} o.audio = null; }
+        if (o.audioNode) { try { o.audioNode.stop(); } catch (e) {} o.audioNode = null; }
+      }
+    }
+
+    return { VERSION, tokenize, parse, Runtime, CgcError, formatNumber, GAME_EVENTS, OBJECT_EVENTS };
+  })();
+
+  // The Bakery example (Cookie Clicker style). Shown in the guide and loaded by "Load example".
+  const CGC_EXAMPLE_BAKERY = "-- Bakery: a Cookie Clicker (by Orteil) style mod, written in CGC.\n-- Needs cookie.png in the Payload folder.\n\n-- ===== Currency and saved progress =====\nlocal cookies = game.cur\natt cookies.cur = \"Cookies\"\natt cookies.color = \"#e8b06a\"\natt cookies.icon = \"cookie.png\"\n\nstorage.create(\"cursors\", 0)\nstorage.create(\"grandmas\", 0)\nstorage.create(\"farms\", 0)\nstorage.create(\"mines\", 0)\nstorage.create(\"baked\", 0)\nstorage.create(\"open\", true)\n\nvar.create(\"cps\", 0)\nvar.create(\"perclick\", 1)\nvar.create(\"newsTimer\", 0)\n\nev.create(\"refresh\")\nev.create(\"bake\")\nev.create(\"toggleBakery\")\n\n-- ===== Background =====\nlocal sky = canvas.rect\natt sky.size.x = \"100%\"\natt sky.size.y = \"100%\"\natt sky.color = \"#0d2342\"\natt sky.layer = 0\n\nlocal leftPanel = canvas.rect\natt leftPanel.pos.x = 17\natt leftPanel.size.x = \"34%\"\natt leftPanel.size.y = \"100%\"\natt leftPanel.color = \"rgba(0, 0, 0, 0.35)\"\natt leftPanel.layer = 0\n\nlocal storePanel = canvas.rect\natt storePanel.pos.x = 86\natt storePanel.size.x = \"28%\"\natt storePanel.size.y = \"100%\"\natt storePanel.color = \"#3a2414\"\natt storePanel.layer = 0\n\n-- ===== Left side: bakery name, counter, the big cookie =====\nlocal title = canvas(\"Your bakery\")\natt title.pos.y = 8\natt title.pos.x = 17\natt title.fontsize = 26\natt title.color = \"#f5deb3\"\n\nlocal counter = canvas(\"0 cookies\")\natt counter.pos.x = 17\natt counter.pos.y = 15\natt counter.fontsize = 34\natt counter.color = \"#ffffff\"\n\nlocal perSec = canvas(\"per second: 0\")\natt perSec.pos.x = 17\natt perSec.pos.y = 21\natt perSec.fontsize = 16\natt perSec.color = \"#d8d8d8\"\n\nlocal cookie = canvas.cookie.png\natt cookie.pos.x = 17\natt cookie.pos.y = 55\natt cookie.size.x = 260\natt cookie.size.y = 260\natt cookie.clickable = true\natt cookie.event = \"bake\"\n\nlocal clickInfo = canvas(\"Game clicks this session: 0\")\natt clickInfo.pos.x = 17\natt clickInfo.pos.y = 92\natt clickInfo.fontsize = 13\natt clickInfo.color = \"#9fb3d1\"\n\n-- ===== Middle: news ticker and close button =====\nlocal news = canvas(\"News: a new bakery opened in town.\")\natt news.pos.x = 50\natt news.pos.y = 5\natt news.fontsize = 15\natt news.color = \"#ffffff\"\n\nlocal closeBtn = canvas.rect\natt closeBtn.pos.x = 50\natt closeBtn.pos.y = 94\natt closeBtn.size.x = 170\natt closeBtn.size.y = 40\natt closeBtn.color = \"#7a1f1f\"\natt closeBtn.clickable = true\natt closeBtn.round = 10\natt closeBtn.text = \"Close bakery\"\natt closeBtn.fontsize = 15\n\nlocal buildingsTitle = canvas(\"Your buildings\")\natt buildingsTitle.pos.x = 50\natt buildingsTitle.pos.y = 30\natt buildingsTitle.fontsize = 22\natt buildingsTitle.color = \"#f5deb3\"\n\nlocal buildings = canvas(\"\")\natt buildings.pos.x = 50\natt buildings.pos.y = 48\natt buildings.fontsize = 17\natt buildings.color = \"#ffffff\"\n\nlocal allTime = canvas(\"\")\natt allTime.pos.x = 50\natt allTime.pos.y = 66\natt allTime.fontsize = 14\natt allTime.color = \"#9fb3d1\"\n\nlocal golden = canvas.circle\natt golden.size.x = 64\natt golden.size.y = 64\natt golden.color = \"#ffd34d\"\natt golden.clickable = true\natt golden.visible = false\natt golden.layer = 3\n\n-- ===== Right side: the store =====\nlocal storeTitle = canvas(\"Store\")\natt storeTitle.pos.x = 86\natt storeTitle.pos.y = 6\natt storeTitle.fontsize = 28\natt storeTitle.color = \"#f5deb3\"\n\nlocal cursorBtn = canvas.rect\nlocal grandmaBtn = canvas.rect\nlocal farmBtn = canvas.rect\nlocal mineBtn = canvas.rect\nlocal buttons = cursorBtn, grandmaBtn, farmBtn, mineBtn\natt buttons.pos.x = 86\natt buttons.size.x = \"26%\"\natt buttons.size.y = 64\natt buttons.clickable = true\natt buttons.round = 10\natt buttons.fontsize = 15\natt cursorBtn.pos.y = 16\natt grandmaBtn.pos.y = 27\natt farmBtn.pos.y = 38\natt mineBtn.pos.y = 49\n\nlocal bakery = sky, leftPanel, storePanel, title, counter, perSec, cookie, clickInfo, news, closeBtn, storeTitle, buttons, buildingsTitle, buildings, allTime\n\n-- ===== Actions in Stats > Mods =====\nlocal toggle = game.action\natt toggle.action = \"Close bakery\"\natt toggle.color = \"#e8b06a\"\natt toggle.icon = \"cookie.png\"\n\nlocal reset = game.action(\"Reset bakery\")\natt reset.color = \"#ff6b6b\"\n\n-- ===== Events =====\nwhen(ev.refresh)\n  var.cps.set(storage.cursors * 0.1 + storage.grandmas * 1 + storage.farms * 8 + storage.mines * 47)\n  att counter.text = format(floor(cookies)) .. \" cookies\"\n  att perSec.text = \"per second: \" .. format(var.cps, 1)\n  att buildings.text = \"Cursors: \" .. storage.cursors .. \"\\nGrandmas: \" .. storage.grandmas .. \"\\nFarms: \" .. storage.farms .. \"\\nMines: \" .. storage.mines\n  att allTime.text = \"Cookies baked all time: \" .. format(floor(storage.baked))\n\n  local cursorPrice = floor(15 * 1.15 ^ storage.cursors)\n  local grandmaPrice = floor(100 * 1.15 ^ storage.grandmas)\n  local farmPrice = floor(1100 * 1.15 ^ storage.farms)\n  local minePrice = floor(12000 * 1.15 ^ storage.mines)\n  att cursorBtn.text = \"Cursor   \" .. format(cursorPrice) .. \"   (\" .. storage.cursors .. \")\"\n  att grandmaBtn.text = \"Grandma   \" .. format(grandmaPrice) .. \"   (\" .. storage.grandmas .. \")\"\n  att farmBtn.text = \"Farm   \" .. format(farmPrice) .. \"   (\" .. storage.farms .. \")\"\n  att mineBtn.text = \"Mine   \" .. format(minePrice) .. \"   (\" .. storage.mines .. \")\"\n\n  att buttons.color = \"#4a3020\"\n  att buttons.opacity = 0.55\n  if cookies >= cursorPrice then\n    att cursorBtn.color = \"#6b4a2b\"\n    att cursorBtn.opacity = 1\n  end\n  if cookies >= grandmaPrice then\n    att grandmaBtn.color = \"#6b4a2b\"\n    att grandmaBtn.opacity = 1\n  end\n  if cookies >= farmPrice then\n    att farmBtn.color = \"#6b4a2b\"\n    att farmBtn.opacity = 1\n  end\n  if cookies >= minePrice then\n    att mineBtn.color = \"#6b4a2b\"\n    att mineBtn.opacity = 1\n  end\nend\n\nwhen(ev.bake)\n  cookies.add(var.perclick)\n  storage.baked.add(var.perclick)\n  att cookie.scale = 0.93\n  v.moneys.add(1)\n  do.ev.refresh\nend\n\nwhen(cookie.hover)\n  att cookie.scale = 1.05\nend\n\nwhen(cookie.leave)\n  att cookie.scale = 1\nend\n\nwhen(c.tick)\n  cookies.add(var.cps / 10)\n  storage.baked.add(var.cps / 10)\n  if cookie.scale < 1 then\n    att cookie.scale = 1.05\n  end\n  do.ev.refresh\nend\n\nwhen(c.second)\n  var.newsTimer.add(1)\n  if var.newsTimer >= 8 then\n    var.newsTimer.set(0)\n    att news.text = \"News: \" .. pick(\"grandmas report record cookie numbers.\", \"scientists say cookies are 99% delicious.\", \"a farm grew a cookie the size of a car.\", \"local man clicks so hard his mouse files a complaint.\", \"cookie stocks are going up.\")\n  end\n  if storage.open and not golden.visible and random(1, 25) == 1 then\n    att golden.pos.x = random(40, 66)\n    att golden.pos.y = random(15, 85)\n    att golden.visible = true\n  end\nend\n\nwhen(golden.click)\n  local bonus = max(13, floor(var.cps * 60))\n  cookies.add(bonus)\n  att golden.visible = false\n  att news.text = \"Golden cookie! +\" .. format(bonus) .. \" cookies\"\n  print(\"Golden cookie clicked for \" .. bonus)\nend\n\n-- Clicking the game's own clicker bakes a cookie too\nwhen(c.click)\n  cookies.add(1)\n  att clickInfo.text = \"Game clicks this session: \" .. cv.click\nend\n\nwhen(c.buy)\n  att news.text = \"News: you bought \" .. cv.buy .. \" in the game shop.\"\nend\n\nwhen(cursorBtn.click)\n  local price = floor(15 * 1.15 ^ storage.cursors)\n  if cookies >= price then\n    cookies.subtract(price)\n    storage.cursors.add(1)\n  end\n  do.ev.refresh\nend\n\nwhen(grandmaBtn.click)\n  local price = floor(100 * 1.15 ^ storage.grandmas)\n  if cookies >= price then\n    cookies.subtract(price)\n    storage.grandmas.add(1)\n  end\n  do.ev.refresh\nend\n\nwhen(farmBtn.click)\n  local price = floor(1100 * 1.15 ^ storage.farms)\n  if cookies >= price then\n    cookies.subtract(price)\n    storage.farms.add(1)\n  end\n  do.ev.refresh\nend\n\nwhen(mineBtn.click)\n  local price = floor(12000 * 1.15 ^ storage.mines)\n  if cookies >= price then\n    cookies.subtract(price)\n    storage.mines.add(1)\n  end\n  do.ev.refresh\nend\n\nwhen(closeBtn.click)\n  do.ev.toggleBakery\nend\n\nwhen(ev.toggleBakery)\n  storage.open.set(not storage.open)\n  att bakery.visible = storage.open\n  if not storage.open then\n    att golden.visible = false\n    att toggle.action = \"Open bakery\"\n  else\n    att toggle.action = \"Close bakery\"\n  end\nend\n\nwhen(toggle.click)\n  do.ev.toggleBakery\nend\n\nwhen(reset.click)\n  cookies.set(0)\n  storage.cursors.set(0)\n  storage.grandmas.set(0)\n  storage.farms.set(0)\n  storage.mines.set(0)\n  print(\"Bakery reset\")\n  do.ev.refresh\nend\n\n-- ===== Start =====\natt bakery.visible = storage.open\nif not storage.open then\n  att toggle.action = \"Open bakery\"\nend\ndo.ev.refresh\nprint(\"Bakery loaded. Baked so far: \" .. format(floor(storage.baked)))\n";
+
+  /* ---------- CGC HIGHLIGHTER ----------
+     Colors CGC code for the editor and the guide. Works on raw text and
+     escapes everything, so code can never inject HTML. */
+  const CGC_HL_KEYWORDS = /^(when|end|if|then|elseif|else|local|att|repeat|and|or|not|do)$/;
+  const CGC_HL_PREFIX = /^(c|v|cv|var|ev|storage|canvas|game)$/;
+  const CGC_HL_FUNCS = /^(print|play|stop|remove|show|hide|floor|ceil|round|abs|min|max|sqrt|random|pick|format|text|number|upper|lower)$/;
+  function cgcHighlight(src){
+    const esc = (t) => t.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    const span = (cls, t) => `<span class="cgc-hl-${cls}">${esc(t)}</span>`;
+    let out = '';
+    let i = 0;
+    const s = String(src || '');
+    while (i < s.length) {
+      const ch = s[i];
+      if ((ch === '-' && s[i + 1] === '-') || (ch === '/' && s[i + 1] === '/')) {
+        let j = s.indexOf('\n', i);
+        if (j === -1) j = s.length;
+        out += span('comment', s.slice(i, j));
+        i = j;
+        continue;
+      }
+      if (ch === '"' || ch === "'" || ch === '\u201C') {
+        const close = ch === '\u201C' ? '\u201D' : ch;
+        let j = i + 1;
+        while (j < s.length && s[j] !== close && s[j] !== '\n') j++;
+        out += span('string', s.slice(i, Math.min(j + 1, s.length)));
+        i = j + 1;
+        continue;
+      }
+      if (/[0-9]/.test(ch)) {
+        let j = i;
+        while (j < s.length && /[0-9._]/.test(s[j])) j++;
+        out += span('number', s.slice(i, j));
+        i = j;
+        continue;
+      }
+      if (/[A-Za-z_]/.test(ch)) {
+        let j = i;
+        while (j < s.length && /[A-Za-z0-9_]/.test(s[j])) j++;
+        const word = s.slice(i, j);
+        const prevDot = i > 0 && s[i - 1] === '.';
+        if (!prevDot && CGC_HL_KEYWORDS.test(word)) out += span('keyword', word);
+        else if (!prevDot && s[j] === '.' && CGC_HL_PREFIX.test(word)) out += span('prefix', word);
+        else if (!prevDot && (word === 'true' || word === 'false' || word === 'nil')) out += span('number', word);
+        else if (!prevDot && s[j] === '(' && CGC_HL_FUNCS.test(word)) out += span('func', word);
+        else if (prevDot && /^(add|subtract|multiply|divide|set|create)$/.test(word) && s[j] === '(') out += span('func', word);
+        else out += esc(word);
+        i = j;
+        continue;
+      }
+      out += esc(ch);
+      i++;
+    }
+    return out;
+  }
+
+  /* ---------- CGC LIVE MODS ----------
+     Runs the code of installed editor mods while the game is open.
+     The host below is the only bridge between mod code and the game,
+     so the moneys, prestige and gems rules live here. */
+  const CGC_MONEY_ADDS_PER_SECOND = 15; // same ballpark as fast human clicking
+  const CGC_LOG_LIMIT = 100;
+  const cgcRuntimes = {};
+  const cgcLogs = {};
+  let cgcUiQueued = false;
+  let cgcStatsConsoleOpen = null; // modId whose console is open in Stats > Mods
+
+  function cgcScriptCode(mod){
+    const list = mod && mod.customFiles && Array.isArray(mod.customFiles.script) ? mod.customFiles.script : [];
+    const entry = list.find(f => f && (f.url || f.base64));
+    if (!entry) return '';
+    const url = String(entry.url || entry.base64);
+    const comma = url.indexOf(',');
+    if (url.indexOf('data:text/plain') !== 0 || comma === -1) return '';
+    try { return decodeURIComponent(url.slice(comma + 1)); } catch (e) { return ''; }
+  }
+  function cgcScriptEntry(code){
+    return { name: 'main.cgc', file: 'main.cgc', url: 'data:text/plain;charset=utf-8,' + encodeURIComponent(code) };
+  }
+  function cgcPayloadMap(list){
+    const map = {};
+    (Array.isArray(list) ? list : []).forEach(f => {
+      const src = f && (f.url || f.base64);
+      if (!f || !f.name || !src) return;
+      // Only uploaded data, web links or files that ship with the game.
+      if (!/^(data:(image|audio)\/|https?:\/\/|extras\/)/i.test(String(src))) return;
+      map[String(f.name)] = String(src);
+      map[String(f.name).toLowerCase()] = String(src);
+    });
+    return map;
+  }
+
+  function cgcLog(modId, level, text){
+    const list = cgcLogs[modId] = cgcLogs[modId] || [];
+    list.push({ level, text: String(text) });
+    if (list.length > CGC_LOG_LIMIT) list.splice(0, list.length - CGC_LOG_LIMIT);
+    if (level === 'error') console.warn('[mod ' + modId + '] ' + text);
+    if (cgcStatsConsoleOpen === modId) cgcQueueUi();
+  }
+
+  // Shared rate limit for v.moneys.add and do.c.click, per mod.
+  function cgcRateOk(state){
+    const now = Date.now();
+    state.moneyTimes = (state.moneyTimes || []).filter(t => now - t < 1000);
+    if (state.moneyTimes.length >= CGC_MONEY_ADDS_PER_SECOND) return false;
+    state.moneyTimes.push(now);
+    return true;
+  }
+
+  function cgcGameVar(name, src){
+    const g = src || game;
+    switch (String(name).toLowerCase()) {
+      case 'moneys': case 'money': case 'clicks': return g.clicks || 0;
+      case 'prestige': return g.prestige || 0;
+      case 'gems': return g.gems || 0;
+      case 'clickpower': case 'clickboost': return g.clickPower || 1;
+      case 'boosts': return g.boosts || 0;
+      case 'autoclickers': return g.autoClickerOwned || 0;
+      case 'username': return currentUsername || '';
+      case 'achievements': return (game.unlockedAchievements || []).length;
+      case 'hour': return new Date().getHours();
+      case 'muted': return !!game.sfxMuted;
+      case 'prestigecost': return PRESTIGE_COST;
+    }
+    return undefined;
+  }
+
+  function cgcLiveHost(mod){
+    const state = {};
+    const modId = mod.id;
+    return {
+      print: (level, text) => cgcLog(modId, level, text),
+      getGameVar: (name) => cgcGameVar(name),
+      mathGameVar: (name, method, value) => {
+        const key = String(name).toLowerCase();
+        if (key === 'gems') return { ok: false, msg: 'Mods can\'t give or change Gems.' };
+        if (key === 'moneys' || key === 'money' || key === 'clicks') {
+          if (method === 'add') {
+            const power = game.clickPower || 1;
+            if (value !== 1 && value !== power) return { ok: false, msg: `Mods can only add 1 or your click boost amount (${power}) to moneys at a time.` };
+            if (!cgcRateOk(state)) return { ok: false, msg: `Mods can add moneys at most ${CGC_MONEY_ADDS_PER_SECOND} times a second.` };
+            game.clicks += value;
+          } else if (method === 'subtract') {
+            if (!(value > 0) || value > game.clicks) return { ok: false, msg: 'A mod tried to take more moneys than the player has.' };
+            game.clicks -= Math.floor(value);
+          } else {
+            return { ok: false, msg: `Mods can't ${method} moneys. Use v.moneys.add(1), v.moneys.add(v.clickpower) or v.moneys.subtract(...).` };
+          }
+          updateCounter();
+          refreshShopAffordability();
+          refreshStatsMoneys();
+          saveGame();
+          return { ok: true };
+        }
+        if (key === 'prestige') {
+          if (method !== 'add') return { ok: false, msg: 'Mods can only ask for a prestige with v.prestige.add(1) or do.c.prestige.' };
+          return cgcRequestPrestige();
+        }
+        return { ok: false, msg: `v.${name} is read only.` };
+      },
+      gameEvent: (name) => {
+        if (name === 'prestige') return cgcRequestPrestige();
+        if (name === 'click') {
+          if (!cgcRateOk(state)) return { ok: false, msg: `do.c.click is limited to ${CGC_MONEY_ADDS_PER_SECOND} times a second.` };
+          game.clicks += game.clickPower || 1;
+          updateCounter();
+          refreshShopAffordability();
+          refreshStatsMoneys();
+          saveGame();
+          return { ok: true };
+        }
+        return { ok: true };
+      },
+      loadData: () => {
+        const d = (game.modData || {})[modId];
+        return d ? { currency: Object.assign({}, d.currency), storage: Object.assign({}, d.storage) } : {};
+      },
+      saveData: (data) => {
+        if (!game.modData) game.modData = {};
+        game.modData[modId] = { currency: data.currency || {}, storage: data.storage || {} };
+        saveGame();
+      },
+      uiChanged: () => cgcQueueUi(),
+      playAllowed: () => !game.sfxMuted
+    };
+  }
+
+  // Prestige only happens if the player meets the normal requirement, and the
+  // player still confirms it in the usual dialog.
+  function cgcRequestPrestige(){
+    if (game.clicks < PRESTIGE_COST) return { ok: false, msg: `Prestige needs ${PRESTIGE_COST.toLocaleString()} moneys.` };
+    if (!confirmOverlay.classList.contains('visible')) openConfirmPrestige();
+    return { ok: true };
+  }
+
+  function cgcStartMod(mod){
+    if (!mod || !mod.id) return;
+    cgcStopMod(mod.id);
+    const code = cgcScriptCode(mod);
+    const stage = document.getElementById('cgc-stage');
+    if (!code || !stage) return;
+    const rt = new CGC.Runtime({
+      modId: mod.id,
+      modName: mod.name,
+      code,
+      files: cgcPayloadMap(mod.customFiles && mod.customFiles.payload),
+      host: cgcLiveHost(mod),
+      stageEl: stage,
+      scale: 1
+    });
+    cgcRuntimes[mod.id] = rt;
+    try { rt.start(); } catch (e) { cgcLog(mod.id, 'error', e.message || String(e)); }
+    cgcQueueUi();
+  }
+  function cgcStopMod(modId){
+    const rt = cgcRuntimes[modId];
+    if (!rt) return;
+    try { rt.stop(); } catch (e) {}
+    delete cgcRuntimes[modId];
+    cgcQueueUi();
+  }
+  function cgcStartAll(){
+    (game.installedMods || []).forEach(mod => cgcStartMod(mod));
+  }
+  // Sends a game event to every running mod. update can be an object or fn(runtime).
+  function cgcFire(key, update){
+    Object.values(cgcRuntimes).forEach(rt => {
+      try { rt.fire(key, typeof update === 'function' ? update(rt) : update); } catch (e) {}
+    });
+  }
+
+  // modData is kept as { modId: { currency, storage } } in the save,
+  // and sent to the API as a list: [{ modId, currency, storage }].
+  function cgcModDataList(){
+    const data = game.modData || {};
+    return Object.keys(data).filter(id => data[id]).map(id => ({
+      modId: id,
+      currency: data[id].currency || {},
+      storage: data[id].storage || {}
+    }));
+  }
+  function cgcModDataFromList(list){
+    const out = {};
+    (Array.isArray(list) ? list : []).forEach(entry => {
+      if (!entry || !entry.modId) return;
+      out[String(entry.modId)] = {
+        currency: entry.currency && typeof entry.currency === 'object' ? entry.currency : {},
+        storage: entry.storage && typeof entry.storage === 'object' ? entry.storage : {}
+      };
+    });
+    return out;
+  }
+
+  /* Currencies under the click counter, and actions + currencies in Stats > Mods. */
+  function cgcQueueUi(){
+    if (cgcUiQueued) return;
+    cgcUiQueued = true;
+    requestAnimationFrame(() => {
+      cgcUiQueued = false;
+      cgcRenderSidebarCurrencies();
+      cgcRenderStatsModUi();
+    });
+  }
+  const CGC_COIN_SVG = '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="currentColor"/><circle cx="12" cy="12" r="5.5" fill="none" stroke="rgba(0,0,0,0.25)" stroke-width="2"/></svg>';
+  function cgcCurrencyChip(c){
+    const esc = escapeChatHtml;
+    const color = c.attrs.color || 'var(--zap)';
+    const amount = CGC.formatNumber(Math.floor(c.amount));
+    return `<span class="cgc-cur-chip" style="--cgc-color:${esc(color)}" title="${esc(c.attrs.cur || 'Currency')}">
+      ${c.iconUrl ? `<img src="${esc(c.iconUrl)}" alt="">` : CGC_COIN_SVG}
+      <strong>${esc(amount)}</strong><span>${esc(c.attrs.cur || '')}</span>
+    </span>`;
+  }
+  function cgcRenderSidebarCurrencies(){
+    const el = document.getElementById('cgc-currencies');
+    if (!el) return;
+    const all = [];
+    Object.values(cgcRuntimes).forEach(rt => rt.currencies.forEach(c => { if (c.attrs.cur) all.push(c); }));
+    el.innerHTML = all.map(cgcCurrencyChip).join('');
+    el.style.display = all.length ? '' : 'none';
+  }
+  function cgcActionButton(a, modId, i){
+    const esc = escapeChatHtml;
+    const color = a.attrs.color || 'var(--zap)';
+    return `<button class="buy-btn cgc-action-btn" data-cgc-mod="${esc(modId)}" data-cgc-action="${i}" style="--cgc-color:${esc(color)}">
+      ${a.iconUrl ? `<img src="${esc(a.iconUrl)}" alt="">` : ''}<span>${esc(a.attrs.action)}</span>
+    </button>`;
+  }
+  function cgcRenderStatsModUi(){
+    const listEl = document.getElementById('installed-mods-list');
+    if (!listEl) return;
+    listEl.querySelectorAll('.installed-mod-row').forEach(row => {
+      const modId = row.dataset.modId;
+      const rt = cgcRuntimes[modId];
+      const actionsEl = row.querySelector('.cgc-row-actions');
+      const extraEl = row.querySelector('.cgc-row-extra');
+      if (actionsEl) {
+        const actions = rt ? rt.actions.filter(a => a.attrs.action) : [];
+        const html = actions.map((a, i) => cgcActionButton(a, modId, rt.actions.indexOf(a))).join('');
+        if (actionsEl.dataset.html !== html) {
+          actionsEl.innerHTML = html;
+          actionsEl.dataset.html = html;
+          actionsEl.querySelectorAll('.cgc-action-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+              const live = cgcRuntimes[btn.dataset.cgcMod];
+              const a = live && live.actions[Number(btn.dataset.cgcAction)];
+              if (a) live.actionClicked(a);
+            });
+          });
+        }
+      }
+      if (extraEl) {
+        const curs = rt ? rt.currencies.filter(c => c.attrs.cur) : [];
+        const logs = cgcLogs[modId] || [];
+        const errors = logs.filter(l => l.level === 'error').length;
+        const open = cgcStatsConsoleOpen === modId;
+        const consoleBtn = (rt || logs.length) ? `<button class="mod-editor-text-btn cgc-console-toggle" data-cgc-console="${escapeChatHtml(modId)}">${open ? 'Hide console' : 'Console'}${errors ? ` <span class="cgc-err-badge">${errors}</span>` : ''}</button>` : '';
+        const html = `${curs.length ? `<div class="cgc-row-curs">${curs.map(cgcCurrencyChip).join('')}</div>` : ''}${consoleBtn}${open ? `<pre class="cgc-console cgc-console-small">${cgcConsoleHtml(logs)}</pre>` : ''}`;
+        if (extraEl.dataset.html !== html) {
+          extraEl.innerHTML = html;
+          extraEl.dataset.html = html;
+          const t = extraEl.querySelector('.cgc-console-toggle');
+          if (t) t.addEventListener('click', () => {
+            cgcStatsConsoleOpen = cgcStatsConsoleOpen === modId ? null : modId;
+            cgcQueueUi();
+          });
+          const pre = extraEl.querySelector('.cgc-console');
+          if (pre) pre.scrollTop = pre.scrollHeight;
+        }
+      }
+    });
+  }
+  function cgcConsoleHtml(logs){
+    if (!logs.length) return '<span class="cgc-log-muted">Nothing printed yet.</span>';
+    return logs.map(l => `<span class="cgc-log-${l.level}">${escapeChatHtml(l.text)}</span>`).join('\n');
+  }
+
+  // Game shop purchases become c.buy. Checked after the shop's own handler ran.
+  document.addEventListener('click', (e) => {
+    const btn = e.target.closest && e.target.closest('.buy-btn');
+    if (!btn || btn.classList.contains('uninstall') || btn.classList.contains('cgc-action-btn')) return;
+    if (!Object.keys(cgcRuntimes).length) return;
+    const before = { clicks: game.clicks, prestige: game.prestige, gems: game.gems };
+    const card = btn.closest('.shop-card');
+    const title = card && card.querySelector('h3') ? card.querySelector('h3').textContent.trim() : (btn.textContent || '').trim();
+    setTimeout(() => {
+      if (game.clicks < before.clicks || game.prestige < before.prestige || game.gems < before.gems) {
+        cgcFire('c.buy', { buy: title.slice(0, 60) });
+      }
+    }, 0);
+  }, true);
+
+  /* ---------- CGC IN THE MOD EDITOR ---------- */
+  const CGC_DEFAULT_CODE = 'print("Hello World!")';
+  const CGC_PAYLOAD_IMAGE_MAX = 512;
+  const CGC_PAYLOAD_AUDIO_MAX_BYTES = 300000;
+  let cgcTestRuntime = null;
+  let cgcTestLogs = [];
+  let cgcTestGame = null;
+  let cgcCheckTimer = null;
+
+  function cgcCleanFileName(name){
+    const raw = String(name || '').trim().toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9_.\-]/g, '').replace(/^[.\-]+/, '');
+    return raw.slice(0, 60) || 'file';
+  }
+  function cgcUniqueFileName(name, list, skipIndex){
+    let clean = cgcCleanFileName(name);
+    const taken = (n) => list.some((f, i) => i !== skipIndex && f.name === n);
+    if (!taken(clean)) return clean;
+    const dot = clean.lastIndexOf('.');
+    const base = dot > 0 ? clean.slice(0, dot) : clean;
+    const ext = dot > 0 ? clean.slice(dot) : '';
+    let n = 2;
+    while (taken(`${base}-${n}${ext}`)) n++;
+    return `${base}-${n}${ext}`;
+  }
+
+  function cgcEditorSectionsHtml(d){
+    const esc = escapeChatHtml;
+    const payloadRows = (d.payload || []).map((f, i) => {
+      const isAudio = /\.(mp3|wav|ogg|m4a|aac|opus|webm)$/i.test(f.name) || String(f.url).indexOf('data:audio') === 0;
+      return `
+        <div class="mod-editor-file">
+          <div class="mod-editor-file-preview${isAudio ? ' is-music' : ''}">
+            ${isAudio
+              ? '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M9 17.5V5l11-2.5v12.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/><circle cx="6.5" cy="17.5" r="3"/><circle cx="17.5" cy="15" r="3"/></svg>'
+              : `<img src="${esc(f.url)}" alt="">`}
+          </div>
+          <div class="mod-editor-file-main">
+            <input type="text" class="auth-input cgc-payload-name" data-index="${i}" value="${esc(f.name)}" maxlength="60" spellcheck="false" aria-label="File name">
+            <span class="mod-editor-file-src">${String(f.url).indexOf('data:') === 0 ? `Uploaded file &middot; ${(f.url.length / 1000).toFixed(1)}K` : esc(f.url)}</span>
+            ${isAudio ? `<audio controls preload="none" src="${esc(f.url)}"></audio>` : ''}
+          </div>
+          <button class="mod-editor-remove cgc-payload-remove" data-index="${i}" title="Remove" aria-label="Remove ${esc(f.name)}">&times;</button>
+        </div>`;
+    }).join('');
+
+    return `
+      <section class="mio-panel mod-editor-section cgc-code-panel">
+        <div class="mod-editor-section-head">
+          <h3 class="mio-panel-heading">Code <span class="mod-editor-count">CGC</span></h3>
+          <div class="cgc-code-tools">
+            <button class="workshop-icon-btn cgc-book-btn" id="cgc-book-btn-2" title="Open the CGC guide" aria-label="Open the CGC guide">${CGC_BOOK_SVG}<span>Guide</span></button>
+            <button class="workshop-icon-btn cgc-secondary-btn" id="cgc-example-btn">Load example</button>
+          </div>
+        </div>
+        <p class="mio-side-note">Runs when the mod loads and keeps running while it's installed. Files you use go in the Payload folder below.</p>
+        <div class="cgc-code-wrap">
+          <pre class="cgc-gutter" id="cgc-gutter" aria-hidden="true"></pre>
+          <div class="cgc-code-area">
+            <pre class="cgc-code-hl" id="cgc-code-hl" aria-hidden="true"></pre>
+            <textarea id="cgc-code" class="cgc-code-input" spellcheck="false" autocomplete="off" autocapitalize="off" wrap="off" aria-label="Mod code">${esc(d.code)}</textarea>
+          </div>
+        </div>
+        <div class="cgc-check" id="cgc-check" role="status"></div>
+        <div class="cgc-test-bar">
+          <button class="auth-btn cgc-run-btn" id="cgc-run-btn">Run test</button>
+          <button class="workshop-icon-btn cgc-secondary-btn" id="cgc-sim-click" disabled>Game click</button>
+          <button class="workshop-icon-btn cgc-secondary-btn" id="cgc-sim-buy" disabled>Shop buy</button>
+          <button class="workshop-icon-btn cgc-secondary-btn" id="cgc-sim-prestige" disabled>Prestige</button>
+          <span class="mio-side-note cgc-test-note">Tests never change your real moneys or saved data.</span>
+        </div>
+        <div class="cgc-test" id="cgc-test" style="display:none;">
+          <div class="cgc-test-stage" id="cgc-test-stage"><span class="cgc-test-label">Screen preview</span></div>
+          <div class="cgc-test-ui">
+            <div class="cgc-test-row"><span class="cgc-test-head">Test moneys</span><strong id="cgc-test-moneys">0</strong></div>
+            <div class="cgc-test-row" id="cgc-test-curs"></div>
+            <div class="cgc-test-actions" id="cgc-test-actions"></div>
+          </div>
+        </div>
+        <div class="cgc-console-head"><span>Console</span><button class="mod-editor-text-btn" id="cgc-console-clear">Clear</button></div>
+        <pre class="cgc-console" id="cgc-console"><span class="cgc-log-muted">Click Run test to see print() output and errors here.</span></pre>
+      </section>
+
+      <section class="mio-panel mod-editor-section">
+        <div class="mod-editor-section-head">
+          <h3 class="mio-panel-heading">Payload <span class="mod-editor-count">${(d.payload || []).length}</span></h3>
+          <label class="workshop-icon-btn mod-editor-upload-btn">
+            Upload files
+            <input type="file" id="cgc-payload-input" accept="image/*,audio/*" multiple>
+          </label>
+        </div>
+        <p class="mio-side-note">Your mod's folder. Use a file in code by its name, like <code>canvas.cookie.png</code> or <code>att x.file = "pop.mp3"</code>. Images are shrunk to ${CGC_PAYLOAD_IMAGE_MAX}px. Sounds up to ${Math.round(CGC_PAYLOAD_AUDIO_MAX_BYTES / 1000)}KB can be uploaded, bigger ones need a link.</p>
+        <div class="mod-editor-files">${payloadRows || '<div class="mod-editor-empty">The payload folder is empty.</div>'}</div>
+        <div class="mod-editor-link-row">
+          <input type="url" class="auth-input" id="cgc-payload-link" placeholder="https://example.com/sound.mp3">
+          <button class="workshop-icon-btn" id="cgc-payload-link-add">Add link</button>
+        </div>
+      </section>`;
+  }
+
+  function cgcBindEditor(d){
+    const input = document.getElementById('cgc-code');
+    const hl = document.getElementById('cgc-code-hl');
+    const gutter = document.getElementById('cgc-gutter');
+    if (!input) return;
+    const paint = () => {
+      hl.innerHTML = cgcHighlight(input.value) + '\n';
+      const lines = input.value.split('\n').length;
+      let g = '';
+      for (let i = 1; i <= lines; i++) g += i + '\n';
+      gutter.textContent = g;
+      gutter.scrollTop = input.scrollTop;
+    };
+    const syncScroll = () => {
+      hl.scrollTop = input.scrollTop;
+      hl.scrollLeft = input.scrollLeft;
+      gutter.scrollTop = input.scrollTop;
+    };
+    paint();
+    cgcCheckCode(input.value);
+    input.addEventListener('input', () => {
+      d.code = input.value;
+      paint();
+      syncScroll();
+      saveModEditorDraft();
+      updateModEditorPreview();
+      clearTimeout(cgcCheckTimer);
+      cgcCheckTimer = setTimeout(() => cgcCheckCode(input.value), 350);
+    });
+    input.addEventListener('scroll', syncScroll);
+    input.addEventListener('keydown', (e) => {
+      // Tab indents instead of leaving the box. Enter keeps the indent of the line above.
+      if (e.key === 'Tab' && !e.shiftKey) {
+        e.preventDefault();
+        document.execCommand('insertText', false, '  ');
+      } else if (e.key === 'Enter') {
+        const start = input.selectionStart;
+        const lineStart = input.value.lastIndexOf('\n', start - 1) + 1;
+        const indent = (input.value.slice(lineStart, start).match(/^\s*/) || [''])[0];
+        const opens = /^\s*(when|if|elseif|else|repeat)\b/.test(input.value.slice(lineStart, start)) ? '  ' : '';
+        if (indent || opens) {
+          e.preventDefault();
+          document.execCommand('insertText', false, '\n' + indent + opens);
+        }
+      }
+    });
+
+    document.getElementById('cgc-example-btn').addEventListener('click', cgcLoadExample);
+    document.getElementById('cgc-book-btn-2').addEventListener('click', () => openCgcGuide());
+    document.getElementById('cgc-run-btn').addEventListener('click', () => {
+      if (cgcTestRuntime) cgcStopTest(); else cgcStartTest();
+    });
+    document.getElementById('cgc-sim-click').addEventListener('click', () => {
+      if (!cgcTestRuntime) return;
+      cgcTestGame.clicks += cgcTestGame.clickPower;
+      cgcTestRuntime.fire('c.click', { click: cgcTestRuntime.cv.click + 1, earned: cgcTestGame.clickPower });
+      cgcRenderTestUi();
+    });
+    document.getElementById('cgc-sim-buy').addEventListener('click', () => {
+      if (cgcTestRuntime) cgcTestRuntime.fire('c.buy', { buy: 'Click Boost' });
+    });
+    document.getElementById('cgc-sim-prestige').addEventListener('click', () => {
+      if (!cgcTestRuntime) return;
+      cgcTestGame.prestige += 1;
+      cgcTestRuntime.fire('c.prestige', { prestige: cgcTestGame.prestige });
+      cgcRenderTestUi();
+    });
+    document.getElementById('cgc-console-clear').addEventListener('click', () => { cgcTestLogs = []; cgcRenderTestConsole(); });
+
+    document.getElementById('cgc-payload-input').addEventListener('change', async (e) => {
+      const files = Array.from(e.target.files || []);
+      const problems = [];
+      for (const file of files) {
+        try {
+          let url;
+          if (/^audio\//.test(file.type)) {
+            if (file.size > CGC_PAYLOAD_AUDIO_MAX_BYTES) { problems.push(`${file.name} is too big to upload, add it as a link instead`); continue; }
+            url = await new Promise((resolve, reject) => {
+              const r = new FileReader();
+              r.onload = () => resolve(r.result);
+              r.onerror = reject;
+              r.readAsDataURL(file);
+            });
+          } else if (/^image\/gif$/.test(file.type) && file.size < 150000) {
+            // Small GIFs stay animated.
+            url = await new Promise((resolve, reject) => {
+              const r = new FileReader();
+              r.onload = () => resolve(r.result);
+              r.onerror = reject;
+              r.readAsDataURL(file);
+            });
+          } else {
+            url = await shrinkImageFile(file, CGC_PAYLOAD_IMAGE_MAX, 'png');
+          }
+          d.payload.push({ name: cgcUniqueFileName(file.name, d.payload, -1), url });
+        } catch (err) {
+          problems.push(`${file.name} couldn't be read`);
+        }
+      }
+      saveModEditorDraft();
+      renderModEditor();
+      if (problems.length) modEditorStatus(problems.join('. ') + '.', true);
+      else if (modEditorSize() > MOD_EDITOR_SIZE_LIMIT) modEditorStatus('Storage is full. Remove a file or use links instead of uploads.', true);
+    });
+    const linkInput = document.getElementById('cgc-payload-link');
+    const addLink = () => {
+      const url = String(linkInput.value || '').trim();
+      if (!/^https?:\/\/\S+$/i.test(url)) { modEditorStatus('Enter a full link starting with https://', true); linkInput.focus(); return; }
+      let guess = '';
+      try { guess = decodeURIComponent(url.split('?')[0].split('/').pop() || ''); } catch (e) {}
+      d.payload.push({ name: cgcUniqueFileName(guess || 'file', d.payload, -1), url });
+      saveModEditorDraft();
+      renderModEditor();
+    };
+    document.getElementById('cgc-payload-link-add').addEventListener('click', addLink);
+    linkInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') addLink(); });
+    workshopBody.querySelectorAll('.cgc-payload-name').forEach(el => {
+      el.addEventListener('change', () => {
+        const i = Number(el.dataset.index);
+        if (!d.payload[i]) return;
+        d.payload[i].name = cgcUniqueFileName(el.value, d.payload, i);
+        el.value = d.payload[i].name;
+        saveModEditorDraft();
+        updateModEditorPreview();
+      });
+    });
+    workshopBody.querySelectorAll('.cgc-payload-remove').forEach(btn => {
+      btn.addEventListener('click', () => {
+        d.payload.splice(Number(btn.dataset.index), 1);
+        saveModEditorDraft();
+        renderModEditor();
+      });
+    });
+  }
+
+  function cgcCheckCode(code){
+    const el = document.getElementById('cgc-check');
+    if (!el) return;
+    try {
+      CGC.parse(code);
+      el.className = 'cgc-check ok';
+      el.textContent = 'No problems found.';
+    } catch (e) {
+      el.className = 'cgc-check error';
+      el.textContent = e.line ? `Line ${e.line}: ${e.message}` : e.message;
+    }
+  }
+
+  function cgcTestHost(){
+    const state = {};
+    return {
+      print: (level, text) => {
+        cgcTestLogs.push({ level, text: String(text) });
+        if (cgcTestLogs.length > 300) cgcTestLogs.splice(0, cgcTestLogs.length - 300);
+        cgcRenderTestConsole();
+      },
+      getGameVar: (name) => cgcGameVar(name, cgcTestGame),
+      mathGameVar: (name, method, value) => {
+        const key = String(name).toLowerCase();
+        if (key === 'gems') return { ok: false, msg: 'Mods can\'t give or change Gems.' };
+        if (key === 'moneys' || key === 'money' || key === 'clicks') {
+          if (method === 'add') {
+            const power = cgcTestGame.clickPower;
+            if (value !== 1 && value !== power) return { ok: false, msg: `Mods can only add 1 or your click boost amount (${power}) to moneys at a time.` };
+            if (!cgcRateOk(state)) return { ok: false, msg: `Mods can add moneys at most ${CGC_MONEY_ADDS_PER_SECOND} times a second.` };
+            cgcTestGame.clicks += value;
+          } else if (method === 'subtract') {
+            if (!(value > 0) || value > cgcTestGame.clicks) return { ok: false, msg: 'A mod tried to take more moneys than the player has.' };
+            cgcTestGame.clicks -= Math.floor(value);
+          } else {
+            return { ok: false, msg: `Mods can't ${method} moneys. Use v.moneys.add(1), v.moneys.add(v.clickpower) or v.moneys.subtract(...).` };
+          }
+          cgcRenderTestUi();
+          return { ok: true };
+        }
+        if (key === 'prestige') {
+          if (method !== 'add') return { ok: false, msg: 'Mods can only ask for a prestige with v.prestige.add(1) or do.c.prestige.' };
+          return cgcTestGame.clicks >= PRESTIGE_COST ? { ok: true } : { ok: false, msg: `Prestige needs ${PRESTIGE_COST.toLocaleString()} moneys.` };
+        }
+        return { ok: false, msg: `v.${name} is read only.` };
+      },
+      gameEvent: (name) => {
+        if (name === 'prestige') return cgcTestGame.clicks >= PRESTIGE_COST ? { ok: true } : { ok: false, msg: `Prestige needs ${PRESTIGE_COST.toLocaleString()} moneys.` };
+        if (name === 'click') {
+          if (!cgcRateOk(state)) return { ok: false, msg: `do.c.click is limited to ${CGC_MONEY_ADDS_PER_SECOND} times a second.` };
+          cgcTestGame.clicks += cgcTestGame.clickPower;
+          cgcRenderTestUi();
+        }
+        return { ok: true };
+      },
+      loadData: () => ({}),
+      saveData: () => {},
+      uiChanged: () => cgcRenderTestUi(),
+      playAllowed: () => true
+    };
+  }
+
+  function cgcStartTest(){
+    const d = modEditorDraft;
+    const stage = document.getElementById('cgc-test-stage');
+    const box = document.getElementById('cgc-test');
+    if (!d || !stage) return;
+    cgcStopTest();
+    box.style.display = '';
+    cgcTestLogs = [{ level: 'muted', text: 'Test started.' }];
+    cgcTestGame = { clicks: game.clicks || 0, prestige: game.prestige || 0, gems: game.gems || 0, clickPower: game.clickPower || 1, boosts: game.boosts || 0, autoClickerOwned: game.autoClickerOwned || 0 };
+    const files = cgcPayloadMap(d.payload);
+    cgcTestRuntime = new CGC.Runtime({
+      modId: '__test__',
+      modName: d.name || 'Test',
+      code: d.code,
+      files,
+      host: cgcTestHost(),
+      stageEl: stage,
+      scale: Math.max(0.2, stage.clientWidth / Math.max(320, window.innerWidth))
+    });
+    const ok = cgcTestRuntime.start();
+    if (!ok) { cgcTestRuntime = null; }
+    cgcRenderTestConsole();
+    cgcRenderTestUi();
+    cgcSetTestButtons();
+  }
+  function cgcStopTest(){
+    if (cgcTestRuntime) {
+      try { cgcTestRuntime.stop(); } catch (e) {}
+      cgcTestRuntime = null;
+      cgcTestLogs.push({ level: 'muted', text: 'Test stopped.' });
+      cgcRenderTestConsole();
+    }
+    cgcSetTestButtons();
+  }
+  function cgcSetTestButtons(){
+    const run = document.getElementById('cgc-run-btn');
+    if (run) run.textContent = cgcTestRuntime ? 'Stop test' : 'Run test';
+    ['cgc-sim-click', 'cgc-sim-buy', 'cgc-sim-prestige'].forEach(id => {
+      const b = document.getElementById(id);
+      if (b) b.disabled = !cgcTestRuntime;
+    });
+  }
+  function cgcRenderTestConsole(){
+    const el = document.getElementById('cgc-console');
+    if (!el) return;
+    el.innerHTML = cgcConsoleHtml(cgcTestLogs);
+    el.scrollTop = el.scrollHeight;
+  }
+  function cgcRenderTestUi(){
+    const rt = cgcTestRuntime;
+    const moneysEl = document.getElementById('cgc-test-moneys');
+    const cursEl = document.getElementById('cgc-test-curs');
+    const actEl = document.getElementById('cgc-test-actions');
+    if (!moneysEl || !cgcTestGame) return;
+    moneysEl.textContent = Math.floor(cgcTestGame.clicks).toLocaleString();
+    const curs = rt ? rt.currencies.filter(c => c.attrs.cur) : [];
+    cursEl.innerHTML = curs.length ? curs.map(cgcCurrencyChip).join('') : '<span class="cgc-log-muted">No currencies.</span>';
+    const actions = rt ? rt.actions.filter(a => a.attrs.action) : [];
+    const html = actions.length ? actions.map(a => cgcActionButton(a, '__test__', rt.actions.indexOf(a))).join('') : '<span class="cgc-log-muted">No actions.</span>';
+    if (actEl.dataset.html !== html) {
+      actEl.innerHTML = html;
+      actEl.dataset.html = html;
+      actEl.querySelectorAll('.cgc-action-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const a = cgcTestRuntime && cgcTestRuntime.actions[Number(btn.dataset.cgcAction)];
+          if (a) cgcTestRuntime.actionClicked(a);
+        });
+      });
+    }
+  }
+
+  // Draws a cookie so the example works before anyone uploads cookie.png.
+  function cgcMakeCookieImage(){
+    const size = 256;
+    const c = document.createElement('canvas');
+    c.width = size;
+    c.height = size;
+    const ctx = c.getContext('2d');
+    const g = ctx.createRadialGradient(size * 0.42, size * 0.38, size * 0.05, size / 2, size / 2, size * 0.48);
+    g.addColorStop(0, '#f1c27d');
+    g.addColorStop(0.75, '#d99a4e');
+    g.addColorStop(1, '#a8682a');
+    ctx.fillStyle = g;
+    ctx.beginPath();
+    ctx.arc(size / 2, size / 2, size * 0.47, 0, Math.PI * 2);
+    ctx.fill();
+    const chips = [[0.32, 0.3], [0.6, 0.26], [0.72, 0.5], [0.45, 0.5], [0.28, 0.62], [0.55, 0.72], [0.38, 0.82], [0.7, 0.72], [0.5, 0.36]];
+    chips.forEach(([x, y], i) => {
+      ctx.fillStyle = '#4a2a14';
+      ctx.beginPath();
+      ctx.ellipse(size * x, size * y, size * (0.045 + (i % 3) * 0.008), size * 0.038, i, 0, Math.PI * 2);
+      ctx.fill();
+    });
+    const webp = c.toDataURL('image/webp', 0.85);
+    return webp.indexOf('data:image/webp') === 0 ? webp : c.toDataURL('image/png');
+  }
+
+  function cgcLoadExample(){
+    const d = modEditorDraft;
+    if (!d) return;
+    const hasCode = String(d.code || '').trim() && String(d.code).trim() !== CGC_DEFAULT_CODE;
+    if (hasCode && !confirm('Replace your code with the Bakery example (Cookie Clicker style)?')) return;
+    d.code = CGC_EXAMPLE_BAKERY;
+    if (!d.payload.some(f => f.name === 'cookie.png')) d.payload.push({ name: 'cookie.png', url: cgcMakeCookieImage() });
+    saveModEditorDraft();
+    closeCgcGuide();
+    renderModEditor();
+    modEditorStatus('Bakery example loaded. Click Run test to try it.');
+  }
+
+  /* ---------- CGC GUIDE (the open book) ---------- */
+  const CGC_BOOK_SVG = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 6.5C10 5 7.2 4.5 3.5 4.8v13.4c3.7-.3 6.5.2 8.5 1.7 2-1.5 4.8-2 8.5-1.7V4.8C16.8 4.5 14 5 12 6.5z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M12 6.5v13.4" stroke="currentColor" stroke-width="2"/></svg>';
+
+  function cgcCode(src){ return `<pre class="cgc-doc-code">${cgcHighlight(src)}</pre>`; }
+
+  const CGC_GUIDE = [
+    { id: 'start', title: 'Start here', html: () => `
+      <p><strong>CGC</strong> (Clicker Game Code) is the language mods are written in. Your code runs once when the mod loads, then keeps reacting to things (clicks, timers, buttons) for as long as the mod is installed.</p>
+      <p>Every new mod starts with this line. It writes text into the console:</p>
+      ${cgcCode('print("Hello World!")')}
+      <p>Click <strong>Run test</strong> under the code box to try your mod. Tests show your mod in a small screen preview and never touch your real moneys or saved data. Anything you <code>print()</code>, and any mistakes, show up in the console.</p>
+      <h4>How a line is built</h4>
+      <p>Most things start with a <strong>prefix</strong> that says what kind of thing you mean:</p>
+      <table class="cgc-doc-table">
+        <tr><th>Prefix</th><th>What it means</th><th>Example</th></tr>
+        <tr><td><code>c.</code></td><td>A game event, something the game does</td><td><code>c.click</code></td></tr>
+        <tr><td><code>v.</code></td><td>A game variable, like your moneys</td><td><code>v.moneys</code></td></tr>
+        <tr><td><code>cv.</code></td><td>The result of a game event</td><td><code>cv.click</code></td></tr>
+        <tr><td><code>var.</code></td><td>A variable you made</td><td><code>var.score</code></td></tr>
+        <tr><td><code>ev.</code></td><td>An event you made</td><td><code>ev.levelUp</code></td></tr>
+        <tr><td><code>storage.</code></td><td>A variable you made that is saved to the player's account</td><td><code>storage.highscore</code></td></tr>
+        <tr><td><code>cookie.png</code></td><td>A file in your Payload folder</td><td><code>canvas.cookie.png</code></td></tr>
+      </table>
+      <p>Lines starting with <code>--</code> are notes for humans. CGC skips them.</p>
+      ${cgcCode('-- This is a note\nprint("This runs")')}` },
+
+    { id: 'events', title: 'Events', html: () => `
+      <p>An event is "something happened". Use <code>when</code> to run code every time it happens. Everything between <code>when(...)</code> and <code>end</code> runs each time.</p>
+      ${cgcCode('when(c.click)\n  print("You clicked the clicker!")\nend')}
+      <h4>Game events (c.)</h4>
+      <table class="cgc-doc-table">
+        <tr><th>Event</th><th>Happens when</th><th>Output (cv.)</th></tr>
+        <tr><td><code>c.load</code></td><td>Your mod finishes loading</td><td></td></tr>
+        <tr><td><code>c.click</code></td><td>The player clicks the game's clicker</td><td><code>cv.click</code> clicks so far, <code>cv.earned</code> moneys from that click</td></tr>
+        <tr><td><code>c.tick</code></td><td>10 times every second</td><td><code>cv.tick</code> ticks so far</td></tr>
+        <tr><td><code>c.second</code></td><td>Once every second</td><td><code>cv.second</code> seconds so far</td></tr>
+        <tr><td><code>c.buy</code></td><td>The player buys something in the shop</td><td><code>cv.buy</code> name of the item</td></tr>
+        <tr><td><code>c.prestige</code></td><td>The player prestiges</td><td><code>cv.prestige</code> new prestige</td></tr>
+      </table>
+      <p><code>cv.mousex</code> and <code>cv.mousey</code> hold where the mouse was on the last object click (0 to 100, like positions).</p>
+      <h4>Your own events (ev.)</h4>
+      <p>Make an event with <code>ev.create</code>, decide what it does with <code>when</code>, then run it from anywhere with <code>do.</code>. Great for code you need in many places.</p>
+      ${cgcCode('ev.create("celebrate")\n\nwhen(ev.celebrate)\n  print("Party!")\nend\n\ndo.ev.celebrate')}
+      <h4>Running game events with do.</h4>
+      <p><code>do.c.click</code> clicks the clicker once (gives your click boost amount of moneys). <code>do.c.prestige</code> opens the normal prestige window, but only if the player has enough moneys. Other <code>do.c.</code> events only run your own <code>when</code> code for that event.</p>
+      <h4>Object events</h4>
+      <p>Objects you make (see Canvas) have their own events: <code>.click</code>, <code>.hover</code> (mouse moves onto it), <code>.leave</code> (mouse moves off it) and <code>.drop</code> (dragged and let go).</p>
+      ${cgcCode('local button = canvas.rect\natt button.clickable = true\n\nwhen(button.click)\n  print("Button clicked")\nend')}` },
+
+    { id: 'variables', title: 'Variables', html: () => `
+      <p>A variable is a box with a name that holds a number, some text or true/false.</p>
+      <h4>var: lasts while the game is open</h4>
+      ${cgcCode('var.create("score")        -- starts at 0\nvar.create("name", "Bob")  -- starts at "Bob"')}
+      <h4>storage: saved to the player's account</h4>
+      <p>Works just like <code>var</code>, but the value is saved online. When the player logs in again (even on another computer) it's still there. The second part is the starting value for players who never had it.</p>
+      ${cgcCode('storage.create("highscore", 0)\nstorage.create("musicOn", true)')}
+      <h4>Changing numbers: the math words</h4>
+      <table class="cgc-doc-table">
+        <tr><th>Write</th><th>Does</th></tr>
+        <tr><td><code>var.score.add(5)</code></td><td>score + 5</td></tr>
+        <tr><td><code>var.score.subtract(2)</code></td><td>score - 2</td></tr>
+        <tr><td><code>var.score.multiply(2)</code></td><td>score x 2</td></tr>
+        <tr><td><code>var.score.divide(4)</code></td><td>score / 4</td></tr>
+        <tr><td><code>var.score.set(100)</code></td><td>score becomes 100 (works for text and true/false too)</td></tr>
+      </table>
+      <p>These work on <code>var.</code>, <code>storage.</code>, currencies and number locals. You can also write <code>var.add("score", 5)</code>.</p>
+      <h4>local: a quick name for something</h4>
+      <p>Like Luau, <code>local</code> gives a name to a value or an object. Make it once, then use the name. A local made inside a <code>when</code> or <code>if</code> only exists in there.</p>
+      ${cgcCode('local price = 50\nprice = price * 2\nprice.add(10)\nprint(price)   -- 110')}
+      <h4>Groups</h4>
+      <p>Put commas between objects and the local becomes a group. Anything you do to the group happens to all of them.</p>
+      ${cgcCode('local stars = canvas.circle, canvas.circle, canvas.star.png\natt stars.color = "gold"')}` },
+
+    { id: 'canvas', title: 'Canvas objects', html: () => `
+      <p><code>canvas</code> puts things on the screen. Save it in a <code>local</code> so you can change it later.</p>
+      <table class="cgc-doc-table">
+        <tr><th>Write</th><th>Makes</th></tr>
+        <tr><td><code>canvas.circle</code></td><td>A circle</td></tr>
+        <tr><td><code>canvas.rect</code></td><td>A rectangle (good for buttons and panels)</td></tr>
+        <tr><td><code>canvas.tri</code></td><td>A triangle</td></tr>
+        <tr><td><code>canvas.cookie.png</code></td><td>A picture from your Payload folder</td></tr>
+        <tr><td><code>canvas.pop.mp3</code></td><td>A sound from your Payload folder (play it with <code>play(name)</code>)</td></tr>
+        <tr><td><code>canvas("Hello")</code></td><td>Text</td></tr>
+      </table>
+      <h4>Where things go</h4>
+      <p>Positions are percent of the screen: <code>pos.x</code> 0 is the left edge, 100 the right edge. <code>pos.y</code> 0 is the top, 100 the bottom. The middle of the object is placed there, so 50, 50 is the center. Everything starts in the center.</p>
+      <p>Sizes are in pixels (<code>att box.size.x = 200</code>), or percent of the screen if you use text (<code>att box.size.x = "100%"</code>).</p>
+      ${cgcCode('local sun = canvas.circle\natt sun.color = "orange"\natt sun.size = 120        -- sets size.x and size.y\natt sun.pos.x = 85\natt sun.pos.y = 15')}
+      <h4>Commands for objects</h4>
+      <p><code>play(x)</code> and <code>stop(x)</code> for sounds, <code>show(x)</code> and <code>hide(x)</code>, and <code>remove(x)</code> to delete it for good. You can also write <code>x.play()</code>.</p>
+      <p>The mod's objects sit on top of the game. The game's own windows (shop pop-ups, the workshop) still open above them.</p>` },
+
+    { id: 'attributes', title: 'Attributes', html: () => `
+      <p><code>att</code> sets an attribute (a setting) on an object: <code>att name.attribute = value</code>. Values can be text, numbers or true/false. Text can also be a file name. You can read them back too: <code>cookie.scale</code>.</p>
+      <h4>Visual</h4>
+      <table class="cgc-doc-table">
+        <tr><th>Attribute</th><th>Type</th><th>What it does</th></tr>
+        <tr><td><code>clickable</code></td><td>true/false</td><td>Can be clicked (turns on its <code>.click</code> event)</td></tr>
+        <tr><td><code>dragable</code></td><td>true/false</td><td>The player can drag it around</td></tr>
+        <tr><td><code>size.x</code> / <code>size.y</code></td><td>number</td><td>Width / height in pixels, or "50%"</td></tr>
+        <tr><td><code>scale</code></td><td>number</td><td>1 is normal, 2 is double, 0.5 is half</td></tr>
+        <tr><td><code>color</code></td><td>text</td><td>"red", "#ff8800" or "rgb(255, 136, 0)". For text it's the letter color</td></tr>
+        <tr><td><code>pos.x</code> / <code>pos.y</code></td><td>number</td><td>Position, 0 to 100</td></tr>
+        <tr><td><code>text</code></td><td>text</td><td>Words shown on it (works on shapes too, great for buttons)</td></tr>
+        <tr><td><code>fontsize</code></td><td>number</td><td>Text size in pixels</td></tr>
+        <tr><td><code>visible</code></td><td>true/false</td><td>Show or hide it</td></tr>
+        <tr><td><code>opacity</code></td><td>0 to 1</td><td>0 is invisible, 1 is solid</td></tr>
+        <tr><td><code>rotate</code></td><td>number</td><td>Turn it, in degrees</td></tr>
+        <tr><td><code>layer</code></td><td>number</td><td>Higher layers draw on top (default 1)</td></tr>
+        <tr><td><code>round</code></td><td>number</td><td>Rounded corners for rects and pictures, in pixels</td></tr>
+        <tr><td><code>image</code></td><td>file</td><td>Swap the picture of an image object</td></tr>
+        <tr><td><code>event</code></td><td>text</td><td>Clicking it runs this ev, like <code>"bake"</code></td></tr>
+      </table>
+      <h4>Audio</h4>
+      <table class="cgc-doc-table">
+        <tr><th>Attribute</th><th>Type</th><th>What it does</th></tr>
+        <tr><td><code>file</code></td><td>file</td><td>The sound. On a clickable object it plays when clicked</td></tr>
+        <tr><td><code>volume</code></td><td>0 to 1</td><td>How loud</td></tr>
+        <tr><td><code>speed</code></td><td>number</td><td>1 is normal, 2 is twice as fast, negative plays it backwards (-1 is normal speed backwards)</td></tr>
+        <tr><td><code>loop</code></td><td>true/false</td><td>Keep repeating</td></tr>
+      </table>
+      ${cgcCode('local cookie = canvas.cookie.png\natt cookie.clickable = true\natt cookie.file = "crunch.mp3"\natt cookie.speed = -1   -- crunch backwards')}
+      <h4>Game</h4>
+      <p>See <strong>Game buttons &amp; currencies</strong> for <code>action</code>, <code>cur</code>, <code>.color</code> and <code>.icon</code>.</p>` },
+
+    { id: 'game', title: 'Game buttons & currencies', html: () => `
+      <h4>Actions: buttons in Stats &gt; Mods</h4>
+      <p><code>game.action</code> adds a button next to your mod's Uninstall button. Set its text with <code>action</code> and use <code>.click</code> like any object.</p>
+      ${cgcCode('local bonus = game.action\natt bonus.action = "Free click"\natt bonus.color = "#4ade80"\natt bonus.icon = "star.png"\n\nwhen(bonus.click)\n  do.c.click\nend')}
+      <h4>Currencies</h4>
+      <p><code>game.cur</code> adds your own money type. It shows under the click counter and in Stats &gt; Mods, and it's saved to the player's account automatically. Use the math words on it and use it in sums like a number.</p>
+      ${cgcCode('local gold = game.cur\natt gold.cur = "Gold"\natt gold.icon = "coin.png"\n\nwhen(c.click)\n  gold.add(1)\nend\n\nif gold >= 100 then\n  print("Rich!")\nend')}
+      <p><code>.color</code> and <code>.icon</code> work on both. If you don't pick a color it's yellow. Shortcut: <code>game.action("Text")</code> and <code>game.cur("Name")</code>.</p>
+      <h4>The rules for moneys, prestige and gems</h4>
+      <ul>
+        <li>A mod can add <strong>1</strong> or exactly the player's <strong>click boost</strong> (<code>v.clickpower</code>) to moneys at a time, and at most ${CGC_MONEY_ADDS_PER_SECOND} times a second: <code>v.moneys.add(1)</code> or <code>v.moneys.add(v.clickpower)</code>.</li>
+        <li>A mod can take moneys the player has (<code>v.moneys.subtract(50)</code>), for example to sell something. It can't set, multiply or divide moneys.</li>
+        <li>Prestige only happens if the player has the moneys it normally needs, and the player still has to confirm it: <code>do.c.prestige</code>.</li>
+        <li>Mods can never give or change Gems.</li>
+      </ul>
+      <p>Game variables you can read: <code>v.moneys</code>, <code>v.prestige</code>, <code>v.gems</code>, <code>v.clickpower</code>, <code>v.boosts</code>, <code>v.autoclickers</code>, <code>v.achievements</code>, <code>v.username</code>, <code>v.hour</code> (0 to 23), <code>v.muted</code>, <code>v.prestigecost</code>.</p>` },
+
+    { id: 'logic', title: 'Logic & math', html: () => `
+      <h4>if</h4>
+      ${cgcCode('if v.moneys >= 1000 then\n  print("Big spender")\nelseif v.moneys >= 100 then\n  print("Getting there")\nelse\n  print("Keep clicking")\nend')}
+      <p>Compare with <code>==</code> (same), <code>~=</code> (not the same), <code>&lt;</code>, <code>&gt;</code>, <code>&lt;=</code>, <code>&gt;=</code>. Combine with <code>and</code>, <code>or</code>, <code>not</code>. <code>false</code>, <code>nil</code>, <code>0</code> and empty text count as "no".</p>
+      <h4>repeat</h4>
+      ${cgcCode('repeat(5)\n  local star = canvas.circle\n  att star.pos.x = random(0, 100)\n  att star.pos.y = random(0, 100)\nend')}
+      <h4>Math and text</h4>
+      <p><code>+ - * / %</code> and <code>^</code> (power). Join text with <code>..</code>: <code>"Score: " .. var.score</code>.</p>
+      <table class="cgc-doc-table">
+        <tr><th>Function</th><th>Gives</th></tr>
+        <tr><td><code>floor(x)</code> <code>ceil(x)</code> <code>round(x, 2)</code></td><td>Round down / up / to 2 decimals</td></tr>
+        <tr><td><code>min(a, b)</code> <code>max(a, b)</code> <code>abs(x)</code> <code>sqrt(x)</code></td><td>Smallest / biggest / without minus / square root</td></tr>
+        <tr><td><code>random(1, 10)</code></td><td>A whole number from 1 to 10</td></tr>
+        <tr><td><code>pick("a", "b", "c")</code></td><td>One of them at random</td></tr>
+        <tr><td><code>format(1234567)</code></td><td>"1.235 million", <code>format(1234)</code> is "1,234"</td></tr>
+        <tr><td><code>text(x)</code> <code>number(x)</code> <code>upper(x)</code> <code>lower(x)</code></td><td>Convert things</td></tr>
+      </table>` },
+
+    { id: 'payload', title: 'Payload folder', html: () => `
+      <p>The Payload folder holds your mod's files: pictures and sounds. Your code and all these files are saved together with the mod.</p>
+      <ul>
+        <li>Upload pictures or short sounds, or add a link to a file on the internet.</li>
+        <li>Each file has a name (you can rename it). Names use lowercase letters, numbers, <code>-</code>, <code>_</code> and <code>.</code>.</li>
+        <li>Use a file with its name: <code>canvas.cookie.png</code>, <code>att x.icon = "cookie.png"</code>, <code>att x.file = "pop.mp3"</code>.</li>
+      </ul>
+      <p>If code uses a name that isn't in the folder, the console tells you which one.</p>` },
+
+    { id: 'tips', title: 'Limits & fixing mistakes', html: () => `
+      <ul>
+        <li>The box under the code checks your spelling as you type. Errors always say the line number.</li>
+        <li><code>when</code>, <code>if</code> and <code>repeat</code> each need their own <code>end</code>.</li>
+        <li>Make things before you use them: <code>var.create</code>, <code>ev.create</code>, <code>storage.create</code> and <code>local</code> go above the lines that use them.</li>
+        <li>Use <code>==</code> to compare. A single <code>=</code> sets something.</li>
+        <li>Text needs quotes: <code>"Hello"</code>.</li>
+        <li>Limits that keep the game fast: ${400} objects, 12 actions and 8 currencies per mod, <code>repeat</code> up to 1,000, and events that keep running each other get stopped.</li>
+        <li>Players can open your mod's console in Stats &gt; Mods if something goes wrong.</li>
+      </ul>` },
+
+    { id: 'example', title: 'Example: Bakery', html: () => `
+      <p>A Cookie Clicker style bakery: a big cookie to click, a Cookies currency, a store with Cursors, Grandmas, Farms and Mines that bake for you, golden cookies, a news ticker, and two actions in Stats &gt; Mods. Everything is saved with <code>storage</code>.</p>
+      <p><button class="auth-btn cgc-doc-load" id="cgc-doc-load-example">Load into the editor</button></p>
+      <p class="mio-side-note">This also puts a cookie.png in your Payload folder if you don't have one. Upload your own cookie.png with the same name to replace it.</p>
+      ${cgcCode(CGC_EXAMPLE_BAKERY)}` }
+  ];
+
+  let cgcGuideSection = 'start';
+  function ensureCgcGuide(){
+    let overlay = document.getElementById('cgc-guide');
+    if (overlay) return overlay;
+    overlay = document.createElement('div');
+    overlay.className = 'cgc-guide-overlay';
+    overlay.id = 'cgc-guide';
+    overlay.setAttribute('role', 'dialog');
+    overlay.setAttribute('aria-modal', 'true');
+    overlay.setAttribute('aria-label', 'CGC guide');
+    overlay.innerHTML = `
+      <div class="cgc-guide">
+        <div class="cgc-guide-head">
+          <span class="cgc-guide-icon">${CGC_BOOK_SVG}</span>
+          <h2>CGC guide</h2>
+          <button class="mod-editor-remove cgc-guide-close" id="cgc-guide-close" aria-label="Close guide">&times;</button>
+        </div>
+        <div class="cgc-guide-body">
+          <nav class="cgc-guide-nav" id="cgc-guide-nav"></nav>
+          <article class="cgc-guide-content" id="cgc-guide-content"></article>
+        </div>
+      </div>`;
+    document.body.appendChild(overlay);
+    overlay.addEventListener('click', (e) => { if (e.target === overlay) closeCgcGuide(); });
+    overlay.querySelector('#cgc-guide-close').addEventListener('click', closeCgcGuide);
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && overlay.classList.contains('visible')) closeCgcGuide(); });
+    return overlay;
+  }
+  function renderCgcGuide(){
+    const nav = document.getElementById('cgc-guide-nav');
+    const content = document.getElementById('cgc-guide-content');
+    const section = CGC_GUIDE.find(s => s.id === cgcGuideSection) || CGC_GUIDE[0];
+    nav.innerHTML = CGC_GUIDE.map(s => `<button class="cgc-guide-tab${s.id === section.id ? ' active' : ''}" data-section="${s.id}">${s.title}</button>`).join('');
+    content.innerHTML = `<h3>${section.title}</h3>${section.html()}`;
+    content.scrollTop = 0;
+    nav.querySelectorAll('.cgc-guide-tab').forEach(b => b.addEventListener('click', () => { cgcGuideSection = b.dataset.section; renderCgcGuide(); }));
+    const load = document.getElementById('cgc-doc-load-example');
+    if (load) {
+      const inEditor = workshopView === 'create' && !!modEditorDraft;
+      load.disabled = !inEditor;
+      if (!inEditor) load.textContent = 'Open the mod editor to load it';
+      load.addEventListener('click', cgcLoadExample);
+    }
+  }
+  function openCgcGuide(section){
+    const overlay = ensureCgcGuide();
+    if (section) cgcGuideSection = section;
+    renderCgcGuide();
+    overlay.classList.add('visible');
+  }
+  function closeCgcGuide(){
+    const overlay = document.getElementById('cgc-guide');
+    if (overlay) overlay.classList.remove('visible');
+  }
+
   /* ---------- MOD EDITOR ---------- */
   const MOD_EDITOR_COST = 100;
   const MOD_EDITOR_DRAFT_KEY = 'fallgamedev-clicker-mod-editor-draft';
-  // Mods made in the editor are stored in the Sheet, and a Google Sheets cell
-  // holds up to 50,000 characters. Uploaded files are shrunk and kept under
-  // this budget. Links to files hosted elsewhere barely count against it.
-  const MOD_EDITOR_SIZE_LIMIT = 45000;
+  // Budget for everything a mod made in the editor saves: uploaded files, the payload
+  // folder and the CGC code. The database allows more (MAX_JSON_CHARS in the API), but
+  // every mod is sent to every player who opens the workshop, so keep mods light.
+  // Uploads are shrunk, and links to files hosted elsewhere barely count against it.
+  const MOD_EDITOR_SIZE_LIMIT = 250000;
   const MOD_EDITOR_TYPES = [
     { id: 'icons', label: 'Icons', hint: 'Clicker avatar images. Shrunk to 128px.', accept: 'image/*', max: 128, format: 'png', linkHint: 'https://example.com/icon.png' },
     { id: 'cursors', label: 'Cursors', hint: 'Mouse cursors. Shrunk to 32px, transparent PNG works best.', accept: 'image/*', max: 32, format: 'png', linkHint: 'https://example.com/cursor.png' },
@@ -12852,7 +15426,9 @@
       version: '1.0',
       price: 0,
       iconData: '',
-      files: { icons: [], cursors: [], bg: [], music: [] }
+      files: { icons: [], cursors: [], bg: [], music: [] },
+      code: CGC_DEFAULT_CODE, // CGC: every new mod starts with this
+      payload: []             // CGC: the payload folder, [{ name: 'cookie.png', url }]
     };
   }
 
@@ -12863,7 +15439,10 @@
       const d = JSON.parse(raw);
       if (!d || typeof d !== 'object') return null;
       const base = newModEditorDraft();
-      return Object.assign(base, d, { files: Object.assign(base.files, d.files || {}) });
+      const merged = Object.assign(base, d, { files: Object.assign(base.files, d.files || {}) });
+      if (typeof merged.code !== 'string') merged.code = CGC_DEFAULT_CODE;
+      if (!Array.isArray(merged.payload)) merged.payload = [];
+      return merged;
     } catch (e) {
       return null;
     }
@@ -12903,6 +15482,11 @@
         .filter(f => f && f.url)
         .map(f => ({ name: String(f.name || ''), url: String(f.url) }));
     });
+    // CGC: code and payload folder (mods made before 1.21.0 have none).
+    d.code = cgcScriptCode(item) || CGC_DEFAULT_CODE;
+    d.payload = (Array.isArray(files.payload) ? files.payload : [])
+      .filter(f => f && f.url && f.name)
+      .map(f => ({ name: String(f.name), url: String(f.url) }));
     return d;
   }
 
@@ -12917,6 +15501,8 @@
 
   // Leaves the editor. Edit mode goes back to that mod's page, new mods go back to the list.
   function leaveModEditor(){
+    cgcStopTest();
+    closeCgcGuide();
     if (modEditorEditingId) {
       workshopDetailModId = modEditorEditingId;
       workshopView = 'detail';
@@ -12943,7 +15529,18 @@
         out[type].push({ name, file: `${modEditorSlug(name)}-${i + 1}`, url: f.url });
       });
     });
+    // CGC: payload files keep their real names, code is stored as a text data URL so the
+    // API's installed-mods compaction and rehydration treat it like any uploaded file.
+    out.payload = (modEditorDraft.payload || []).map(f => ({ name: f.name, file: f.name, url: f.url }));
+    const code = String(modEditorDraft.code || '');
+    out.script = code.trim() ? [cgcScriptEntry(code)] : [];
     return out;
+  }
+
+  // CGC: a mod needs at least one asset, payload file or real code to publish.
+  function modEditorHasContent(){
+    const code = String(modEditorDraft.code || '').trim();
+    return modEditorFileCount() > 0 || (modEditorDraft.payload || []).length > 0 || (code && code !== CGC_DEFAULT_CODE);
   }
 
   function modEditorSize(){
@@ -12995,6 +15592,7 @@
   }
 
   function renderModEditor(){
+    cgcStopTest(); // the test preview lives inside the editor, which is about to be redrawn
     if (!modEditorDraft) modEditorDraft = loadModEditorDraft() || newModEditorDraft();
     const d = modEditorDraft;
     const esc = escapeChatHtml;
@@ -13049,6 +15647,7 @@
           <button class="workshop-icon-btn mod-editor-back" id="mod-editor-back">&larr; ${modEditorEditingId ? 'Back to mod' : 'Back to mods'}</button>
           <h2 class="mod-editor-title">${modEditorEditingId ? 'Edit mod' : 'Mod editor'}</h2>
           <span class="mio-side-note">${modEditorEditingId ? 'Changes save on this device until you click Save changes.' : 'Your work saves automatically on this device.'}</span>
+          <button class="workshop-icon-btn cgc-book-btn" id="cgc-book-btn" title="Open the CGC guide: rules, code types and examples" aria-label="Open the CGC guide">${CGC_BOOK_SVG}<span>CGC guide</span></button>
         </div>
         <div class="mod-editor-grid">
           <div class="mod-editor-main">
@@ -13092,6 +15691,7 @@
                 </div>
               </div>
             </section>
+            ${cgcEditorSectionsHtml(d)}
             ${sectionHtml}
           </div>
 
@@ -13177,6 +15777,8 @@
       saveModEditorDraft();
       leaveModEditor();
     });
+    document.getElementById('cgc-book-btn').addEventListener('click', () => openCgcGuide());
+    cgcBindEditor(d);
     const extrasBtn = document.getElementById('mod-editor-extras-btn');
     if (extrasBtn) extrasBtn.addEventListener('click', openExtrasBrowser);
 
@@ -13312,7 +15914,7 @@
     const category = d.mature ? WORKSHOP_NSFW_CATEGORY : (String(d.category || '').trim() || 'Other');
 
     if (!name) { modEditorStatus('Give your mod a name.', true); document.getElementById('mod-editor-name').focus(); return; }
-    if (!modEditorFileCount()) { modEditorStatus('Add at least one icon, cursor, background or song.', true); return; }
+    if (!modEditorHasContent()) { modEditorStatus('Add some code, a payload file, or at least one icon, cursor, background or song.', true); return; }
     if (modEditorSize() > MOD_EDITOR_SIZE_LIMIT) { modEditorStatus('Storage is full. Remove a file or use links instead of uploads.', true); return; }
     if ((d.iconData || '').length > MOD_EDITOR_SIZE_LIMIT) { modEditorStatus('The mod icon is too big. Try a simpler image.', true); return; }
 
@@ -13510,7 +16112,7 @@
     const category = d.mature ? WORKSHOP_NSFW_CATEGORY : (String(d.category || '').trim() || 'Other');
 
     if (!name) { modEditorStatus('Give your mod a name.', true); document.getElementById('mod-editor-name').focus(); return; }
-    if (!modEditorFileCount()) { modEditorStatus('Add at least one icon, cursor, background or song.', true); return; }
+    if (!modEditorHasContent()) { modEditorStatus('Add some code, a payload file, or at least one icon, cursor, background or song.', true); return; }
     if (modEditorSize() > MOD_EDITOR_SIZE_LIMIT) { modEditorStatus('Storage is full. Remove a file or use links instead of uploads.', true); return; }
     if ((d.iconData || '').length > MOD_EDITOR_SIZE_LIMIT) { modEditorStatus('The mod icon is too big. Try a simpler image.', true); return; }
     if ((game.gems || 0) < MOD_EDITOR_COST) { modEditorStatus(`You need ${MOD_EDITOR_COST} Gems to publish.`, true); return; }
@@ -14033,6 +16635,7 @@
       autoBuyerOwned: game.autoBuyerOwned || false,
       gems: game.gems || 0,
       installedMods: game.installedMods || [],
+      modData: cgcModDataList(), // CGC: needs the mod_data column (see README)
       ownedCosmetics: game.cosmeticsOwned || [],
       profileFont: game.equippedFont || '',
       profileFrame: game.equippedFrame || ''
@@ -14171,6 +16774,10 @@
       autoBuyerOwned: !!source.autoBuyerOwned,
       gems: source.gems || 0,
       installedMods: Array.isArray(source.installedMods) ? source.installedMods : (Array.isArray(account.installedMods) ? account.installedMods : []),
+      // CGC: server copy once the backend has the mod_data column, local save otherwise.
+      modData: (!localIsAhead && Array.isArray(account.modData))
+        ? cgcModDataFromList(account.modData)
+        : ((savedRaw && savedRaw.modData && typeof savedRaw.modData === 'object') ? savedRaw.modData : {}),
       // LIMITED SHOP: server copy once the backend has the columns, local save otherwise.
       cosmeticsOwned: cleanCosmeticList(
         (!localIsAhead && Array.isArray(account.ownedCosmetics)) ? account.ownedCosmetics : ((savedRaw && savedRaw.cosmeticsOwned) || [])
@@ -15892,7 +18499,12 @@
     const keepCosmetics = game.cosmeticsOwned || [];
     const keepEquippedFont = game.equippedFont || '';
     const keepEquippedFrame = game.equippedFrame || '';
+    // Mods are bought with Gems (kept), so installed mods and their saved data stay too.
+    const keepInstalledMods = game.installedMods || [];
+    const keepModData = game.modData || {};
     game = defaultGame();
+    game.installedMods = keepInstalledMods;
+    game.modData = keepModData;
     game.featuredAchievement = keepFeatured;
     game.cosmeticsOwned = keepCosmetics;
     game.equippedFont = keepEquippedFont;
@@ -15915,6 +18527,7 @@
     updatePickerVisibility();
     closeConfirm();
     renderActiveTab();
+    cgcFire('c.prestige', { prestige: game.prestige }); // CGC
   }
 
   function openConfirmDelete(){
@@ -16875,6 +19488,7 @@
     loadCustomAssets();
     applyOfflineEarnings();
     updateCounter();
+    cgcStartAll(); // CGC: run the code of installed editor mods
     applyLightMode();
     switchBgSong(DEFAULT_BG_SONG);
     updatePickerVisibility();
