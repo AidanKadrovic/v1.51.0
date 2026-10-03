@@ -35,7 +35,7 @@ If you fork this project or move it to a new Sheet/Apps Script deployment, updat
 - **Stats** — profile (avatar/username), moneys, prestige, gems, plus subtabs for Friends, Mods, and Messages.
 - **Leaderboard** — global and friends-only rankings.
 - **Achievements** — unlockable achievement list with hint system.
-- **Workshop / Mods** — browse, install, and upload user mods; installed mods list.
+- **Workshop / Mods** — browse, install, and upload user mods; installed mods list. Mods made in the editor can run **CGC** code (see below).
 - **Friends & Messages** — friend requests, friend picker, and a simple chat system.
 - **Tutorial** — first-time walkthrough that highlights each tab; replayable from Settings.
 - **Click Effects:** Confetti, Screen Shake, Bubbles and Squish, picked from the Click Effects picker after buying it in the shop.
@@ -84,8 +84,8 @@ Rules:
 Near the top of `index.html`:
 
 ```html
-<!-- Game version: 1.10.4 | Deployment: 192 | Update both on every release, see README.md -->
-<meta name="game-version" content="1.10.4">
+<!-- Game version: 1.21.0 | Deployment: 205 | Update both on every release, see README.md -->
+<meta name="game-version" content="1.21.0">
 ```
 
 Bump both the version comment and the `game-version` meta tag on every release. The deployment number is an internal counter for tracking Apps Script/Sheet deployments — increment it whenever the backend Web App is redeployed, even if the game version string doesn't change.
@@ -103,3 +103,37 @@ Everything lives in one file:
 - The main nav is data-driven — add/remove a tab by editing the `TABS` array and adding a matching branch in `renderActiveTab()`. Give it an entry in `TAB_ICONS` too, so it gets a circular icon on phone widths.
 - Low performance mode and the phone/tablet/PC responsive layout are independent systems — low-perf mode simplifies visuals and is opt-in/detected by device, while responsive layout is purely CSS media queries plus the icon-vs-label swap on `.tab-btn`.
 - The Debug Mode page-ratio preview works by loading `index.html` again in an iframe with `?debugPreview=1`, so real `@media` queries apply inside it. That query flag also mutes audio inside the preview frame to avoid a second copy of the music playing.
+
+## CGC (Clicker Game Code), 1.21.0+
+
+Mods made in the mod editor can include code written in CGC. The full player guide is inside the game: open the mod editor and click the open book button (CGC guide).
+
+How it is built (all in `index.html`):
+
+- `const CGC = (() => { ... })()` is the language: lexer, parser and runtime. It never uses eval. Mod code only reaches the game through a `host` object.
+- `cgcLiveHost()` is the host for installed mods. **The moneys, prestige and gems rules live here and nowhere else:**
+  - moneys: a mod can add exactly 1 or the player's click boost at a time, max `CGC_MONEY_ADDS_PER_SECOND` (15) times a second, and can subtract moneys the player has. No set, multiply or divide.
+  - prestige: only opens the normal prestige confirm, and only if the player has `PRESTIGE_COST` moneys.
+  - gems: mods can never change them.
+- `cgcTestHost()` is the host for Run test in the editor. Same rules, fake moneys, nothing saved.
+- `cgcStartAll()` runs at `startGame()`. Install/update calls `cgcStartMod()`, uninstall calls `cgcStopMod()`.
+- Objects are drawn in `#cgc-stage` (z-index 3000: above the game, below the workshop and dialogs).
+- Game events sent to mods: `c.click` (avatar click), `c.buy` (shop purchase, detected after any `.buy-btn` click that lowered moneys, prestige or gems), `c.prestige` (end of `doPrestige()`), plus `c.load`, `c.tick` and `c.second` from the runtime.
+
+How a mod is saved (`customFiles` in the workshop row):
+
+- `payload`: `[{ name: "cookie.png", file: "cookie.png", url }]`
+- `script`: `[{ name: "main.cgc", file: "main.cgc", url: "data:text/plain;charset=utf-8,..." }]`. The code is a text data URL on purpose, so the API's installed-mods compaction and rehydration handle it like any uploaded file.
+
+Mod data (currencies and `storage.` variables):
+
+- In the save: `game.modData = { modId: { currency: {}, storage: {} } }`.
+- To the API: `modData: [{ modId, currency, storage }]` in `saveGameData`, stored in the `mod_data` column. The API adds the column by itself (see `MIGRATIONS` at the top of the edge function), nothing to run by hand.
+- Kept through prestige, kept on uninstall (a reinstall gets it back).
+
+Rules for changing CGC:
+
+- New game variables for `v.` go in `cgcGameVar()`. New writable ones need a rule in both hosts.
+- New attributes go in `setAttr()` and the Attributes table in `CGC_GUIDE`.
+- Keep `CGC_EXAMPLE_BAKERY` working: load it in the editor and click Run test after any change.
+- `MOD_EDITOR_SIZE_LIMIT` (250K) caps a mod's files, payload and code together.
