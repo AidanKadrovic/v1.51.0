@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<!-- Game version: 1.18.0 | Deployment: 202 | Update both on every release, see README.md -->
-<meta name="game-version" content="1.18.0">
+<!-- Game version: 1.19.0 | Deployment: 203 | Update both on every release, see README.md -->
+<meta name="game-version" content="1.19.0">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>The Clicker Game!</title>
 <link rel="icon" type="image/x-icon" href="maksy.ico" id="favicon-link">
@@ -6019,6 +6019,427 @@
     color:#ff6b6b;
   }
   /* END CHAT DETAILS CSS */
+
+  /* =====================================================================
+     UI REFRESH 1.19.0  "Toy box"
+     Chunky, tactile game UI: buttons have a solid bottom edge and press
+     down when clicked, panels sit on a soft stage, the clicker gets a
+     spotlight and a rainbow ring, and the walkers get a floor to stand on.
+     Built on the theme variables, so light mode, account themes, layouts,
+     custom backgrounds and Low Performance Mode keep working.
+     Delete this block to go back to the 1.18 look.
+     ===================================================================== */
+  :root{
+    --night:#130f29;
+    --card:#1f1940;
+    --card-hover:#2a2254;
+    --ink:#0b0818;
+    --grape:#8b5cf6;
+    --edge: 0 4px 0 var(--ink);
+    --edge-sm: 0 3px 0 var(--ink);
+    --edge-press: 0 1px 0 var(--ink);
+    --shine: inset 0 1px 0 rgba(255,255,255,0.10);
+    --surface: linear-gradient(180deg, var(--card-hover) 0%, var(--card) 70%);
+    --btn-edge:#3d7f2c;          /* the colored "side" under candy buttons */
+  }
+  body.light-mode{
+    --shine: inset 0 1px 0 rgba(255,255,255,0.9);
+  }
+
+  /* Spotlight on the clicker, a soft floor for the walkers. */
+  body{
+    background-color:var(--night);
+    background-image:
+      radial-gradient(ellipse 60% 45% at 50% 0%, rgba(139,92,246,0.28), transparent 70%),
+      radial-gradient(ellipse 35% 30% at 50% 18%, rgba(121,207,103,0.16), transparent 70%),
+      radial-gradient(circle at 8% 30%, rgba(255,93,160,0.10), transparent 30%),
+      radial-gradient(circle at 92% 40%, rgba(255,203,61,0.08), transparent 30%);
+    background-attachment:fixed;
+  }
+  body::after{
+    content:'';
+    position:fixed;
+    left:0;
+    right:0;
+    bottom:0;
+    height:70px;
+    z-index:-1;
+    pointer-events:none;
+    background:linear-gradient(180deg, transparent, rgba(139,92,246,0.10) 40%, rgba(11,8,24,0.55));
+    border-top:2px solid rgba(139,92,246,0.18);
+  }
+  body.auth-active::after{ display:none; }
+  body.light-mode::after{
+    background:linear-gradient(180deg, transparent, rgba(139,92,246,0.08) 40%, rgba(139,92,246,0.16));
+    border-top-color:rgba(139,92,246,0.22);
+  }
+
+  /* ---------- Scoreboard ---------- */
+  .click-counter.visible{
+    display:inline-flex;
+    align-items:center;
+    gap:10px;
+  }
+  .click-counter{
+    font-size:24px;
+    line-height:1;
+    letter-spacing:0.5px;
+    color:#fff;
+    background:linear-gradient(180deg, #2f2660, #1a1538);
+    border:2px solid var(--ink);
+    border-radius:999px;
+    padding:10px 22px 10px 12px;
+    margin-bottom:22px;
+    box-shadow:var(--edge), var(--shine), 0 0 0 4px rgba(139,92,246,0.18);
+    text-shadow:0 2px 0 rgba(0,0,0,0.35);
+  }
+  .click-counter::before{
+    content:'';
+    width:28px;
+    height:28px;
+    flex-shrink:0;
+    background:url('money.png') center / contain no-repeat;
+    filter:drop-shadow(0 2px 0 rgba(0,0,0,0.3));
+  }
+  body.light-mode .click-counter{
+    color:#fff;
+    background:linear-gradient(180deg, #4a3c8f, #2c2360);
+  }
+
+  /* ---------- The clicker ---------- */
+  .avatar{
+    width:136px;
+    height:136px;
+    padding:7px;
+    margin-bottom:30px;
+    background:transparent;
+    border:3px solid var(--ink);
+    position:relative;
+    isolation:isolate;
+    animation:refresh-avatar-glow 2.8s ease-in-out infinite;
+  }
+  .avatar::before{
+    content:'';
+    position:absolute;
+    inset:-20%;
+    z-index:-1;
+    background:conic-gradient(from 0deg, var(--melon-light), var(--zap), var(--pow), var(--grape), var(--melon-light));
+    animation:refresh-ring-spin 6s linear infinite;
+  }
+  .avatar img,
+  .avatar .avatar-emoji{
+    position:relative;
+    z-index:1;
+    border:3px solid var(--ink);
+  }
+  .avatar .avatar-emoji{ font-size:96px; }
+  @keyframes refresh-ring-spin{ to{ transform:rotate(360deg); } }
+  @keyframes refresh-avatar-glow{
+    0%, 100%{ box-shadow:0 14px 0 -6px rgba(11,8,24,0.55), 0 0 0 0 rgba(255,255,255,0); }
+    50%{ box-shadow:0 14px 0 -6px rgba(11,8,24,0.55), 0 0 34px 6px var(--tab-color); }
+  }
+  .avatar.squish{
+    animation:avatar-squish .45s ease-out, refresh-avatar-glow 2.8s ease-in-out infinite;
+  }
+  .avatar:hover{ transform:scale(1.04); }
+  .avatar:active{ transform:scale(0.92); }
+  body.low-perf .avatar::before{ animation:none; }
+  @media (max-width:480px){
+    .avatar{ width:116px; height:116px; }
+    .avatar .avatar-emoji{ font-size:80px; }
+    .click-counter{ font-size:20px; }
+  }
+
+  /* ---------- Buttons: candy with a bottom edge that presses down ---------- */
+  .buy-btn,
+  .auth-btn:not(.secondary),
+  .bulk-buy-btn,
+  .tab-btn.active,
+  .stats-subtab-btn.active,
+  .shop-category-btn.active:not(.prestige-tab-btn),
+  .workshop-icon-btn{
+    border:2px solid var(--ink);
+    box-shadow:0 4px 0 0 var(--btn-edge), 0 4px 0 2px var(--ink), var(--shine);
+    margin-bottom:4px;
+    transform:none;
+    transition:transform .08s ease, box-shadow .08s ease, filter .15s ease;
+  }
+  .shop-category-btn.active:not(.prestige-tab-btn){ --btn-edge:#a8255f; }
+  /* Dark text on candy buttons in both themes (light mode's --night is near white). */
+  .buy-btn:not(:disabled),
+  .auth-btn:not(.secondary):not(:disabled),
+  .bulk-buy-btn:not(:disabled),
+  .tab-btn.active,
+  .stats-subtab-btn.active,
+  .workshop-icon-btn,
+  .preferences-toggle.open{ color:var(--ink); }
+  /* Inside the docks the edge is drawn but takes no space, so the dock never jumps. */
+  .tab-btn.active,
+  .stats-subtab-btn.active,
+  .shop-category-btn.active:not(.prestige-tab-btn){ margin-bottom:0; }
+  .buy-btn:hover:not(:disabled),
+  .auth-btn:not(.secondary):hover,
+  .bulk-buy-btn:hover:not(:disabled),
+  .workshop-icon-btn:hover{
+    transform:translateY(-1px);
+    box-shadow:0 5px 0 0 var(--btn-edge), 0 5px 0 2px var(--ink), var(--shine);
+    filter:brightness(1.07);
+  }
+  .buy-btn:active:not(:disabled),
+  .auth-btn:not(.secondary):active,
+  .bulk-buy-btn:active:not(:disabled),
+  .workshop-icon-btn:active{
+    transform:translateY(3px);
+    box-shadow:0 1px 0 0 var(--btn-edge), 0 1px 0 2px var(--ink), var(--shine);
+  }
+  .buy-btn{
+    font-size:12.5px;
+    border-radius:12px;
+    padding:10px 14px;
+    min-width:88px;
+  }
+  /* Can't afford it yet: a quiet grey button instead of a faded colorful one. */
+  .buy-btn:disabled,
+  .bulk-buy-btn:disabled{
+    opacity:1;
+    background:var(--card-hover);
+    color:var(--muted);
+    box-shadow:0 1px 0 0 var(--ink), 0 1px 0 2px var(--ink);
+    transform:translateY(3px);
+    filter:none;
+    cursor:not-allowed;
+  }
+  .auth-btn{ border-radius:14px; padding:13px; font-size:15px; }
+  .auth-btn.secondary{
+    --btn-edge:#151030;
+    border-radius:14px;
+    background:var(--card-hover);
+    border:2px solid var(--ink);
+    box-shadow:0 4px 0 0 var(--btn-edge), 0 4px 0 2px var(--ink), var(--shine);
+    margin-bottom:4px;
+  }
+  .auth-btn.secondary:hover{ transform:translateY(-1px); border-color:var(--ink); box-shadow:0 5px 0 0 var(--btn-edge), 0 5px 0 2px var(--ink), var(--shine); }
+  .auth-btn.secondary:active{ transform:translateY(3px); box-shadow:0 1px 0 0 var(--btn-edge), 0 1px 0 2px var(--ink); }
+  body.light-mode .auth-btn.secondary{ --btn-edge:#c9c3e3; }
+
+  /* ---------- Panels ---------- */
+  .shop-card,
+  .stats-card,
+  .achievement-card,
+  .leaderboard-row,
+  .auth-box,
+  .bulk-buy-panel,
+  .friend-requests-card{
+    background:var(--surface);
+    border:2px solid var(--ink);
+    box-shadow:var(--edge), var(--shine);
+  }
+  .shop-card{
+    border-radius:18px;
+    padding:14px 16px;
+    gap:14px;
+  }
+  .shop-card:hover{ transform:none; }
+  .stats-card,
+  .auth-box{ border-radius:22px; }
+  .auth-box{ box-shadow:0 6px 0 var(--ink), var(--shine), 0 30px 60px -20px rgba(0,0,0,0.6); }
+  .shop-info h3{
+    font-size:15px;
+    margin-bottom:3px;
+    letter-spacing:0.2px;
+  }
+  .shop-info p{
+    font-size:12px;
+    line-height:1.5;
+  }
+  .shop-info .owned{
+    display:inline-block;
+    margin-top:2px;
+    padding:1px 8px;
+    border-radius:999px;
+    background:rgba(193,174,240,0.14);
+    font-size:11px;
+    white-space:nowrap;
+  }
+  body.light-mode .shop-info .owned{ background:rgba(139,92,246,0.12); color:#6d4bd1; }
+
+  /* Shop icons: chunky tiles. */
+  .shop-icon{
+    width:46px;
+    height:46px;
+    border-radius:14px;
+    box-shadow:0 3px 0 var(--ink), inset 0 -3px 0 rgba(0,0,0,0.18), inset 0 2px 0 rgba(255,255,255,0.25);
+  }
+  .shop-card:hover .shop-icon{ transform:rotate(-6deg) scale(1.06); }
+
+  /* Dropdown arrow and the tray it opens. */
+  .bulk-expand-btn{
+    width:34px;
+    height:34px;
+    border-radius:50%;
+    background:var(--card-hover);
+    border:2px solid var(--ink);
+    box-shadow:0 3px 0 0 #151030, 0 3px 0 2px var(--ink);
+    color:var(--rind);
+  }
+  .bulk-expand-btn:hover{ border-color:var(--ink); filter:brightness(1.15); }
+  .bulk-expand-btn.open{ border-color:var(--ink); background:var(--zap); color:var(--ink); }
+  .shop-card:has(+ .bulk-buy-panel){
+    border-bottom-left-radius:8px;
+    border-bottom-right-radius:8px;
+  }
+  .bulk-buy-panel{
+    max-width:none;
+    width:calc(100% - 24px);
+    margin:-14px auto 4px;
+    padding:12px 10px 10px;
+    border-top:none;
+    border-radius:0 0 16px 16px;
+    background:linear-gradient(180deg, rgba(11,8,24,0.35), var(--card) 40%);
+    gap:8px;
+  }
+  .bulk-buy-btn{ font-size:11px; border-radius:10px; padding:8px 6px; }
+  .bulk-buy-panel .workshop-settings-status{ font-size:11.5px; line-height:1.45; }
+
+  /* ---------- Navigation docks ---------- */
+  .tabs,
+  .stats-subtabs,
+  .shop-category-bar{
+    /* Opaque, so DVD logos behind the page never show through. */
+    background:linear-gradient(rgba(11,8,24,0.35), rgba(11,8,24,0.35)), var(--night);
+    border:2px solid var(--ink);
+    box-shadow:inset 0 2px 6px rgba(0,0,0,0.35), 0 1px 0 rgba(255,255,255,0.05);
+  }
+  body.light-mode .tabs,
+  body.light-mode .stats-subtabs,
+  body.light-mode .shop-category-bar{
+    background:linear-gradient(rgba(34,28,56,0.06), rgba(34,28,56,0.06)), var(--night);
+    box-shadow:inset 0 2px 6px rgba(34,28,56,0.12);
+  }
+  .tabs{ border-radius:20px; padding:7px; margin-bottom:18px; }
+  .tab-btn{ font-size:13px; border-radius:14px; }
+  .tab-btn.active{ border-radius:14px; }
+  .stats-subtabs,
+  .shop-category-bar{ border-radius:16px; padding:6px; }
+  .stats-subtab-btn,
+  .shop-category-btn:not(.prestige-tab-btn){ border-radius:11px; }
+
+  /* Preferences: a quiet bar so the clicker stays the star. */
+  .preferences-toggle{
+    color:var(--rind);
+    background:var(--surface);
+    border:2px solid var(--ink);
+    border-radius:16px;
+    box-shadow:0 4px 0 0 #151030, 0 4px 0 2px var(--ink), var(--shine);
+    padding:11px 16px;
+    font-size:14px;
+    transform:none;
+    transition:transform .08s ease, box-shadow .08s ease;
+  }
+  .preferences-toggle:hover{ transform:translateY(-1px); box-shadow:0 5px 0 0 #151030, 0 5px 0 2px var(--ink), var(--shine); }
+  .preferences-toggle:active{ transform:translateY(3px); box-shadow:0 1px 0 0 #151030, 0 1px 0 2px var(--ink); }
+  body.light-mode .preferences-toggle{ box-shadow:0 4px 0 0 #c9c3e3, 0 4px 0 2px var(--ink), var(--shine); }
+  .preferences-toggle.open{ background:var(--brand-gradient); color:var(--ink); }
+
+  /* ---------- Prestige and Limited Shop, side by side ---------- */
+  .shop-special-row{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:12px;
+    width:100%;
+  }
+  .shop-special-row .prestige-tab-row{ margin:0; }
+  .shop-special-row{ margin-bottom:6px; }
+  .shop-category-btn.prestige-tab-btn{
+    height:100%;
+    min-height:64px;
+    border-radius:18px;
+    font-size:16px;
+    position:relative;
+    overflow:hidden;
+    --btn-edge:#5b21b6;
+    box-shadow:0 5px 0 0 var(--btn-edge), 0 5px 0 2px var(--ink), inset 0 2px 0 rgba(255,255,255,0.25);
+    margin-bottom:5px;
+    transform:none;
+    transition:transform .08s ease, box-shadow .08s ease;
+  }
+  .shop-category-btn.prestige-tab-btn.limited-tab-btn{ --btn-edge:#9a3412; }
+  .shop-category-btn.prestige-tab-btn::after{
+    content:'';
+    position:absolute;
+    inset:0;
+    pointer-events:none;
+    background:repeating-linear-gradient(115deg, rgba(255,255,255,0.10) 0 14px, transparent 14px 34px);
+  }
+  .shop-category-btn.prestige-tab-btn:hover{
+    transform:translateY(-1px);
+    box-shadow:0 6px 0 0 var(--btn-edge), 0 6px 0 2px var(--ink), inset 0 2px 0 rgba(255,255,255,0.25);
+  }
+  .shop-category-btn.prestige-tab-btn:active,
+  .shop-category-btn.prestige-tab-btn.active{
+    transform:translateY(4px);
+    box-shadow:0 1px 0 0 var(--btn-edge), 0 1px 0 2px var(--ink), inset 0 2px 0 rgba(255,255,255,0.25);
+  }
+  @media (max-width:480px){
+    .shop-special-row{ grid-template-columns:1fr; }
+  }
+
+  /* ---------- Task HUD and task spots ---------- */
+  .task-overall{
+    top:14px;
+    left:14px;
+    padding:9px 12px 10px;
+    border-radius:14px;
+    background:linear-gradient(180deg, rgba(42,34,84,0.92), rgba(19,15,41,0.92));
+    box-shadow:var(--edge-sm), var(--shine);
+  }
+  .task-overall-track{
+    height:12px;
+    border-radius:999px;
+    border:2px solid var(--ink);
+    background:rgba(11,8,24,0.6);
+  }
+  .task-overall-fill{
+    border-radius:999px;
+    background:linear-gradient(90deg, #3fd66f, #a3f06b);
+    box-shadow:inset 0 2px 0 rgba(255,255,255,0.35);
+  }
+  .task-marker{
+    width:18px;
+    height:18px;
+    bottom:6px;
+    border-radius:6px;
+    border:2px solid var(--ink);
+    box-shadow:0 2px 0 var(--ink);
+    color:var(--ink);
+  }
+
+  /* Achievements progress bar matches the task HUD. */
+  .achievements-progress-track{ height:14px; background:linear-gradient(rgba(11,8,24,0.45), rgba(11,8,24,0.45)), var(--night); }
+  .achievements-progress-fill{ box-shadow:inset 0 2px 0 rgba(255,255,255,0.35); }
+
+  /* Sign up and log in screens get the same spotlight as the game. */
+  #screen-username, #screen-password, #screen-birthday, #screen-login, #screen-color, #screen-profile-icon{
+    background-color:var(--night);
+    background-image:
+      radial-gradient(ellipse 55% 50% at 50% 30%, rgba(139,92,246,0.26), transparent 70%),
+      radial-gradient(circle at 15% 85%, rgba(121,207,103,0.10), transparent 35%),
+      radial-gradient(circle at 85% 15%, rgba(255,93,160,0.10), transparent 35%);
+  }
+  .auth-input{
+    border-radius:12px;
+  }
+
+  /* ---------- Small details ---------- */
+  ::selection{ background:var(--pow); color:#fff; }
+  html{ scrollbar-color:var(--card-hover) transparent; }
+  ::-webkit-scrollbar{ width:10px; height:10px; }
+  ::-webkit-scrollbar-thumb{ background:var(--card-hover); border-radius:999px; border:2px solid var(--night); }
+  ::-webkit-scrollbar-track{ background:transparent; }
+
+  @media (prefers-reduced-motion: reduce){
+    .avatar::before{ animation:none; }
+  }
 </style>
 </head>
 <body>
@@ -7503,11 +7924,13 @@
     ).join('');
 
     const prestigeTabBtn = `
+      <div class="shop-special-row">
       <div class="prestige-tab-row">
         <button class="shop-category-btn prestige-tab-btn${shopCategory === 'prestige' ? ' active' : ''}" data-category="prestige">✨ Prestige Shop</button>
       </div>
       <div class="prestige-tab-row">
         <button class="shop-category-btn prestige-tab-btn limited-tab-btn${shopCategory === 'limited' ? ' active' : ''}" data-category="limited">⏳ Limited Shop <span class="limited-tab-timer" id="limited-tab-timer">${formatLimitedCountdown(limitedMsLeft())}</span></button>
+      </div>
       </div>
     `;
 
