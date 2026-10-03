@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<!-- Game version: 1.15.0 | Deployment: 198 | Update both on every release, see README.md -->
-<meta name="game-version" content="1.15.0">
+<!-- Game version: 1.16.0 | Deployment: 199 | Update both on every release, see README.md -->
+<meta name="game-version" content="1.16.0">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>The Clicker Game!</title>
 <link rel="icon" type="image/x-icon" href="maksy.ico" id="favicon-link">
@@ -6476,6 +6476,7 @@
       autoKillOwned: false,
       noobOwned: 0,
       noobLevel: 0, // NOOB LEVEL: each level adds +1 moneys per second to every noob
+      amogusExtraTasks: 0, // AMOGUS TASKS: extra tasks on top of the default 5
       hideCursor: false,
       sfxMuted: false,
       lightMode: false,
@@ -6842,10 +6843,10 @@
      to the end of the list. Resets on Prestige like other upgrades. */
   const AUTO_SPEED_LEVELS = [
     { label: 'Normal', interval: '1s', mult: 1, cost: 0 },
-    { label: 'Quick', interval: '0.5s', mult: 2, cost: 2500 },
-    { label: 'Rapid', interval: '0.33s', mult: 3, cost: 15000 },
-    { label: 'Blazing', interval: '0.25s', mult: 4, cost: 75000 },
-    { label: 'Lightning', interval: '0.2s', mult: 5, cost: 300000 }
+    { label: 'Quick', interval: '0.5s', mult: 2, cost: 10000 },
+    { label: 'Rapid', interval: '0.33s', mult: 3, cost: 80000 },
+    { label: 'Blazing', interval: '0.25s', mult: 4, cost: 500000 },
+    { label: 'Lightning', interval: '0.2s', mult: 5, cost: 2500000 }
   ];
   let autoClickerExpanded = false;
 
@@ -6977,6 +6978,76 @@
     syncToSheet();
     renderShop();
     updateDvdVisibility(); // normal mode adds one moving DVD, Low Performance Mode just counts it
+  }
+
+  /* ---------- AMOGUS EXTRA TASKS ----------
+     Every crewmate does AMOGUS_BASE_TASKS (5) tasks plus game.amogusExtraTasks.
+     Each extra task makes crewmates walk AMOGUS_SPEED_PER_TASK faster and adds
+     AMOGUS_BONUS_PER_TASK to the payout once his tasks are done (click or Auto Kill).
+     Bought from the Amogus dropdown: +1, +5 or Max, like the Click Boost dropdown.
+     Extra task n+1 costs AMOGUS_TASK_BASE_COST * (n + 1). Resets on Prestige. */
+  const AMOGUS_BASE_TASKS = 5;
+  const AMOGUS_MAX_EXTRA_TASKS = 10;     // more than this would not fit on smaller screens
+  const AMOGUS_TASK_BASE_COST = 1000;
+  const AMOGUS_BONUS_PER_TASK = 25;
+  const AMOGUS_SPEED_PER_TASK = 0.15;    // +15% walk speed per extra task
+  let amogusExpanded = false; // is the Amogus dropdown open?
+
+  function amogusExtraTasks(){
+    return Math.min(AMOGUS_MAX_EXTRA_TASKS, Math.max(0, Math.floor(Number(game.amogusExtraTasks) || 0)));
+  }
+  function taskCount(){ return AMOGUS_BASE_TASKS + amogusExtraTasks(); }
+  function amogusSpeedMult(){ return 1 + AMOGUS_SPEED_PER_TASK * amogusExtraTasks(); }
+  function amogusTaskBonus(){ return AMOGUS_BONUS_PER_TASK * amogusExtraTasks(); }
+  function amogusTaskBulkCost(n){
+    let total = 0;
+    let have = amogusExtraTasks();
+    for (let i = 0; i < n; i++) {
+      total += AMOGUS_TASK_BASE_COST * (have + 1);
+      have++;
+    }
+    return total;
+  }
+  function amogusTasksLeftToBuy(){ return AMOGUS_MAX_EXTRA_TASKS - amogusExtraTasks(); }
+  function amogusTaskMaxAffordable(){
+    let n = 0;
+    let have = amogusExtraTasks();
+    let remaining = game.clicks;
+    while (have < AMOGUS_MAX_EXTRA_TASKS) {
+      const next = AMOGUS_TASK_BASE_COST * (have + 1);
+      if (remaining < next) break;
+      remaining -= next;
+      have++;
+      n++;
+    }
+    return n;
+  }
+  function canBuyAmogusTasks(n){
+    return n > 0 && n <= amogusTasksLeftToBuy() && game.clicks >= amogusTaskBulkCost(n);
+  }
+  function buyAmogusTasks(n){
+    if (!canBuyAmogusTasks(n)) return;
+    playSound('money.mp3');
+    game.clicks -= amogusTaskBulkCost(n);
+    game.amogusExtraTasks = amogusExtraTasks() + n;
+    updateCounter();
+    saveGame();
+    syncToSheet();
+    renderShop();
+    rebuildTaskMarkers(); // more tasks = more task spots on the floor
+  }
+  function amogusTaskPanelHTML(){
+    const left = amogusTasksLeftToBuy();
+    const five = Math.min(5, left);
+    const maxN = amogusTaskMaxAffordable();
+    const info = `<p class="workshop-settings-status" style="width:100%;margin:0 0 4px;text-align:left;"><b>Tasks: ${taskCount()}</b> (${amogusExtraTasks()} extra of ${AMOGUS_MAX_EXTRA_TASKS}). Each extra task: +${AMOGUS_BONUS_PER_TASK} payout when his tasks are done, and he walks ${Math.round(AMOGUS_SPEED_PER_TASK * 100)}% faster. Done payout now: ${200 + amogusTaskBonus()} (Auto Kill: ${175 + amogusTaskBonus()}).</p>`;
+    if (left <= 0) return `<div class="bulk-buy-panel" style="flex-wrap:wrap;">${info}<button class="bulk-buy-btn owned" disabled>All extra tasks owned</button></div>`;
+    return `<div class="bulk-buy-panel" style="flex-wrap:wrap;">
+      ${info}
+      <button class="bulk-buy-btn" id="buy-amogustask-x1" ${canBuyAmogusTasks(1) ? '' : 'disabled'}>+1 Task (${amogusTaskBulkCost(1).toLocaleString()})</button>
+      ${five > 1 ? `<button class="bulk-buy-btn" id="buy-amogustask-x5" ${canBuyAmogusTasks(five) ? '' : 'disabled'}>+${five} Tasks (${amogusTaskBulkCost(five).toLocaleString()})</button>` : ''}
+      <button class="bulk-buy-btn" id="buy-amogustask-max" ${maxN > 0 ? '' : 'disabled'}>Buy Max (${maxN})</button>
+    </div>`;
   }
 
   function buyAmogus(){
@@ -7146,10 +7217,12 @@
         ${shopIconHTML('Amogus')}
         <div class="shop-info">
           <h3>Amogus</h3>
-          <p>Spawns a crewmate who does 5 tasks, then wanders. Click him for 100 (or 200 once tasks are done). <span class="owned" id="amogus-owned-count">Owned: ${game.amogusAlive}</span></p>
+          <p>Spawns a crewmate who does ${taskCount()} tasks, then wanders. Click him for 100 (or ${200 + amogusTaskBonus()} once tasks are done). Open the dropdown for extra tasks. <span class="owned" id="amogus-owned-count">Owned: ${game.amogusAlive}</span></p>
         </div>
         <button class="buy-btn" id="buy-amogus" ${game.clicks < AMOGUS_COST ? 'disabled' : ''}>Buy (${AMOGUS_COST})</button>
-      </div>` },
+        <button class="bulk-expand-btn${amogusExpanded ? ' open' : ''}" id="amogus-expand-btn" title="Extra tasks">&#9662;</button>
+      </div>
+      ${amogusExpanded ? amogusTaskPanelHTML() : ''}` },
       { category: 'visuals', html: `
       <div class="shop-card">
         ${shopIconHTML('Roblox Noob')}
@@ -7363,6 +7436,16 @@
     bind('buy-font-manager', buyFontManager);
     bind('buy-autokill', buyAutoKill);
     bind('buy-noob', buyNoob);
+    const amogusExpandBtn = document.getElementById('amogus-expand-btn');
+    if (amogusExpandBtn) {
+      amogusExpandBtn.addEventListener('click', () => {
+        amogusExpanded = !amogusExpanded;
+        renderShop();
+      });
+    }
+    bind('buy-amogustask-x1', () => buyAmogusTasks(1));
+    bind('buy-amogustask-x5', () => buyAmogusTasks(Math.min(5, amogusTasksLeftToBuy())));
+    bind('buy-amogustask-max', () => buyAmogusTasks(amogusTaskMaxAffordable()));
     const noobExpandBtn = document.getElementById('noob-expand-btn');
     if (noobExpandBtn) {
       noobExpandBtn.addEventListener('click', () => {
@@ -9012,7 +9095,7 @@
 
   /* ---------- CREWMATE (AMOGUS) ---------- */
   const CREWMATE_COLORS = ['#c51111','#132ed1','#117f2d','#ed54ba','#ef7d0d','#f5f557','#3f474e','#d6e0f0','#6b2fbb','#71491e','#38fedc','#50ef39'];
-  const TASK_COUNT = 5;
+  // The number of tasks is taskCount() (5 + extra tasks bought in the Amogus dropdown).
   let TASK_POSITIONS = [];
   let taskMarkersReady = false;
 
@@ -9022,7 +9105,8 @@
 
     const margin = 36;
     const usable = window.innerWidth - margin * 2;
-    TASK_POSITIONS = Array.from({ length: TASK_COUNT }, (_, i) => margin + (usable * i / (TASK_COUNT - 1)));
+    const count = taskCount();
+    TASK_POSITIONS = Array.from({ length: count }, (_, i) => margin + (usable * i / (count - 1)));
 
     TASK_POSITIONS.forEach(x => {
       const marker = document.createElement('div');
@@ -9031,6 +9115,14 @@
       marker.textContent = '!';
       document.body.appendChild(marker);
     });
+  }
+
+  // Rebuilds the task spots after extra tasks are bought (only if crewmates already made them).
+  function rebuildTaskMarkers(){
+    if (!taskMarkersReady) return;
+    document.querySelectorAll('.task-marker').forEach(m => m.remove());
+    taskMarkersReady = false;
+    ensureTaskMarkers();
   }
 
   /* ---------- ROBLOX NOOB ----------
@@ -9249,7 +9341,7 @@
 
   // TASK METERS: every living crewmate registers here so the overall meter
   // (top left) can add up their progress. Each entry has a progress() that
-  // returns 0 to TASK_COUNT (partial while working on a task).
+  // returns 0 to taskCount() (partial while working on a task).
   const activeCrewmates = new Set();
   const taskOverallEl = document.getElementById('task-overall');
   const taskOverallFillEl = document.getElementById('task-overall-fill');
@@ -9269,7 +9361,7 @@
       progress += p;
       done += Math.floor(p);
     });
-    const total = count * TASK_COUNT;
+    const total = count * taskCount();
     taskOverallFillEl.style.width = Math.min(100, (progress / total) * 100) + '%';
     taskOverallCountEl.textContent = done + ' / ' + total;
     taskOverallEl.classList.add('visible');
@@ -9304,19 +9396,19 @@
     if (saved) {
       const savedX = Number(saved.x);
       if (isFinite(savedX)) x = Math.min(Math.max(0, savedX), Math.max(0, window.innerWidth - 36));
-      taskIndex = Math.min(Math.max(0, Math.floor(Number(saved.taskIndex) || 0)), TASK_COUNT);
-      tasksDone = !!saved.tasksDone || taskIndex >= TASK_COUNT;
+      taskIndex = Math.min(Math.max(0, Math.floor(Number(saved.taskIndex) || 0)), taskCount());
+      tasksDone = !!saved.tasksDone || taskIndex >= taskCount();
     }
     let workingUntil = null;
     const TASK_WORK_MS = 1300;
 
     function taskProgress(){
-      if (tasksDone) return TASK_COUNT;
+      if (tasksDone) return taskCount();
       let p = taskIndex;
       if (workingUntil !== null) {
         p += Math.min(1, Math.max(0, 1 - (workingUntil - Date.now()) / TASK_WORK_MS));
       }
-      return Math.min(TASK_COUNT, p);
+      return Math.min(taskCount(), p);
     }
     const crewEntry = {
       progress: taskProgress,
@@ -9356,7 +9448,7 @@
     }
 
     el.addEventListener('click', () => {
-      kill(tasksDone ? 200 : 100);
+      kill(tasksDone ? 200 + amogusTaskBonus() : 100); // +25 per extra task once his tasks are done
     });
 
     function walk(){
@@ -9375,7 +9467,7 @@
                 tasksDone = true;
                 el.classList.remove('tasking');
                 el.classList.add('done');
-                if (game.autoKillOwned) kill(175);
+                if (game.autoKillOwned) kill(175 + amogusTaskBonus());
               }
               saveCrewStore();
             }
@@ -9387,11 +9479,12 @@
             } else {
               direction = dx > 0 ? 1 : -1;
               el.classList.toggle('facing-left', direction < 0);
-              x += direction * speed;
+              // Extra tasks make him faster. Never step past the task spot.
+              x += direction * Math.min(Math.abs(dx), speed * amogusSpeedMult());
             }
           }
         } else {
-          x += direction * speed;
+          x += direction * speed * amogusSpeedMult();
           const maxX = window.innerWidth - 36;
 
           if (x <= 0) { x = 0; direction = 1; el.classList.remove('facing-left'); }
@@ -9403,7 +9496,7 @@
         }
 
         el.style.left = x + 'px';
-        if (taskMeterFill) taskMeterFill.style.width = (taskProgress() / TASK_COUNT * 100) + '%';
+        if (taskMeterFill) taskMeterFill.style.width = (taskProgress() / taskCount() * 100) + '%';
       }
 
       requestAnimationFrame(walk);
@@ -9496,6 +9589,16 @@
     if (autoKillBtn && !game.autoKillOwned) autoKillBtn.disabled = game.clicks < AUTO_KILL_COST;
     const noobBtn = document.getElementById('buy-noob');
     if (noobBtn) noobBtn.disabled = game.clicks < NOOB_COST;
+    const amogusTask1 = document.getElementById('buy-amogustask-x1');
+    if (amogusTask1) amogusTask1.disabled = !canBuyAmogusTasks(1);
+    const amogusTask5 = document.getElementById('buy-amogustask-x5');
+    if (amogusTask5) amogusTask5.disabled = !canBuyAmogusTasks(Math.min(5, amogusTasksLeftToBuy()));
+    const amogusTaskMax = document.getElementById('buy-amogustask-max');
+    if (amogusTaskMax) {
+      const maxN = amogusTaskMaxAffordable();
+      amogusTaskMax.disabled = maxN <= 0;
+      amogusTaskMax.textContent = 'Buy Max (' + maxN + ')';
+    }
     [1, 10, 25].forEach(n => {
       const b = document.getElementById('buy-nooblvl-x' + n);
       if (b) b.disabled = game.clicks < noobLevelBulkCost(n);
@@ -12716,6 +12819,7 @@
       autoKillOwned: game.autoKillOwned,
       noobOwned: game.noobOwned,
       noobLevel: noobLevel(), // NOOB LEVEL: needs the noob_level column
+      amogusExtraTasks: amogusExtraTasks(), // AMOGUS TASKS: needs the amogus_extra_tasks column
       prestige: game.prestige || 0,
       boosts: game.boosts || 0,
       achievements: game.unlockedAchievements || [],
@@ -12829,6 +12933,7 @@
       noobOwned: source.noobOwned || 0,
       // Falls back to the local save until the backend returns the column.
       noobLevel: source.noobLevel !== undefined ? (Number(source.noobLevel) || 0) : (Number(savedRaw && savedRaw.noobLevel) || 0),
+      amogusExtraTasks: source.amogusExtraTasks !== undefined ? (Number(source.amogusExtraTasks) || 0) : (Number(savedRaw && savedRaw.amogusExtraTasks) || 0),
       prestige: source.prestige || 0,
       boosts: source.boosts || 0,
       unlockedAchievements: mergedAchievements,
