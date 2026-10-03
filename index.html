@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<!-- Game version: 1.19.0 | Deployment: 203 | Update both on every release, see README.md -->
-<meta name="game-version" content="1.19.0">
+<!-- Game version: 1.20.0 | Deployment: 204 | Update both on every release, see README.md -->
+<meta name="game-version" content="1.20.0">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>The Clicker Game!</title>
 <link rel="icon" type="image/x-icon" href="maksy.ico" id="favicon-link">
@@ -6440,6 +6440,173 @@
   @media (prefers-reduced-motion: reduce){
     .avatar::before{ animation:none; }
   }
+
+  /* =====================================================================
+     SPECIAL DAYS (1.20.0): loading screen scenes, boost chip, birthday
+     decorations, cemetery fog and reminder toasts.
+     ===================================================================== */
+  .loading-screen.special{
+    background-color:var(--night);
+    background-size:cover;
+    background-position:center;
+    background-repeat:no-repeat;
+  }
+  .loading-screen.special .loading-content{
+    max-width:380px;
+    padding:26px 28px 24px;
+    background:rgba(19,15,41,0.86);
+    border:2px solid #0b0818;
+    border-radius:22px;
+    box-shadow:0 6px 0 #0b0818, inset 0 1px 0 rgba(255,255,255,0.08);
+  }
+  .loading-special{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:6px;
+    margin-bottom:16px;
+  }
+  .loading-special-name{
+    font-family:'Fredoka One', cursive;
+    font-size:26px;
+    line-height:1.1;
+    color:#faf3df;
+  }
+  .loading-special-boost{
+    font-family:'Fredoka One', cursive;
+    font-size:13px;
+    color:#0b0818;
+    background:linear-gradient(135deg, #79cf67, #ffcb3d);
+    border:2px solid #0b0818;
+    border-radius:999px;
+    padding:4px 12px;
+  }
+  body.sd-cemetery .loading-special-boost{ background:#9aa3b5; }
+
+  /* Top center, so it never sits under the achievement popups (top right) or the task HUD (top left). */
+  .special-day-chip{
+    position:fixed;
+    top:12px;
+    left:50%;
+    transform:translateX(-50%);
+    z-index:999;
+    display:none;
+    flex-direction:row;
+    align-items:baseline;
+    gap:10px;
+    white-space:nowrap;
+    gap:2px;
+    padding:8px 14px;
+    background:linear-gradient(180deg, rgba(42,34,84,0.94), rgba(19,15,41,0.94));
+    border:2px solid #0b0818;
+    border-radius:14px;
+    box-shadow:0 3px 0 #0b0818, inset 0 1px 0 rgba(255,255,255,0.1);
+    pointer-events:none;
+    user-select:none;
+  }
+  body:not(.auth-active) .special-day-chip{ display:flex; }
+  .special-day-chip b{
+    font-family:'Fredoka One', cursive;
+    font-weight:400;
+    font-size:14px;
+    color:#faf3df;
+  }
+  .special-day-chip span{
+    font-family:'Poppins', sans-serif;
+    font-size:11px;
+    font-weight:700;
+    color:#4ade80;
+  }
+  body.sd-cemetery .special-day-chip span{ color:#9aa3b5; }
+
+  /* Birthday: bunting, party hat, balloons */
+  .sd-bunting{
+    position:fixed;
+    top:0;
+    left:0;
+    right:0;
+    height:44px;
+    z-index:-1;
+    pointer-events:none;
+  }
+  .sd-bunting svg{ width:100%; height:100%; display:block; }
+  body.auth-active .sd-bunting{ display:none; }
+  .sd-party-hat{
+    position:relative;
+    width:0;
+    height:0;
+    z-index:3;
+    pointer-events:none;
+  }
+  .sd-party-hat svg{
+    position:absolute;
+    width:58px;
+    height:80px;
+    left:-2px;
+    top:-34px;
+    transform:rotate(16deg);
+    filter:drop-shadow(0 3px 0 rgba(11,8,24,0.5));
+  }
+  .sd-balloon{
+    position:fixed;
+    bottom:-140px;
+    width:46px;
+    z-index:-1;
+    pointer-events:none;
+    animation:sd-balloon-rise 14s linear forwards;
+  }
+  .sd-balloon svg{ width:100%; display:block; }
+  @keyframes sd-balloon-rise{
+    0%{ transform:translate(0, 0); }
+    50%{ transform:translate(var(--sway), -55vh); }
+    100%{ transform:translate(0, -120vh); }
+  }
+
+  /* Cemetery: fog drifting along the floor */
+  .sd-fog{
+    position:fixed;
+    left:-10%;
+    right:-10%;
+    bottom:0;
+    height:140px;
+    z-index:-1;
+    pointer-events:none;
+    background:
+      radial-gradient(ellipse 30% 60% at 20% 100%, rgba(215,219,230,0.16), transparent 70%),
+      radial-gradient(ellipse 35% 70% at 60% 100%, rgba(215,219,230,0.12), transparent 70%),
+      radial-gradient(ellipse 25% 50% at 90% 100%, rgba(215,219,230,0.14), transparent 70%);
+    animation:sd-fog-drift 18s ease-in-out infinite alternate;
+  }
+  body.auth-active .sd-fog{ display:none; }
+  @keyframes sd-fog-drift{ to{ transform:translateX(6%); } }
+
+  .special-toast{
+    position:fixed;
+    top:14px;
+    left:50%;
+    z-index:7000;
+    transform:translate(-50%, -140%);
+    max-width:min(460px, 90vw);
+    padding:12px 18px;
+    font-family:'Fredoka One', cursive;
+    font-size:15px;
+    text-align:center;
+    color:#faf3df;
+    background:linear-gradient(180deg, #2f2660, #1a1538);
+    border:2px solid #0b0818;
+    border-radius:16px;
+    box-shadow:0 4px 0 #0b0818, inset 0 1px 0 rgba(255,255,255,0.1);
+    transition:transform .35s cubic-bezier(.34,1.56,.64,1);
+    pointer-events:none;
+  }
+  .special-toast.visible{ transform:translate(-50%, 0); }
+  .special-toast.grim{ background:linear-gradient(180deg, #3a3f4d, #1d2029); color:#d7dbe6; }
+  .sd-gift-art{ font-size:56px; line-height:1; margin-bottom:8px; }
+
+  @media (prefers-reduced-motion: reduce){
+    .sd-balloon, .sd-fog{ animation:none; }
+    .sd-balloon{ display:none; }
+  }
 </style>
 </head>
 <body>
@@ -7103,8 +7270,9 @@
     checkAchievements();
   }
 
+  let specialDayMult = 1; // SPECIAL DAYS: set by refreshSpecialDay(), 1 on normal days
   function boostMultiplier(){
-    return 1 + 0.5 * (game.boosts || 0);
+    return (1 + 0.5 * (game.boosts || 0)) * specialDayMult;
   }
 
   function earnClicks(amount){
@@ -16344,6 +16512,7 @@
       currentDescription = result.account.description || '';
       currentBannerImage = result.account.bannerImage || '';
       currentHideBirthday = !!result.account.hideBirthday;
+      rememberBirthday(result.account);
       currentYoutube = result.account.youtube || '';
       currentTiktok = result.account.tiktok || '';
       currentTwitch = result.account.twitch || '';
@@ -16673,6 +16842,7 @@
       currentBannerImage = result.account.bannerImage || '';
       currentVisits = result.account.visits || 0;
       currentHideBirthday = !!result.account.hideBirthday;
+      rememberBirthday(result.account);
       currentYoutube = result.account.youtube || '';
       currentTiktok = result.account.tiktok || '';
       currentTwitch = result.account.twitch || '';
@@ -16740,6 +16910,7 @@
 
     setInterval(syncToSheet, 1000);
     startInboxPolling();
+    startSpecialDayInGame(); // SPECIAL DAYS: decorations, birthday Prestige gift, reminders
   }
 
   /* ---------- HOVER SOUND ---------- */
@@ -16756,6 +16927,520 @@
     openPublicProfile(initialProfileParam, true);
   }
 
+
+  /* ---------- SPECIAL DAY ART ----------
+     Outline line-art backgrounds drawn as SVG, so no image files are needed.
+     Every scene is built from the small shape helpers below (drawn around 0,0 at
+     roughly 100px) and placed with sdPut(x, y, rotate, scale, shape). */
+  const SD_W = 1600, SD_H = 900;
+  function sdPath(d, c, w){ return `<path d="${d}" fill="none" stroke="${c}" stroke-width="${w || 4}" stroke-linecap="round" stroke-linejoin="round"/>`; }
+  function sdCircle(cx, cy, r, c, w){ return `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${c}" stroke-width="${w || 4}"/>`; }
+  function sdDot(cx, cy, r, c){ return `<circle cx="${cx}" cy="${cy}" r="${r}" fill="${c}"/>`; }
+  function sdText(x, y, size, c, text){ return `<text x="${x}" y="${y}" font-family="Fredoka One, Arial Rounded MT Bold, sans-serif" font-size="${size}" fill="none" stroke="${c}" stroke-width="3" text-anchor="middle" letter-spacing="2">${text}</text>`; }
+  function sdPut(x, y, rot, s, inner){ return `<g transform="translate(${x} ${y}) rotate(${rot || 0}) scale(${s || 1})">${inner}</g>`; }
+
+  // Shapes
+  const sdShape = {
+    heart: c => sdPath('M0 32 C-55 -8 -42 -58 0 -30 C42 -58 55 -8 0 32 Z', c),
+    star: c => sdPath('M0 -50 L12 -16 L48 -15 L19 7 L30 42 L0 21 L-30 42 L-19 7 L-48 -15 L-12 -16 Z', c),
+    sparkle: c => sdPath('M0 -30 Q4 -4 30 0 Q4 4 0 30 Q-4 4 -30 0 Q-4 -4 0 -30 Z', c),
+    plus: c => sdPath('M0 -14 V14 M-14 0 H14', c, 5),
+    squiggle: c => sdPath('M-40 0 q10 -16 20 0 t20 0 t20 0 t20 0', c),
+    balloon: c => sdPath('M0 -95 C38 -95 45 -40 0 -18 C-45 -40 -38 -95 0 -95 Z M-6 -12 L0 -18 L6 -12 Z M0 -12 c12 22 -12 40 0 62 s-12 40 0 60', c),
+    partyHat: c => sdPath('M-32 0 L0 -86 L32 0 Z M-21 -28 L12 -28 M-12 -55 L5 -52', c) + sdCircle(0, -94, 9, c),
+    cake: c => sdPath('M-80 0 H80 V70 H-80 Z M-80 20 q13 16 27 0 t27 0 t27 0 t27 0 t27 0 t26 0 M-50 0 V-45 H50 V0 M-25 -45 V-75 M0 -45 V-75 M25 -45 V-75 M-25 -82 q7 -9 0 -18 q-7 9 0 18 M0 -82 q7 -9 0 -18 q-7 9 0 18 M25 -82 q7 -9 0 -18 q-7 9 0 18 M-100 70 H100', c),
+    gift: c => sdPath('M-50 -20 H50 V50 H-50 Z M-58 -40 H58 V-20 H-58 Z M0 -40 V50 M0 -40 C-20 -70 -45 -55 -25 -42 M0 -40 C20 -70 45 -55 25 -42', c),
+    bunting: (c, len) => { let d = `M0 0 Q${len / 2} 40 ${len} 0`; const n = Math.floor(len / 70); for (let i = 1; i < n; i++) { const x = (len / n) * i; const y = 40 * (1 - Math.pow((x - len / 2) / (len / 2), 2)) * 0.98; d += ` M${x - 22} ${y - 2} L${x} ${y + 38} L${x + 22} ${y + 2}`; } return sdPath(d, c); },
+    // Cats (outline, generic, not any real meme cat)
+    catHead: (c, face) => {
+      let d = 'M-52 14 C-60 -20 -48 -40 -40 -44 L-44 -86 L-12 -58 C-4 -60 4 -60 12 -58 L44 -86 L40 -44 C48 -40 60 -20 52 14 C42 46 -42 46 -52 14 Z';
+      d += ' M-5 2 L5 2 L0 8 Z M-62 4 L-30 8 M-62 18 L-30 14 M62 4 L30 8 M62 18 L30 14';
+      if (face === 'happy') d += ' M-28 -14 q8 -10 16 0 M12 -14 q8 -10 16 0 M0 8 q-8 12 -16 4 M0 8 q8 12 16 4';
+      else if (face === 'shock') d += ' M0 14 m-8 8 a8 10 0 1 0 16 0 a8 10 0 1 0 -16 0';
+      else if (face === 'blep') d += ' M0 8 q-8 10 -16 4 M0 8 q8 10 16 4 M-6 12 q6 20 12 0';
+      else if (face === 'smug') d += ' M-30 -14 H-12 M12 -14 H30 M-12 14 q14 6 26 -4';
+      else d += ' M0 8 q-8 10 -16 4 M0 8 q8 10 16 4';
+      let eyes = '';
+      if (face === 'shock') eyes = sdCircle(-20, -14, 10, c) + sdCircle(20, -14, 10, c) + sdDot(-20, -14, 3, c) + sdDot(20, -14, 3, c);
+      else if (face !== 'happy' && face !== 'smug') eyes = sdDot(-20, -14, 6, c) + sdDot(20, -14, 6, c);
+      return sdPath(d, c) + eyes;
+    },
+    catLoaf: c => sdPath('M-90 40 C-100 -10 -60 -40 -20 -40 C20 -40 80 -30 90 10 C95 30 80 42 60 42 H-80 Z M-70 -28 L-74 -62 L-48 -40 M-10 -40 L-4 -70 L18 -42 M60 42 C90 42 110 30 104 10', c) + sdDot(-50, -10, 5, c) + sdDot(-20, -10, 5, c),
+    // Taco place
+    taco: c => sdPath('M-90 10 A90 80 0 0 0 90 10 M-90 10 C-96 4 -94 -2 -86 0 M90 10 C96 4 94 -2 86 0 M-74 22 A74 62 0 0 0 74 22 M-84 4 q12 -18 24 -4 t24 -4 t24 -4 t24 -4 t24 -4 t24 -4 t20 4', c) + sdCircle(-40, -16, 8, c) + sdCircle(10, -20, 8, c) + sdCircle(55, -14, 7, c),
+    tacoCat: c => sdPath('M-100 20 A100 85 0 0 0 100 20 Z M-92 14 q14 -16 28 -4 t28 -4 t28 -4 t28 -4 t28 -4 t28 6 M96 0 C140 -20 150 -70 120 -90 C105 -100 92 -86 104 -76', c)
+      + sdPut(-6, -36, -6, 0.62, sdShape.catHead(c, 'happy')) + sdPath('M-46 10 q-6 -16 6 -18 q12 2 6 18 M30 10 q-6 -16 6 -18 q12 2 6 18', c),
+    chili: c => sdPath('M-60 -10 C-30 -40 30 -40 60 0 C40 30 -10 20 -60 -10 Z M60 0 C70 -10 74 -24 66 -34', c),
+    lime: c => sdCircle(0, 0, 40, c) + sdCircle(0, 0, 30, c) + sdPath('M0 -30 V30 M-30 0 H30 M-21 -21 L21 21 M21 -21 L-21 21', c, 3),
+    cactus: c => sdPath('M-18 90 V-60 C-18 -84 18 -84 18 -60 V90 M-18 10 H-42 C-58 10 -60 -6 -60 -14 V-40 C-60 -54 -44 -54 -44 -40 V-8 H-18 M18 -10 H44 V-50 C44 -64 60 -64 60 -50 V-20 C60 -6 52 0 40 0 H18 M-50 90 H50', c),
+    awning: (c, len) => { let d = `M0 0 H${len}`; const n = Math.floor(len / 80); for (let i = 0; i < n; i++) { const x = i * (len / n); d += ` M${x} 0 V40 A${len / n / 2} 26 0 0 0 ${x + len / n} 40 V0`; } return sdPath(d, c); },
+    // Beach
+    sun: c => { let d = ''; for (let i = 0; i < 12; i++) { const a = i * Math.PI / 6; d += ` M${Math.cos(a) * 80} ${Math.sin(a) * 80} L${Math.cos(a) * 112} ${Math.sin(a) * 112}`; } return sdCircle(0, 0, 62, c) + sdPath(d, c); },
+    waves: (c, len, rows) => { let out = ''; for (let r = 0; r < rows; r++) { let d = `M0 ${r * 34}`; for (let x = 0; x < len; x += 80) d += ` q20 -18 40 0 t40 0`; out += sdPath(d, c); } return out; },
+    palm: c => sdPath('M0 0 C10 -90 30 -170 70 -240 M70 -240 C30 -270 -20 -260 -50 -230 M70 -240 C60 -290 20 -310 -10 -310 M70 -240 C110 -290 160 -290 190 -260 M70 -240 C120 -240 160 -210 170 -170 M70 -240 C60 -200 40 -170 10 -150 M-60 0 H90', c) + sdCircle(58, -228, 9, c) + sdCircle(80, -222, 9, c),
+    umbrella: c => sdPath('M-100 0 A100 80 0 0 1 100 0 q-17 -14 -33 0 q-17 -14 -34 0 q-16 -14 -33 0 q-17 -14 -33 0 q-17 -14 -34 0 q-16 -14 -33 0 M0 -80 V0 M0 0 V120 q0 16 -16 16', c),
+    gull: c => sdPath('M-30 0 q15 -20 30 0 q15 -20 30 0', c),
+    starfish: c => sdPath('M0 -40 Q8 -12 38 -12 Q14 6 24 34 Q0 16 -24 34 Q-14 6 -38 -12 Q-8 -12 0 -40 Z', c),
+    shell: c => sdPath('M-40 20 C-40 -30 40 -30 40 20 Z M0 20 V-18 M-20 20 L-12 -14 M20 20 L12 -14 M-36 20 L-30 -4 M36 20 L30 -4 M-12 20 L0 34 L12 20', c),
+    // Holidays
+    firework: (c, n) => { let d = ''; let dots = ''; const k = n || 12; for (let i = 0; i < k; i++) { const a = i * 2 * Math.PI / k; d += ` M${Math.cos(a) * 20} ${Math.sin(a) * 20} L${Math.cos(a) * 70} ${Math.sin(a) * 70}`; dots += sdDot(Math.cos(a) * 84, Math.sin(a) * 84, 5, c); } return sdPath(d, c) + dots; },
+    clock: c => sdCircle(0, 0, 70, c) + sdPath('M0 -70 V-58 M70 0 H58 M0 70 V58 M-70 0 H-58 M0 0 V-48 M0 0 L6 -40', c),
+    popper: c => sdPath('M-40 40 L10 -10 L-10 -30 Z M10 -10 L30 -40 M-10 -30 L-40 -20 M20 -30 l8 -8 M0 -40 q10 -10 4 -22 M30 -10 q16 -4 22 6', c),
+    arrow: c => sdPath('M-80 0 H70 M50 -16 L72 0 L50 16 M-80 0 L-96 -14 M-80 0 L-96 14 M-66 0 L-82 -14 M-66 0 L-82 14', c),
+    envelope: c => sdPath('M-60 -40 H60 V40 H-60 Z M-60 -40 L0 8 L60 -40', c) + sdPut(0, 18, 0, 0.35, sdShape.heart(c)),
+    clover: c => sdPut(0, -26, 0, 0.6, sdShape.heart(c)) + sdPut(-24, 6, -120, 0.6, sdShape.heart(c)) + sdPut(24, 6, 120, 0.6, sdShape.heart(c)) + sdPath('M0 8 C4 40 16 60 30 70', c),
+    rainbow: c => sdPath('M-120 0 A120 120 0 0 1 120 0 M-95 0 A95 95 0 0 1 95 0 M-70 0 A70 70 0 0 1 70 0', c),
+    pot: c => sdPath('M-60 -20 H60 M-54 -20 C-70 30 -40 60 0 60 C40 60 70 30 54 -20', c) + sdCircle(-30, -34, 14, c) + sdCircle(0, -40, 14, c) + sdCircle(30, -34, 14, c),
+    egg: c => sdPath('M0 -60 C36 -60 48 0 46 18 C44 48 -44 48 -46 18 C-48 0 -36 -60 0 -60 Z M-44 -4 L-30 -16 L-15 -4 L0 -16 L15 -4 L30 -16 L44 -4 M-46 22 q12 10 23 0 t23 0 t23 0 t23 0', c),
+    bunnyEars: c => sdPath('M-30 40 C-60 -20 -50 -110 -26 -110 C-6 -110 -6 -20 -10 40 M30 40 C60 -20 50 -110 26 -110 C6 -110 6 -20 10 40 M-28 30 C-36 -10 -34 -80 -26 -90 M28 30 C36 -10 34 -80 26 -90', c),
+    flower: c => { let o = sdCircle(0, 0, 12, c); for (let i = 0; i < 5; i++) { const a = i * 2 * Math.PI / 5; o += sdCircle(Math.cos(a) * 26, Math.sin(a) * 26, 16, c); } return o + sdPath('M0 40 C4 70 -6 90 0 120', c); },
+    flag: c => sdPath('M-60 -50 V70 M-60 -50 H70 V20 H-60 M-60 -34 H70 M-60 -18 H70 M-60 -2 H70', c) + sdPut(-38, -38, 0, 0.18, sdShape.star(c)),
+    pumpkin: c => sdPath('M0 -40 C-80 -40 -80 50 0 50 C80 50 80 -40 0 -40 Z M0 -40 C-30 -40 -30 50 0 50 C30 50 30 -40 0 -40 M0 -40 C-4 -54 2 -64 12 -66 M-34 -10 L-22 -22 L-12 -10 Z M12 -10 L22 -22 L34 -10 Z M-30 14 L-20 24 L-10 14 L0 24 L10 14 L20 24 L30 14', c),
+    bat: c => sdPath('M0 -6 C-10 -20 -30 -24 -70 -16 C-56 -8 -52 6 -56 16 C-44 6 -34 8 -26 18 C-20 6 -10 4 0 12 C10 4 20 6 26 18 C34 8 44 6 56 16 C52 6 56 -8 70 -16 C30 -24 10 -20 0 -6 Z M-6 -12 L-8 -20 M6 -12 L8 -20', c),
+    ghost: c => sdPath('M-40 50 V-10 C-40 -70 40 -70 40 -10 V50 L26 38 L13 50 L0 38 L-13 50 L-26 38 Z M-16 -18 V-6 M16 -18 V-6 M-8 14 q8 -8 16 0', c),
+    web: c => { let d = ''; for (let i = 0; i <= 6; i++) { const a = i * Math.PI / 12; d += ` M0 0 L${Math.cos(a) * 200} ${Math.sin(a) * 200}`; } for (let r = 50; r <= 200; r += 50) { d += ' M' + r + ' 0'; for (let i = 1; i <= 6; i++) { const a = i * Math.PI / 12; d += ` Q${Math.cos(a - Math.PI / 24) * r * 0.86} ${Math.sin(a - Math.PI / 24) * r * 0.86} ${Math.cos(a) * r} ${Math.sin(a) * r}`; } } return sdPath(d, c, 3); },
+    moon: c => sdPath('M20 -60 A62 62 0 1 0 50 40 A50 50 0 1 1 20 -60 Z', c),
+    leaf: c => sdPath('M0 60 C-50 20 -50 -40 0 -70 C50 -40 50 20 0 60 Z M0 60 V-60 M0 20 L-24 0 M0 0 L24 -20 M0 -24 L-18 -40 M0 80 V60', c),
+    pie: c => sdPath('M-90 0 C-90 -30 90 -30 90 0 C90 30 -90 30 -90 0 Z M-90 0 V20 C-90 50 90 50 90 20 V0 M-60 -14 L40 18 M-20 -22 L70 6 M-70 8 L20 -22 M-30 18 L60 -14', c),
+    corn: c => sdPath('M0 -80 C30 -80 34 40 0 70 C-34 40 -30 -80 0 -80 Z M-24 -40 H24 M-28 -10 H28 M-26 20 H26 M0 -80 V70 M0 70 C-40 70 -60 30 -50 -10 M0 70 C40 70 60 30 50 -10', c),
+    tree: c => sdPath('M0 -120 L-50 -40 H-25 L-75 30 H-40 L-95 100 H95 L40 30 H75 L25 -40 H50 Z M-14 100 V140 H14 V100', c) + sdPut(0, -132, 0, 0.35, sdShape.star(c)) + sdCircle(-30, 60, 8, c) + sdCircle(28, 40, 8, c) + sdCircle(0, -10, 8, c),
+    ornament: c => sdCircle(0, 0, 40, c) + sdPath('M-12 -40 V-52 H12 V-40 M0 -52 C-10 -70 10 -70 0 -52 M-38 -8 q19 14 38 0 t38 0', c),
+    snowflake: c => { let d = ''; for (let i = 0; i < 6; i++) { const a = i * Math.PI / 3; const x = Math.cos(a), y = Math.sin(a); d += ` M0 0 L${x * 50} ${y * 50} M${x * 30} ${y * 30} L${x * 30 + Math.cos(a + 0.8) * 14} ${y * 30 + Math.sin(a + 0.8) * 14} M${x * 30} ${y * 30} L${x * 30 + Math.cos(a - 0.8) * 14} ${y * 30 + Math.sin(a - 0.8) * 14}`; } return sdPath(d, c, 3); },
+    candyCane: c => sdPath('M10 90 V-30 C10 -80 -60 -80 -60 -40 M-14 90 V-30 C-14 -56 -36 -56 -36 -40 M-14 60 L10 40 M-14 20 L10 0 M-14 -20 L10 -40', c),
+    // Cemetery
+    grave: (c, text) => sdPath('M-50 70 V-20 A50 50 0 0 1 50 -20 V70 Z M-70 70 H70', c) + (text ? sdText(0, 10, 26, c, text) : ''),
+    cross: c => sdPath('M-10 70 V-70 H10 V70 Z M-40 -40 H40 V-20 H-40 Z M-60 70 H60', c),
+    fence: (c, len) => { let d = `M0 0 H${len} M0 50 H${len}`; for (let x = 0; x <= len; x += 40) d += ` M${x} 80 V-30 L${x - 8} -18 M${x} -30 L${x + 8} -18`; return sdPath(d, c, 3); },
+    deadTree: c => sdPath('M0 0 C-6 -60 4 -120 -10 -180 M-4 -80 C-40 -100 -60 -130 -70 -170 M-50 -120 L-80 -130 M-6 -130 C20 -160 40 -170 60 -210 M30 -170 L60 -170 M-10 -180 L-20 -220 M-50 0 H50', c),
+    fog: (c, len) => { let d = ''; for (let r = 0; r < 3; r++) { d += ` M${r * 60} ${r * 26}`; for (let x = 0; x < len; x += 160) d += ` c40 -20 80 20 120 0 c20 -10 30 -10 40 0`; } return sdPath(d, c, 3); }
+  };
+
+  // Faint outline blobs behind every scene, the "abstract" layer.
+  function sdAbstract(colors){
+    const [a, b, c] = colors;
+    return `<g opacity="0.35">`
+      + sdPut(260, 210, -18, 1, `<rect x="-170" y="-110" width="340" height="220" rx="80" fill="none" stroke="${a}" stroke-width="3"/>`)
+      + sdPut(1360, 690, 14, 1, `<rect x="-190" y="-120" width="380" height="240" rx="100" fill="none" stroke="${b}" stroke-width="3"/>`)
+      + sdCircle(1290, 170, 120, c, 3) + sdCircle(330, 720, 90, b, 3)
+      + sdPut(560, 250, 0, 1, sdShape.squiggle(a)) + sdPut(800, 820, 0, 1, sdShape.squiggle(c))
+      + `</g>`;
+  }
+
+  // Scenes: each returns the inner SVG. The middle stays fairly empty for the loading text.
+  const SPECIAL_SCENES = {
+    beach: () => {
+      const S = '#ffcb3d', W = '#4dc3ff', P = '#79cf67', K = '#ff5da0', L = '#faf3df';
+      return sdAbstract([W, S, K])
+        + sdPut(1380, 170, 0, 1, sdShape.sun(S))
+        + sdPut(170, 800, -4, 1.15, sdShape.palm(P))
+        + sdPut(1180, 640, 8, 1.1, sdShape.umbrella(K))
+        + sdPut(0, 830, 0, 1, sdShape.waves(W, 1600, 2))
+        + sdPut(560, 150, 0, 1, sdShape.gull(L)) + sdPut(640, 110, 0, 0.7, sdShape.gull(L)) + sdPut(1030, 200, 0, 0.8, sdShape.gull(L))
+        + sdPut(520, 740, 20, 0.9, sdShape.starfish(S)) + sdPut(1440, 760, -10, 0.9, sdShape.shell(L))
+        + sdPut(980, 770, 0, 0.6, sdShape.starfish(K));
+    },
+    taco: () => {
+      const Y = '#ffcb3d', G = '#79cf67', R = '#ff5d5d', O = '#ff9a3d', L = '#faf3df';
+      return sdAbstract([O, G, Y])
+        + sdPut(0, 0, 0, 1, sdShape.awning(R, 1600))
+        + sdText(800, 150, 64, Y, 'TACO TUESDAY')
+        + sdPut(1270, 640, -6, 1.5, sdShape.tacoCat(Y))
+        + sdPut(260, 640, 8, 1.1, sdShape.taco(O)) + sdPut(420, 790, -10, 0.8, sdShape.taco(Y))
+        + sdPut(140, 320, -20, 0.9, sdShape.chili(R)) + sdPut(1460, 300, 10, 0.8, sdShape.lime(G))
+        + sdPut(1500, 770, 0, 0.9, sdShape.cactus(G)) + sdPut(80, 790, 0, 0.7, sdShape.cactus(G))
+        + sdPut(700, 800, 0, 1, sdShape.squiggle(L)) + sdPut(1000, 260, 15, 0.6, sdShape.chili(O));
+    },
+    birthday: () => {
+      const K = '#ff5da0', Y = '#ffcb3d', B = '#4dc3ff', G = '#79cf67', V = '#b07bff', L = '#faf3df';
+      return sdAbstract([K, B, Y])
+        + sdPut(0, 0, 0, 1, sdShape.bunting(Y, 1600))
+        + sdPut(170, 330, -8, 1.1, sdShape.balloon(K)) + sdPut(280, 380, 6, 1, sdShape.balloon(B)) + sdPut(1420, 330, 8, 1.1, sdShape.balloon(V)) + sdPut(1310, 390, -6, 0.95, sdShape.balloon(G))
+        + sdPut(1250, 760, 0, 1.2, sdShape.cake(L))
+        + sdPut(330, 760, 0, 1.1, sdShape.catHead(Y, 'happy')) + sdPut(330, 676, -10, 0.7, sdShape.partyHat(K))
+        + sdPut(560, 790, 6, 0.8, sdShape.catHead(B, 'shock')) + sdPut(1000, 800, -4, 0.9, sdShape.catLoaf(V)) + sdPut(985, 742, 12, 0.55, sdShape.partyHat(Y))
+        + sdPut(110, 600, 0, 0.8, sdShape.catHead(G, 'blep')) + sdPut(1500, 600, -8, 0.8, sdShape.gift(K))
+        + sdPut(640, 190, 20, 0.5, sdShape.sparkle(Y)) + sdPut(980, 220, 0, 0.4, sdShape.plus(B)) + sdPut(470, 230, 0, 0.6, sdShape.squiggle(G));
+    },
+    cemetery: () => {
+      const G = '#9aa3b5', V = '#b07bff', M = '#d7dbe6', F = '#6f7a8f', N = '#79cf67';
+      return sdAbstract([V, F, G])
+        + sdPut(1360, 180, 0, 1.1, sdShape.moon(M))
+        + sdPut(110, 560, 0, 1, sdShape.fence(F, 300)) + sdPut(1220, 600, 0, 1, sdShape.fence(F, 340))
+        + sdPut(330, 760, -3, 1.1, sdShape.grave(G, 'RIP')) + sdPut(530, 790, 4, 0.8, sdShape.cross(G)) + sdPut(1110, 770, 3, 1.2, sdShape.grave(G, '+1 YR')) + sdPut(1320, 790, -4, 0.9, sdShape.grave(G, 'RIP'))
+        + sdPut(1110, 682, 0, 0.35, sdShape.cake(N))
+        + sdPut(160, 880, 0, 1.2, sdShape.deadTree(F)) + sdPut(1520, 880, 0, 1, sdShape.deadTree(F))
+        + sdPut(560, 160, -10, 0.8, sdShape.bat(V)) + sdPut(980, 120, 8, 0.6, sdShape.bat(V)) + sdPut(1100, 230, -4, 0.5, sdShape.bat(V))
+        + sdPut(0, 840, 0, 1, sdShape.fog(M, 1700));
+    },
+    newyear: () => {
+      const Y = '#ffcb3d', K = '#ff5da0', B = '#4dc3ff', V = '#b07bff', L = '#faf3df';
+      return sdAbstract([Y, V, B])
+        + sdPut(230, 200, 0, 1.2, sdShape.firework(Y, 14)) + sdPut(1380, 220, 0, 1, sdShape.firework(K, 12)) + sdPut(1180, 120, 0, 0.6, sdShape.firework(B, 10)) + sdPut(470, 110, 0, 0.5, sdShape.firework(V, 10))
+        + sdPut(240, 700, 0, 1.2, sdShape.clock(L)) + sdPut(1350, 700, -10, 1.4, sdShape.popper(K))
+        + sdText(800, 820, 70, Y, String(new Date().getFullYear()))
+        + sdPut(600, 760, 0, 0.5, sdShape.sparkle(B)) + sdPut(1000, 760, 0, 0.5, sdShape.sparkle(K));
+    },
+    valentine: () => {
+      const K = '#ff5da0', R = '#ff5d5d', L = '#faf3df', V = '#b07bff';
+      return sdAbstract([K, V, R])
+        + sdPut(220, 220, -12, 1.8, sdShape.heart(K)) + sdPut(1370, 230, 10, 1.4, sdShape.heart(R)) + sdPut(1300, 700, -6, 2.2, sdShape.heart(K))
+        + sdPut(1300, 700, -20, 1.6, sdShape.arrow(L)) + sdPut(280, 700, 8, 1.3, sdShape.envelope(V))
+        + sdPut(580, 150, 16, 0.6, sdShape.heart(V)) + sdPut(1020, 160, -14, 0.5, sdShape.heart(R)) + sdPut(620, 790, 0, 0.7, sdShape.heart(R)) + sdPut(960, 800, 10, 0.5, sdShape.heart(K));
+    },
+    stpatrick: () => {
+      const G = '#79cf67', D = '#3fd66f', Y = '#ffcb3d', K = '#ff5da0', B = '#4dc3ff';
+      return sdAbstract([G, Y, D])
+        + sdPut(240, 300, 0, 1.4, sdShape.rainbow(K)) + sdPut(240, 300, 0, 1.12, sdShape.rainbow(Y)) + sdPut(240, 300, 0, 0.84, sdShape.rainbow(B))
+        + sdPut(1300, 720, 0, 1.4, sdShape.pot(Y))
+        + sdPut(1380, 220, 12, 1.4, sdShape.clover(G)) + sdPut(280, 720, -14, 1.2, sdShape.clover(D)) + sdPut(620, 790, 6, 0.7, sdShape.clover(G)) + sdPut(1000, 150, -8, 0.6, sdShape.clover(D))
+        + sdPut(1020, 790, 0, 0.5, sdShape.sparkle(Y));
+    },
+    easter: () => {
+      const K = '#ff8fc7', Y = '#ffe14d', B = '#7fd4ff', G = '#79cf67', V = '#c9a8ff';
+      return sdAbstract([K, B, Y])
+        + sdPut(230, 300, -12, 1.4, sdShape.egg(K)) + sdPut(1360, 260, 10, 1.3, sdShape.egg(B)) + sdPut(1200, 720, -6, 1.1, sdShape.egg(Y)) + sdPut(420, 760, 8, 1, sdShape.egg(V))
+        + sdPut(800, 830, 0, 1.2, sdShape.bunnyEars(K))
+        + sdPut(110, 760, 0, 0.9, sdShape.flower(Y)) + sdPut(1500, 760, 0, 0.9, sdShape.flower(K)) + sdPut(620, 160, 0, 0.6, sdShape.flower(G)) + sdPut(1000, 140, 0, 0.5, sdShape.flower(V));
+    },
+    july4: () => {
+      const R = '#ff5d5d', B = '#4dc3ff', L = '#faf3df', Y = '#ffcb3d';
+      return sdAbstract([R, B, L])
+        + sdPut(230, 210, 0, 1.2, sdShape.firework(R, 14)) + sdPut(1370, 200, 0, 1.1, sdShape.firework(B, 12)) + sdPut(1100, 110, 0, 0.6, sdShape.firework(L, 10)) + sdPut(520, 120, 0, 0.5, sdShape.firework(Y, 10))
+        + sdPut(290, 720, -6, 1.3, sdShape.flag(L)) + sdPut(1300, 740, 6, 1, sdShape.star(R)) + sdPut(1460, 640, -10, 0.6, sdShape.star(B)) + sdPut(1130, 640, 12, 0.5, sdShape.star(L))
+        + sdPut(560, 800, 0, 1, sdShape.squiggle(R)) + sdPut(1000, 800, 0, 1, sdShape.squiggle(B));
+    },
+    halloween: () => {
+      const O = '#ff9a3d', V = '#b07bff', G = '#79cf67', L = '#faf3df';
+      return sdAbstract([O, V, G])
+        + sdPut(0, 0, 0, 1, sdShape.web(L)) + sdPut(1360, 200, 0, 1.1, sdShape.moon(O))
+        + sdPut(260, 730, -4, 1.5, sdShape.pumpkin(O)) + sdPut(1250, 740, 6, 1.2, sdShape.pumpkin(O)) + sdPut(1440, 760, -8, 0.7, sdShape.pumpkin(G))
+        + sdPut(1120, 480, -6, 1.1, sdShape.ghost(L)) + sdPut(560, 150, -10, 0.9, sdShape.bat(V)) + sdPut(1000, 120, 8, 0.7, sdShape.bat(V)) + sdPut(460, 260, 6, 0.5, sdShape.bat(V));
+    },
+    thanksgiving: () => {
+      const O = '#ff9a3d', R = '#d9573b', Y = '#ffcb3d', B = '#c98a4b', L = '#faf3df';
+      return sdAbstract([O, Y, R])
+        + sdPut(200, 240, -30, 1.3, sdShape.leaf(O)) + sdPut(330, 160, 20, 0.9, sdShape.leaf(R)) + sdPut(1400, 220, 30, 1.2, sdShape.leaf(Y)) + sdPut(1250, 140, -20, 0.8, sdShape.leaf(O))
+        + sdPut(1240, 740, 0, 1.3, sdShape.pie(B)) + sdPut(300, 720, -20, 1.2, sdShape.corn(Y)) + sdPut(480, 780, 30, 0.8, sdShape.corn(Y))
+        + sdPut(620, 820, 60, 0.5, sdShape.leaf(R)) + sdPut(1000, 830, -40, 0.5, sdShape.leaf(O));
+    },
+    christmas: () => {
+      const G = '#79cf67', R = '#ff5d5d', Y = '#ffcb3d', L = '#faf3df', B = '#7fd4ff';
+      return sdAbstract([G, R, B])
+        + sdPut(230, 700, 0, 1.5, sdShape.tree(G)) + sdPut(1300, 750, 0, 1, sdShape.gift(R)) + sdPut(1450, 770, 0, 0.7, sdShape.gift(Y))
+        + sdPut(1440, 300, 14, 1.2, sdShape.candyCane(R)) + sdPut(1180, 200, 0, 1, sdShape.ornament(Y))
+        + sdPut(560, 140, 0, 1, sdShape.snowflake(B)) + sdPut(1000, 180, 0, 0.8, sdShape.snowflake(L)) + sdPut(160, 200, 0, 1.2, sdShape.snowflake(B)) + sdPut(700, 820, 0, 0.6, sdShape.snowflake(L)) + sdPut(980, 800, 0, 0.7, sdShape.snowflake(B));
+    }
+  };
+
+  // Full SVG as a data URI for a CSS background.
+  function specialSceneDataUri(id){
+    const scene = SPECIAL_SCENES[id];
+    if (!scene) return '';
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${SD_W} ${SD_H}" preserveAspectRatio="xMidYMid slice"><g opacity="0.8">${scene()}</g></svg>`;
+    return 'url("data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg) + '")';
+  }
+
+  /* ---------- SPECIAL DAYS (1.20.0) ----------
+     Some days get their own loading screen background and a boost on every click
+     and every bit of passive income (it multiplies boostMultiplier()).
+     Priority: birthday > holiday > Taco Tuesday > weekend.
+       Weekend (Sat, Sun)            x1.10  beach
+       Taco Tuesday (every other Tue) x1.25  taco place with taco cat
+       Holidays                       x1.50  each has its own scene
+       Your birthday                  x2.00  party with cats, +5 free Prestige once a year
+     If "I HATE BIRTHDAYS" is on in Edit Profile, the birthday becomes a cemetery
+     (same boost and Prestige, darker jokes).
+     Testing: add ?specialDay=taco (or beach, birthday, cemetery, halloween...) to the URL. */
+  const SPECIAL_BOOSTS = { weekend: 1.1, taco: 1.25, holiday: 1.5, birthday: 2 };
+  const BIRTHDAY_PRESTIGE_GIFT = 5;
+  const BIRTHDAY_PROFILE_KEY = 'fgd_birthday_profile';
+  const DEATH_REMINDERS = [
+    'Reminder: you are 1 year closer to death.',
+    'Still 1 year closer to death. Keep clicking.',
+    'Fun fact: you are older now than when you opened this game.',
+    '1 year closer to death. The clicks do not care.',
+    'Another click, another second you will never get back.',
+    'Happy birthday. Probably one of your last ones. Kidding. Mostly.'
+  ];
+  const DEATH_REMINDER_MS = 3 * 60 * 1000;
+
+  // Saved birthday of the signed-in player, so the loading screen knows it before login finishes.
+  function rememberBirthday(account){
+    if (!account) return;
+    try {
+      const prev = JSON.parse(localStorage.getItem(BIRTHDAY_PROFILE_KEY) || '{}');
+      const b = account.birthday || {};
+      const month = Number(b.month) || prev.month || 0;
+      const day = Number(b.day) || prev.day || 0;
+      localStorage.setItem(BIRTHDAY_PROFILE_KEY, JSON.stringify({
+        user: String(account.username || currentUsername || '').toLowerCase(),
+        month, day,
+        hate: !!account.hideBirthday
+      }));
+    } catch (e) {}
+    refreshSpecialDay();
+  }
+  function birthdayProfile(){
+    try {
+      const p = JSON.parse(localStorage.getItem(BIRTHDAY_PROFILE_KEY) || 'null');
+      const who = String(currentUsername || getSession() || '').toLowerCase();
+      if (p && p.month && p.day && (!who || p.user === who)) return p;
+    } catch (e) {}
+    return null;
+  }
+
+  // Anonymous Gregorian algorithm for Easter Sunday.
+  function easterSunday(y){
+    const a = y % 19, b = Math.floor(y / 100), c = y % 100, d = Math.floor(b / 4), e = b % 4;
+    const f = Math.floor((b + 8) / 25), g = Math.floor((b - f + 1) / 3), h = (19 * a + b - d - g + 15) % 30;
+    const i = Math.floor(c / 4), k = c % 4, l = (32 + 2 * e + 2 * i - h - k) % 7;
+    const m = Math.floor((a + 11 * h + 22 * l) / 451);
+    const month = Math.floor((h + l - 7 * m + 114) / 31), day = ((h + l - 7 * m + 114) % 31) + 1;
+    return { month, day };
+  }
+  // n-th weekday of a month (weekday 0 = Sunday), for Thanksgiving.
+  function nthWeekdayOfMonth(y, month, weekday, n){
+    const first = new Date(y, month - 1, 1).getDay();
+    return 1 + ((weekday - first + 7) % 7) + (n - 1) * 7;
+  }
+  function isoWeekNumber(date){
+    const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+    const dayNum = d.getUTCDay() || 7;
+    d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+    const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+    return Math.ceil(((d - yearStart) / 86400000 + 1) / 7);
+  }
+
+  const SPECIAL_HOLIDAYS = [
+    { id: 'newyear', name: "New Year's Day", match: (m, d) => m === 1 && d === 1 },
+    { id: 'valentine', name: "Valentine's Day", match: (m, d) => m === 2 && d === 14 },
+    { id: 'stpatrick', name: "St. Patrick's Day", match: (m, d) => m === 3 && d === 17 },
+    { id: 'easter', name: 'Easter', match: (m, d, y) => { const e = easterSunday(y); return m === e.month && d === e.day; } },
+    { id: 'july4', name: 'Fourth of July', match: (m, d) => m === 7 && d === 4 },
+    { id: 'halloween', name: 'Halloween', match: (m, d) => m === 10 && d === 31 },
+    { id: 'thanksgiving', name: 'Thanksgiving', match: (m, d, y) => m === 11 && d === nthWeekdayOfMonth(y, 11, 4, 4) },
+    { id: 'christmas', name: 'Christmas', match: (m, d) => m === 12 && (d === 24 || d === 25) }
+  ];
+
+  function isBirthdayToday(p, date){
+    if (!p) return false;
+    const m = date.getMonth() + 1, d = date.getDate();
+    if (p.month === m && p.day === d) return true;
+    // Feb 29 birthdays count on Feb 28 in non-leap years.
+    const leap = new Date(date.getFullYear(), 1, 29).getDate() === 29;
+    return !leap && p.month === 2 && p.day === 29 && m === 2 && d === 28;
+  }
+
+  function getSpecialDay(date){
+    const now = date || new Date();
+    const forced = new URLSearchParams(location.search).get('specialDay');
+    const m = now.getMonth() + 1, d = now.getDate(), y = now.getFullYear(), wd = now.getDay();
+    const p = birthdayProfile();
+    const make = (id, name, kind, scene) => ({ id, name, kind, scene: scene || id, boost: SPECIAL_BOOSTS[kind] });
+
+    if (forced) {
+      if (forced === 'birthday') return make('birthday', 'Your Birthday', 'birthday');
+      if (forced === 'cemetery') return make('cemetery', 'Your Birthday', 'birthday');
+      if (forced === 'taco') return make('taco', 'Taco Tuesday', 'taco');
+      if (forced === 'beach' || forced === 'weekend') return make('weekend', 'Weekend', 'weekend', 'beach');
+      const h = SPECIAL_HOLIDAYS.find(x => x.id === forced);
+      if (h) return make(h.id, h.name, 'holiday');
+    }
+    if (isBirthdayToday(p, now)) return p.hate ? make('cemetery', 'Your Birthday', 'birthday') : make('birthday', 'Your Birthday', 'birthday');
+    const holiday = SPECIAL_HOLIDAYS.find(h => h.match(m, d, y));
+    if (holiday) return make(holiday.id, holiday.name, 'holiday');
+    if (wd === 2 && isoWeekNumber(now) % 2 === 0) return make('taco', 'Taco Tuesday', 'taco');
+    if (wd === 0 || wd === 6) return make('weekend', 'Weekend', 'weekend', 'beach');
+    return null;
+  }
+
+  let currentSpecialDay = null;
+
+  function specialBoostText(sd){
+    return 'Clicks x' + Number(sd.boost.toFixed(2)) + ' today';
+  }
+
+  // Applies today's background, boost, body classes and chip. Safe to call any time.
+  function refreshSpecialDay(){
+    const sd = getSpecialDay();
+    const changed = (sd && sd.id) !== (currentSpecialDay && currentSpecialDay.id);
+    currentSpecialDay = sd;
+    specialDayMult = sd ? sd.boost : 1;
+
+    Array.from(document.body.classList).filter(c => c.indexOf('sd-') === 0).forEach(c => document.body.classList.remove(c));
+    if (sd) {
+      document.body.classList.add('sd-' + sd.id, 'sd-kind-' + sd.kind);
+    }
+
+    // Loading screen
+    const ls = document.getElementById('loading-screen');
+    if (ls) {
+      ls.classList.toggle('special', !!sd);
+      ls.style.backgroundImage = sd ? specialSceneDataUri(sd.scene) : '';
+      let banner = document.getElementById('loading-special');
+      if (sd) {
+        if (!banner) {
+          banner = document.createElement('div');
+          banner.id = 'loading-special';
+          banner.className = 'loading-special';
+          const content = ls.querySelector('.loading-content');
+          if (content) content.insertBefore(banner, content.firstChild);
+        }
+        banner.innerHTML = `<span class="loading-special-name">${sd.id === 'cemetery' ? 'Happy Birthday. I guess.' : (sd.id === 'birthday' ? 'Happy Birthday!' : sd.name)}</span><span class="loading-special-boost">${specialBoostText(sd)}</span>`;
+      } else if (banner) {
+        banner.remove();
+      }
+    }
+
+    // In-game chip
+    let chip = document.getElementById('special-day-chip');
+    if (sd) {
+      if (!chip) {
+        chip = document.createElement('div');
+        chip.id = 'special-day-chip';
+        chip.className = 'special-day-chip';
+        document.body.appendChild(chip);
+      }
+      const label = sd.id === 'cemetery' ? '1 year closer to death' : (sd.id === 'birthday' ? 'Happy Birthday!' : sd.name);
+      chip.innerHTML = `<b>${label}</b><span>${specialBoostText(sd)}</span>`;
+    } else if (chip) {
+      chip.remove();
+    }
+
+    if (changed) {
+      updateBirthdayDecorations();
+      if (typeof updateCounter === 'function' && game) { try { refreshShopAffordability(); } catch (e) {} }
+    }
+  }
+  // The day can change while someone is playing (midnight), so check every minute.
+  setInterval(refreshSpecialDay, 60000);
+
+  /* Birthday decorations in the game: bunting across the top, a party hat on the clicker
+     and balloons that drift up now and then. Cemetery mode gets fog instead. */
+  let birthdayBalloonTimer = null;
+  const PARTY_HAT_SVG = '<svg viewBox="0 0 80 110" aria-hidden="true"><path d="M8 100 L40 12 L72 100 Z" fill="#ff5da0" stroke="#0b0818" stroke-width="5" stroke-linejoin="round"/><path d="M22 62 L58 62 M30 40 L50 40 M14 84 L66 84" stroke="#ffcb3d" stroke-width="6" stroke-linecap="round"/><circle cx="40" cy="10" r="9" fill="#ffcb3d" stroke="#0b0818" stroke-width="4"/></svg>';
+  function updateBirthdayDecorations(){
+    const sd = currentSpecialDay;
+    const isParty = !!sd && sd.id === 'birthday';
+    const isCemetery = !!sd && sd.id === 'cemetery';
+
+    let bunting = document.getElementById('sd-bunting');
+    if (isParty && !bunting) {
+      bunting = document.createElement('div');
+      bunting.id = 'sd-bunting';
+      bunting.className = 'sd-bunting';
+      let flags = '';
+      const colors = ['#ff5da0', '#ffcb3d', '#4dc3ff', '#79cf67', '#b07bff'];
+      for (let i = 0; i < 24; i++) flags += `<path d="M${i * 50 + 5} 6 L${i * 50 + 25} 40 L${i * 50 + 45} 6 Z" fill="${colors[i % colors.length]}" stroke="#0b0818" stroke-width="3" stroke-linejoin="round"/>`;
+      bunting.innerHTML = `<svg viewBox="0 0 1200 48" preserveAspectRatio="none"><path d="M0 6 H1200" stroke="#0b0818" stroke-width="4"/>${flags}</svg>`;
+      document.body.appendChild(bunting);
+    } else if (!isParty && bunting) {
+      bunting.remove();
+    }
+
+    let hat = document.getElementById('sd-party-hat');
+    const avatar = document.getElementById('avatar');
+    if (isParty && !hat && avatar && avatar.parentElement) {
+      hat = document.createElement('div');
+      hat.id = 'sd-party-hat';
+      hat.className = 'sd-party-hat';
+      hat.innerHTML = PARTY_HAT_SVG;
+      avatar.parentElement.insertBefore(hat, avatar);
+    } else if (!isParty && hat) {
+      hat.remove();
+    }
+
+    if (isParty && !birthdayBalloonTimer) {
+      birthdayBalloonTimer = setInterval(spawnBirthdayBalloon, 5000);
+      spawnBirthdayBalloon();
+    } else if (!isParty && birthdayBalloonTimer) {
+      clearInterval(birthdayBalloonTimer);
+      birthdayBalloonTimer = null;
+    }
+
+    let fog = document.getElementById('sd-fog');
+    if (isCemetery && !fog) {
+      fog = document.createElement('div');
+      fog.id = 'sd-fog';
+      fog.className = 'sd-fog';
+      document.body.appendChild(fog);
+    } else if (!isCemetery && fog) {
+      fog.remove();
+    }
+  }
+
+  function spawnBirthdayBalloon(){
+    if (document.hidden || document.body.classList.contains('low-perf')) return;
+    if (document.querySelectorAll('.sd-balloon').length >= 6) return;
+    const colors = ['#ff5da0', '#ffcb3d', '#4dc3ff', '#79cf67', '#b07bff'];
+    const c = colors[Math.floor(Math.random() * colors.length)];
+    const b = document.createElement('div');
+    b.className = 'sd-balloon';
+    // Keep balloons near the sides so they never cover the shop.
+    const side = Math.random() < 0.5 ? Math.random() * 18 : 82 + Math.random() * 16;
+    b.style.left = side + 'vw';
+    b.style.setProperty('--sway', (Math.random() < 0.5 ? -1 : 1) * (20 + Math.random() * 30) + 'px');
+    b.style.animationDuration = (11 + Math.random() * 6) + 's';
+    b.innerHTML = `<svg viewBox="0 0 60 120" aria-hidden="true"><path d="M30 4 C54 4 58 40 30 58 C2 40 6 4 30 4 Z" fill="${c}" stroke="#0b0818" stroke-width="3"/><path d="M26 62 L30 58 L34 62 Z" fill="${c}" stroke="#0b0818" stroke-width="2"/><path d="M30 62 c8 14 -8 26 0 40 s-6 12 0 16" fill="none" stroke="#faf3df" stroke-width="2"/></svg>`;
+    document.body.appendChild(b);
+    setTimeout(() => b.remove(), 18000);
+  }
+
+  // Small message at the top of the screen.
+  function showSpecialToast(text, tone){
+    const t = document.createElement('div');
+    t.className = 'special-toast' + (tone ? ' ' + tone : '');
+    t.textContent = text;
+    document.body.appendChild(t);
+    requestAnimationFrame(() => t.classList.add('visible'));
+    setTimeout(() => { t.classList.remove('visible'); setTimeout(() => t.remove(), 400); }, 5200);
+  }
+
+  // Called when the game starts: birthday Prestige gift and the cemetery reminders.
+  let deathReminderTimer = null;
+  function startSpecialDayInGame(){
+    refreshSpecialDay();
+    updateBirthdayDecorations();
+    const sd = currentSpecialDay;
+    if (sd && sd.kind === 'birthday') {
+      const year = new Date().getFullYear();
+      if (game.birthdayGiftYear !== year) {
+        game.birthdayGiftYear = year;
+        game.prestige = (game.prestige || 0) + BIRTHDAY_PRESTIGE_GIFT;
+        saveGame();
+        syncToSheet();
+        showBirthdayGift(sd.id === 'cemetery');
+      }
+    }
+    if (sd && sd.id === 'cemetery' && !deathReminderTimer) {
+      setTimeout(() => showSpecialToast(DEATH_REMINDERS[0], 'grim'), 20000);
+      deathReminderTimer = setInterval(() => {
+        if (!currentSpecialDay || currentSpecialDay.id !== 'cemetery') return;
+        showSpecialToast(DEATH_REMINDERS[Math.floor(Math.random() * DEATH_REMINDERS.length)], 'grim');
+      }, DEATH_REMINDER_MS);
+    }
+  }
+
+  function showBirthdayGift(grim){
+    const name = escapeChatHtml(currentUsername || 'you');
+    confirmBox.innerHTML = grim ? `
+      <div class="sd-gift-art">&#x1FAA6;</div>
+      <h1 class="auth-heading">Another year down</h1>
+      <p class="auth-sub">Here's ${BIRTHDAY_PRESTIGE_GIFT} free Prestige. You'll need it. You might lose it soon.</p>
+      <p class="auth-sub">Clicks are worth double today. Enjoy it while you can.</p>
+      <button class="auth-btn" id="sd-gift-ok">Great. Thanks.</button>
+    ` : `
+      <div class="sd-gift-art">&#x1F382;</div>
+      <h1 class="auth-heading">Happy Birthday, ${name}!</h1>
+      <p class="auth-sub">Here's ${BIRTHDAY_PRESTIGE_GIFT} free Prestige, and every click is worth double all day.</p>
+      <button class="auth-btn" id="sd-gift-ok">Let's go!</button>
+    `;
+    document.getElementById('sd-gift-ok').addEventListener('click', closeConfirm);
+    confirmOverlay.classList.add('visible');
+    if (!grim && game.effectsOwned !== undefined) { try { spawnConfettiBurst(); } catch (e) {} }
+  }
+
+  refreshSpecialDay(); // loading screen background shows right away
 
   (async function bootstrap(){
     switchBgSong(AUTH_BG_SONG);
@@ -16800,6 +17485,7 @@
           currentBannerImage = result.account.bannerImage || '';
           currentVisits = result.account.visits || 0;
           currentHideBirthday = !!result.account.hideBirthday;
+          rememberBirthday(result.account);
           currentYoutube = result.account.youtube || '';
           currentTiktok = result.account.tiktok || '';
           currentTwitch = result.account.twitch || '';
