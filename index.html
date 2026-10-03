@@ -17396,6 +17396,38 @@
     setTimeout(() => { t.classList.remove('visible'); setTimeout(() => t.remove(), 400); }, 5200);
   }
 
+  /* ---------- BIRTHDAY GIFT CLAIM TRACKING ----------
+     Why this exists: applyServerGameData() rebuilds the whole `game` object from
+     defaultGame() on every login/reload, which wiped game.birthdayGiftYear and let
+     players reload the page over and over for infinite free Prestige.
+     The fix: remember the claim in a separate localStorage key (one per account)
+     that the save/load code never touches. */
+  const BIRTHDAY_GIFT_KEY = 'fgd_birthday_gift_'; // full key = prefix + lowercase username
+  let birthdayGiftClaimedThisSession = false;     // backup in case localStorage is blocked
+
+  function birthdayGiftKey(){
+    return BIRTHDAY_GIFT_KEY + String(currentUsername || getSession() || '').toLowerCase();
+  }
+
+  // True if this account already got the gift for the given year.
+  function hasClaimedBirthdayGift(year){
+    if (birthdayGiftClaimedThisSession) return true;
+    // Old saves that still carry the flag also count as claimed.
+    if (game.birthdayGiftYear === year) return true;
+    try {
+      return localStorage.getItem(birthdayGiftKey()) === String(year);
+    } catch (e) {
+      return false; // storage blocked: the session flag above still protects this visit
+    }
+  }
+
+  // Record the claim in localStorage (and in the save, as a harmless extra copy).
+  function markBirthdayGiftClaimed(year){
+    birthdayGiftClaimedThisSession = true;
+    game.birthdayGiftYear = year;
+    try { localStorage.setItem(birthdayGiftKey(), String(year)); } catch (e) {}
+  }
+
   // Called when the game starts: birthday Prestige gift and the cemetery reminders.
   let deathReminderTimer = null;
   function startSpecialDayInGame(){
@@ -17404,8 +17436,10 @@
     const sd = currentSpecialDay;
     if (sd && sd.kind === 'birthday') {
       const year = new Date().getFullYear();
-      if (game.birthdayGiftYear !== year) {
-        game.birthdayGiftYear = year;
+      // BUG FIX: the claimed flag now lives in its own localStorage key, so
+      // reloading (which rebuilds the save from the server) can't reset it.
+      if (!hasClaimedBirthdayGift(year)) {
+        markBirthdayGiftClaimed(year); // mark FIRST so a reload mid-save can't double dip
         game.prestige = (game.prestige || 0) + BIRTHDAY_PRESTIGE_GIFT;
         saveGame();
         syncToSheet();
