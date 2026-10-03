@@ -9560,18 +9560,43 @@
     });
   }
 
+  /* ---------- COLOR BACKGROUNDS ----------
+     Every favorite color has its own picture in the backgrounds folder,
+     named bg_<color>.png (example: backgrounds/bg_blue.png).
+     The "Color" choice in the background picker shows that picture.
+     To add a new color, drop a bg_<name>.png in the folder and add the
+     name to COLOR_BG_NAMES below.
+  ------------------------------------------------- */
+  const COLOR_BG_FOLDER = 'backgrounds/';
+  const COLOR_BG_NAMES = ['red', 'orange', 'yellow', 'green', 'teal', 'blue', 'cyan', 'purple', 'pink', 'black'];
+  let currentThemeColor = null; // the account's favorite color, saved by applyAccountTheme()
+
+  // Paints the page with the picture that matches the given color.
+  function applyColorBackground(color){
+    const style = document.body.style;
+    // Flat color first. It shows while the picture loads and acts as a
+    // backup if the picture file is ever missing. (This shorthand also
+    // resets the image settings, so the lines below set them again.)
+    style.background = color || '';
+    if (!color || !COLOR_BG_NAMES.includes(color)) return;
+    style.backgroundImage = `url('${COLOR_BG_FOLDER}bg_${color}.png')`;
+    style.backgroundSize = 'cover';
+    style.backgroundPosition = 'center';
+    style.backgroundRepeat = 'no-repeat';
+    style.backgroundAttachment = 'fixed'; // picture stays put while the page scrolls
+  }
+
   function applyBackground(file){
     if (file === 'default') {
-      document.body.style.backgroundImage = '';
-      document.body.style.backgroundSize = '';
-      document.body.style.backgroundPosition = '';
-      document.body.style.backgroundRepeat = '';
+      // "Color" choice: use the picture for the account's favorite color
+      applyColorBackground(currentThemeColor);
       return;
     }
     document.body.style.backgroundImage = `url('${file}')`;
     document.body.style.backgroundSize = 'cover';
     document.body.style.backgroundPosition = 'center';
     document.body.style.backgroundRepeat = 'no-repeat';
+    document.body.style.backgroundAttachment = ''; // undo the fixed setting from the color pictures
   }
 
   bgSelect.addEventListener('change', () => {
@@ -17166,8 +17191,14 @@
     document.documentElement.style.setProperty('--melon-light', color);
     document.documentElement.style.setProperty('--tab-color', brightenColor(color, 25, 15));
     document.documentElement.style.setProperty('--btn-text', COOL_COLORS.includes(color) ? '#ffffff' : 'var(--night)');
-    document.body.style.backgroundImage = 'none';
-    document.body.style.background = color;
+    currentThemeColor = color; // remember it so the "Color" background choice knows which picture to use
+    // If the player picked a picture background (not "Color"), keep it.
+    // Otherwise show the picture that matches their favorite color.
+    if (game && game.bgChosen && game.selectedBg && game.selectedBg !== 'default') {
+      applyBackground(game.selectedBg);
+    } else {
+      applyColorBackground(color);
+    }
   }
 
   const authFlow = document.getElementById('auth-flow');
