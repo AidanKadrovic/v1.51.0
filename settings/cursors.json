@@ -1,0 +1,6 @@
+[
+  { "label": "System", "file": "default" },
+  { "label": "Duck", "file": "duck.png" },
+  { "label": "Banana", "file": "banan.png" },
+  { "label": "Error", "file": "error.png" }
+]
