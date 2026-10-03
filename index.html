@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<!-- Game version: 1.17.1 | Deployment: 201 | Update both on every release, see README.md -->
-<meta name="game-version" content="1.17.1">
+<!-- Game version: 1.18.0 | Deployment: 202 | Update both on every release, see README.md -->
+<meta name="game-version" content="1.18.0">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>The Clicker Game!</title>
 <link rel="icon" type="image/x-icon" href="maksy.ico" id="favicon-link">
@@ -1400,6 +1400,37 @@
     pointer-events:none;
     z-index:-1;
     will-change:transform;
+  }
+
+  /* ---------- BUBBLES & SQUISH CLICK EFFECTS ---------- */
+  .click-bubble{
+    position:fixed;
+    z-index:6000;
+    pointer-events:none;
+    border-radius:50%;
+    border:2px solid rgba(255,255,255,0.75);
+    background:radial-gradient(circle at 32% 30%, rgba(255,255,255,0.9) 0 14%, rgba(160,225,255,0.35) 30%, rgba(160,225,255,0.08) 70%);
+    transform:translate(-50%, -50%) scale(0.3);
+    animation:click-bubble-float var(--life, 1s) ease-out forwards;
+  }
+  @keyframes click-bubble-float{
+    0%{ transform:translate(-50%, -50%) scale(0.3); opacity:0.9; }
+    20%{ transform:translate(calc(-50% + var(--dx) * 0.2), calc(-50% + var(--dy) * 0.2)) scale(1); opacity:1; }
+    50%{ transform:translate(calc(-50% + var(--dx) * 0.55 + var(--wob)), calc(-50% + var(--dy) * 0.55)) scale(1); }
+    85%{ transform:translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) scale(1); opacity:1; }
+    100%{ transform:translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) scale(1.6); opacity:0; }
+  }
+  /* Squish: O -> 0 -> (=) -> O. Keeps the glow animation running alongside. */
+  .avatar.squish{
+    animation:avatar-squish .45s ease-out, avatar-glow 2.4s ease-in-out infinite;
+  }
+  @keyframes avatar-squish{
+    0%{ transform:scale(1, 1); }
+    20%{ transform:scale(0.8, 1.18); }
+    45%{ transform:scale(1.28, 0.74); }
+    65%{ transform:scale(0.94, 1.07); }
+    82%{ transform:scale(1.04, 0.97); }
+    100%{ transform:scale(1, 1); }
   }
 
   /* ---------- CONFETTI & SCREEN SHAKE ---------- */
@@ -6683,6 +6714,8 @@
     }
     if (game.effectsOwned && game.selectedEffect === 'confetti') spawnConfettiBurst();
     if (game.effectsOwned && game.selectedEffect === 'shake') triggerScreenShake();
+    if (game.effectsOwned && game.selectedEffect === 'bubbles') spawnClickBubbles();
+    if (game.effectsOwned && game.selectedEffect === 'squish') triggerAvatarSquish();
   });
 
   setInterval(() => {
@@ -8031,6 +8064,7 @@
     { label: "Masquerade Party", file: "mp.mp3" },
     { label: "Keep Me Going (BIRDBRAIN)", file: "birdbrain.mp3" },
     { label: "Isnt That What Foes Are For", file: "kys.mp3" },
+    { label: "your verity", file: "extras/verity.mp3" }
   ];
 
   const musicPlayerEl = document.getElementById('music-player');
@@ -8106,11 +8140,24 @@
   }
 
   function loadSong(index){
+    if (!SONGS[index]) return;
     songAudio.src = SONGS[index].file;
+  }
+
+  // The picked song is found by file name first, so adding or reordering songs in
+  // settings/music.json never switches someone to a different song.
+  function savedSongIndex(){
+    if (game.selectedSongFile) {
+      const byFile = SONGS.findIndex(s => s.file === game.selectedSongFile);
+      if (byFile !== -1) return byFile;
+    }
+    const idx = Number(game.selectedSong) || 0;
+    return SONGS[idx] ? idx : 0;
   }
 
   songSelect.addEventListener('change', () => {
     game.selectedSong = parseInt(songSelect.value, 10);
+    game.selectedSongFile = (SONGS[game.selectedSong] || {}).file || ''; // survives list changes in settings/music.json
     game.songChosen = true;
     loadSong(songSelect.value);
     saveGame();
@@ -8143,7 +8190,7 @@
   function showMusicPlayer(){
     updatePickerVisibility();
     if (game.songChosen) {
-      const idx = game.selectedSong || 0;
+      const idx = savedSongIndex();
       songSelect.value = idx;
       loadSong(idx);
     } else {
@@ -8646,7 +8693,9 @@
   const EFFECTS = [
     { label: "None", value: "none" },
     { label: "Confetti", value: "confetti" },
-    { label: "Screen Shake", value: "shake" }
+    { label: "Screen Shake", value: "shake" },
+    { label: "Bubbles", value: "bubbles" },
+    { label: "Squish", value: "squish" }
   ];
 
   const effectPickerEl = document.getElementById('effect-picker');
@@ -8705,7 +8754,9 @@
   })();
 
   function applyUiFont(value){
-    document.body.classList.remove(...UI_FONT_CLASSES);
+    // Removes every ui-font-* class, including fonts added later by settings/fonts.json.
+    Array.from(document.body.classList).filter(c => c.indexOf('ui-font-') === 0)
+      .forEach(c => document.body.classList.remove(c));
     if (value) document.body.classList.add('ui-font-' + value);
   }
 
@@ -8725,6 +8776,128 @@
       fontManagerSelect.value = '';
     }
   }
+
+  /* ---------- SETTINGS FILES (settings/*.json) ----------
+     The built-in music, cursors, backgrounds and fonts can be edited without touching
+     this file: settings/music.json, cursors.json, backgrounds.json and fonts.json.
+     The lists written above are only a backup used if a file is missing or broken.
+     Songs, cursors and backgrounds added by mods or uploads are kept after the built-ins.
+     See README.md "Settings files" for the format of each file. */
+  const SETTINGS_FOLDER = 'settings/';
+  let songsBuiltinCount = SONGS.length;
+  let cursorsBuiltinCount = CURSORS.length;
+  let backgroundsBuiltinCount = BACKGROUNDS.length;
+
+  function fetchSettingsJson(name){
+    return fetch(SETTINGS_FOLDER + name, { cache: 'no-cache' }).then(r => {
+      if (!r.ok) throw new Error(name);
+      return r.json();
+    });
+  }
+
+  // Keeps only entries with a label and a file.
+  function cleanSettingsFiles(list){
+    return (Array.isArray(list) ? list : [])
+      .filter(e => e && typeof e.label === 'string' && typeof e.file === 'string' && e.label.trim() && e.file.trim())
+      .map(e => ({ label: e.label.trim(), file: e.file.trim() }));
+  }
+
+  function rebuildPickerSelect(select, placeholderText, entries, valueOf){
+    select.innerHTML = '';
+    const placeholder = document.createElement('option');
+    placeholder.value = '';
+    placeholder.textContent = placeholderText;
+    placeholder.disabled = true;
+    select.appendChild(placeholder);
+    entries.forEach((e, i) => {
+      const opt = document.createElement('option');
+      opt.value = valueOf(e, i);
+      opt.textContent = e.label;
+      select.appendChild(opt);
+    });
+  }
+
+  function applySettingsMusic(list){
+    if (!list.length) return;
+    const current = songSelect.value !== '' ? (SONGS[Number(songSelect.value)] || {}).file : null;
+    const custom = SONGS.slice(songsBuiltinCount);
+    SONGS.length = 0;
+    list.concat(custom).forEach(e => SONGS.push(e));
+    songsBuiltinCount = list.length;
+    rebuildPickerSelect(songSelect, 'Choose a song', SONGS, (e, i) => i);
+    if (current) {
+      const idx = SONGS.findIndex(s => s.file === current);
+      songSelect.value = idx === -1 ? '' : idx;
+      if (idx !== -1 && game.songChosen) game.selectedSong = idx;
+    }
+  }
+
+  function applySettingsCursors(list){
+    if (!list.length) return;
+    const current = cursorSelect.value;
+    const custom = CURSORS.slice(cursorsBuiltinCount);
+    CURSORS.length = 0;
+    list.concat(custom).forEach(e => CURSORS.push(e));
+    cursorsBuiltinCount = list.length;
+    rebuildPickerSelect(cursorSelect, 'Choose a cursor', CURSORS, e => e.file);
+    cursorSelect.value = CURSORS.some(c => c.file === current) ? current : '';
+  }
+
+  function applySettingsBackgrounds(list){
+    if (!list.length) return;
+    const current = bgSelect.value;
+    const custom = BACKGROUNDS.slice(backgroundsBuiltinCount);
+    BACKGROUNDS.length = 0;
+    list.concat(custom).forEach(e => BACKGROUNDS.push(e));
+    backgroundsBuiltinCount = list.length;
+    rebuildPickerSelect(bgSelect, 'Choose a background', BACKGROUNDS, e => e.file);
+    bgSelect.value = BACKGROUNDS.some(b => b.file === current) ? current : '';
+  }
+
+  // fonts.json entries: { label, value, family, fallback, file?, google? }
+  //   file   = a .ttf/.otf/.woff2 next to index.html, loaded with @font-face
+  //   google = true to load the family from Google Fonts
+  function applySettingsFonts(list){
+    const fonts = (Array.isArray(list) ? list : []).filter(f =>
+      f && typeof f.label === 'string' && /^[a-z0-9_-]{1,30}$/i.test(String(f.value || '')) && typeof f.family === 'string' && f.family.trim());
+    if (!fonts.length) return;
+    const quote = v => String(v).replace(/['"\\<>{};]/g, '');
+    const css = [];
+    fonts.forEach(f => {
+      const family = quote(f.family.trim());
+      const fallback = quote(f.fallback || 'sans-serif');
+      if (f.file) css.push(`@font-face{font-family:'${family}';src:url('${quote(f.file)}');font-display:swap;}`);
+      if (f.google) {
+        const href = 'https://fonts.googleapis.com/css2?family=' + encodeURIComponent(family).replace(/%20/g, '+') + '&display=swap';
+        if (!document.querySelector(`link[href="${href}"]`)) {
+          const link = document.createElement('link');
+          link.rel = 'stylesheet';
+          link.href = href;
+          document.head.appendChild(link);
+        }
+      }
+      css.push(`body.ui-font-${f.value.toLowerCase()} *{font-family:'${family}', ${fallback} !important;}`);
+    });
+    let styleEl = document.getElementById('settings-fonts-style');
+    if (!styleEl) {
+      styleEl = document.createElement('style');
+      styleEl.id = 'settings-fonts-style';
+      document.head.appendChild(styleEl);
+    }
+    styleEl.textContent = css.join('\n');
+
+    const current = fontManagerSelect.value;
+    UI_FONTS.length = 0;
+    fonts.forEach(f => UI_FONTS.push({ label: f.label.trim(), value: f.value.toLowerCase() }));
+    rebuildPickerSelect(fontManagerSelect, 'Choose a font', UI_FONTS, e => e.value);
+    fontManagerSelect.value = UI_FONTS.some(f => f.value === current) ? current : '';
+  }
+
+  // Each file loads on its own, so one broken file never blocks the others.
+  fetchSettingsJson('music.json').then(l => applySettingsMusic(cleanSettingsFiles(l))).catch(() => {});
+  fetchSettingsJson('cursors.json').then(l => applySettingsCursors(cleanSettingsFiles(l))).catch(() => {});
+  fetchSettingsJson('backgrounds.json').then(l => applySettingsBackgrounds(cleanSettingsFiles(l))).catch(() => {});
+  fetchSettingsJson('fonts.json').then(applySettingsFonts).catch(() => {});
 
   /* ---------- DVD LOGO ---------- */
   const DVD_COLORS = ['#57ab46', '#79cf67', '#c1aef0', '#faf3df', '#ff6f9c', '#66c2ff'];
@@ -9221,6 +9394,42 @@
       setTimeout(() => piece.remove(), 700);
     }
   }
+
+  // BUBBLES: a few soap bubbles float up from the clicker, wobble, then pop.
+  const MAX_CLICK_BUBBLES = 60; // fast clicking cannot fill the screen
+  function spawnClickBubbles(){
+    if (document.querySelectorAll('.click-bubble').length > MAX_CLICK_BUBBLES) return;
+    const rect = avatarEl.getBoundingClientRect();
+    const originX = rect.left + rect.width / 2;
+    const originY = rect.top + rect.height / 2;
+    const count = 5 + Math.floor(Math.random() * 3);
+    for (let i = 0; i < count; i++) {
+      const b = document.createElement('div');
+      b.className = 'click-bubble';
+      const size = 10 + Math.random() * 18;
+      const life = 0.8 + Math.random() * 0.6;
+      b.style.width = size + 'px';
+      b.style.height = size + 'px';
+      b.style.left = (originX + (Math.random() * 40 - 20)) + 'px';
+      b.style.top = (originY + (Math.random() * 30 - 15)) + 'px';
+      b.style.setProperty('--dx', (Math.random() * 120 - 60) + 'px');
+      b.style.setProperty('--dy', (-70 - Math.random() * 90) + 'px');
+      b.style.setProperty('--wob', (Math.random() < 0.5 ? -1 : 1) * (8 + Math.random() * 10) + 'px');
+      b.style.setProperty('--life', life + 's');
+      document.body.appendChild(b);
+      setTimeout(() => b.remove(), life * 1000 + 50);
+    }
+  }
+
+  // SQUISH: the clicker squashes and bounces back like jelly.
+  function triggerAvatarSquish(){
+    avatarEl.classList.remove('squish');
+    void avatarEl.offsetWidth; // restart the animation on every click
+    avatarEl.classList.add('squish');
+  }
+  avatarEl.addEventListener('animationend', (e) => {
+    if (e.animationName === 'avatar-squish') avatarEl.classList.remove('squish');
+  });
 
   function triggerScreenShake(){
     document.body.classList.remove('screen-shake');
@@ -13282,6 +13491,7 @@
         // placeholder again for something already picked.
         previousPickerPrefs = {
           selectedSong: savedRaw.selectedSong,
+          selectedSongFile: savedRaw.selectedSongFile,
           songChosen: !!savedRaw.songChosen,
           selectedCursor: savedRaw.selectedCursor,
           cursorChosen: !!savedRaw.cursorChosen,
@@ -13350,6 +13560,7 @@
       // in the meantime so a real purchase doesn't get wiped on login.
       fontManagerOwned: source.fontManagerOwned !== undefined ? !!source.fontManagerOwned : !!previousPickerPrefs.fontManagerOwned,
       selectedSong: previousPickerPrefs.selectedSong !== undefined ? previousPickerPrefs.selectedSong : 0,
+      selectedSongFile: previousPickerPrefs.selectedSongFile || '',
       songChosen: !!previousPickerPrefs.songChosen,
       selectedCursor: previousPickerPrefs.selectedCursor !== undefined ? previousPickerPrefs.selectedCursor : 'default',
       cursorChosen: !!previousPickerPrefs.cursorChosen,
@@ -13471,7 +13682,10 @@
 
   function loadRandomLoadingTip(){
     if (!loadingTipEl) return;
-    fetch('messages.json')
+    // settings/messages.json, or the old messages.json in the root as a backup.
+    fetch('settings/messages.json')
+      .then(res => { if (!res.ok) throw new Error('messages'); return res; })
+      .catch(() => fetch('messages.json'))
       .then(res => res.json())
       .then(list => {
         if (Array.isArray(list) && list.length) {
