@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<!-- Game version: 1.24.0 | Deployment: 207 | Update both on every release, see README.md -->
-<meta name="game-version" content="1.24.0">
+<!-- Game version: 1.24.1 | Deployment: 208 | Update both on every release, see README.md -->
+<meta name="game-version" content="1.24.1">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>The Clicker Game!</title>
 <link rel="icon" type="image/x-icon" href="images/ui/maksy.ico" id="favicon-link">
@@ -17850,7 +17850,11 @@
     const divisor = realMaxStr.length <= 2
       ? 1
       : (parseInt(realMaxStr.slice(0, realMaxStr.length - 2), 10) || 1);
-    const max = Math.max(1, Math.round(realMax / divisor));
+    // BUG FIX (1.24.1): the "Loading code... 1/N" count grows with how many lines changed
+    // since the player's last visit. A big update (1.24.0 added about 500 lines) made the
+    // first load after it take many seconds. LOADING_COUNT_MAX keeps it short.
+    const LOADING_COUNT_MAX = 30; // most steps the count is allowed to take (about 1 second)
+    const max = Math.min(LOADING_COUNT_MAX, Math.max(1, Math.round(realMax / divisor)));
 
     const phases = [
       { text: 'Loading API...', duration: 1200, target: 25 }

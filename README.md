@@ -107,8 +107,8 @@ Rules:
 Near the top of `index.html`:
 
 ```html
-<!-- Game version: 1.24.0 | Deployment: 207 | Update both on every release, see README.md -->
-<meta name="game-version" content="1.24.0">
+<!-- Game version: 1.24.1 | Deployment: 208 | Update both on every release, see README.md -->
+<meta name="game-version" content="1.24.1">
 ```
 
 Bump both the version comment and the `game-version` meta tag on every release. The deployment number is an internal counter for tracking Apps Script/Sheet deployments - increment it whenever the backend Web App is redeployed, even if the game version string doesn't change.
