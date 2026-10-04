@@ -39,6 +39,12 @@ If you fork this project or move it to a new Sheet/Apps Script deployment, updat
 - **Friends & Messages** - friend requests, friend picker, and a simple chat system.
 - **Notification badges** (1.22.0) - a red badge above the Stats tab shows friend requests + unread messages. Inside Stats, Overview shows the friend request count and Messages shows the unread count. Polled every `NOTIF_POLL_MS` (15s).
 - **New shop item alert** (1.22.0) - when a shop item becomes affordable for the first time, the Shop tab flickers yellow (purple if the player's favorite color is yellow). Clicking Shop opens the right category, scrolls to the item and flashes it. New items must be added to `SHOP_WATCH_ITEMS` to get the alert.
+- **Gameplay extras** (1.24.0) - all in the `GAMEPLAY EXTRAS` section of `index.html`, none of them use the API:
+  - **Floating numbers**: a `+N` pops out of the clicker on every click (gold when Lucky Charm doubles it). Off in Low Performance Mode.
+  - **Moneys per second**: a chip under the clicker shows the average income of the last 5 seconds.
+  - **Combo**: fast clicking multiplies your own clicks: x1.25 at 20, x1.5 at 50, x2 at 100 (`COMBO_TIERS`). It drops after 1.5 seconds without a click.
+  - **Lucky Star**: shows up every 2 to 5 minutes for 12 seconds. Catching it gives a Frenzy (x3 on everything for 20 seconds) or a jackpot worth 60 seconds of income.
+  - **Daily Reward**: free moneys once a day, growing over a 7 day streak. Saved per account in the `fgd_daily_<username>` localStorage key.
 - **Tutorial** - first-time walkthrough that highlights each tab; replayable from Settings.
 - **Click Effects:** Confetti, Screen Shake, Bubbles and Squish, picked from the Click Effects picker after buying it in the shop.
 - **Settings** - mute SFX, light/dark theme, low performance mode (simplifies effects + shows an FPS counter), layout switcher (center/left/right, PC & tablet only), reset data, reset tutorial, view team applications, credits, download the game (opens the GitHub repo, set in `GAME_REPO_URL`), log out, delete account, and **Debug Mode**.
@@ -101,8 +107,8 @@ Rules:
 Near the top of `index.html`:
 
 ```html
-<!-- Game version: 1.23.1 | Deployment: 207 | Update both on every release, see README.md -->
-<meta name="game-version" content="1.23.1">
+<!-- Game version: 1.24.0 | Deployment: 207 | Update both on every release, see README.md -->
+<meta name="game-version" content="1.24.0">
 ```
 
 Bump both the version comment and the `game-version` meta tag on every release. The deployment number is an internal counter for tracking Apps Script/Sheet deployments - increment it whenever the backend Web App is redeployed, even if the game version string doesn't change.
