@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<!-- Game version: 1.21.0 | Deployment: 205 | Update both on every release, see README.md -->
-<meta name="game-version" content="1.21.0">
+<!-- Game version: 1.23.0 | Deployment: 207 | Update both on every release, see README.md -->
+<meta name="game-version" content="1.23.0">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>The Clicker Game!</title>
 <link rel="icon" type="image/x-icon" href="maksy.ico" id="favicon-link">
@@ -599,6 +599,55 @@
     color:var(--night);
     box-shadow:var(--pop-sm);
     transform:translate(-1px,-1px);
+  }
+
+  /* ---------- NOTIFICATION BADGES & NEW SHOP ITEM (1.22.0) ---------- */
+  .tab-btn, .stats-subtab-btn{ position:relative; }
+  .notif-badge{
+    position:absolute;
+    top:-9px;
+    right:-7px;
+    min-width:20px;
+    height:20px;
+    padding:0 5px;
+    box-sizing:border-box;
+    border-radius:10px;
+    background:#ef4444;
+    color:#ffffff;
+    border:2px solid var(--ink);
+    font-family:'Fredoka One', cursive;
+    font-size:11px;
+    line-height:16px;
+    text-align:center;
+    pointer-events:none;
+    z-index:2;
+    animation:notif-badge-pop .25s ease-out;
+  }
+  .tab-notif-badge{
+    display:flex;
+    align-items:center;
+    gap:2px;
+    top:-12px;
+  }
+  .tab-notif-badge svg{ width:10px; height:10px; display:block; }
+  @keyframes notif-badge-pop{
+    0%{ transform:scale(0); }
+    70%{ transform:scale(1.2); }
+    100%{ transform:scale(1); }
+  }
+  .tab-btn.shop-new-flicker{
+    animation:shop-new-flicker 1s ease-in-out infinite;
+  }
+  @keyframes shop-new-flicker{
+    0%, 100%{ background:var(--card); box-shadow:none; }
+    50%{ background:var(--shop-flicker-color, #facc15); color:#181428; box-shadow:0 0 14px var(--shop-flicker-color, #facc15); }
+  }
+  .shop-card.shop-new-highlight{
+    animation:shop-new-highlight 0.6s ease-in-out 4;
+  }
+  @keyframes shop-new-highlight{
+    0%, 100%{ box-shadow:none; }
+    50%{ box-shadow:0 0 0 4px var(--shop-flicker-color, #facc15), 0 0 18px var(--shop-flicker-color, #facc15); }
   }
 
   .shop-category-bar{
@@ -7560,6 +7609,11 @@
   ];
 
   let activeTab = TABS[0].id;
+
+  // NOTIFICATIONS (1.22.0): friend requests show on Stats > Overview, unread messages on Stats > Messages.
+  let notifCounts = { requests: 0, messages: 0 };
+  // NEW SHOP ITEM (1.22.0): ids of shop items that just became available and haven't been shown yet.
+  let shopNewItems = [];
   let shopCategory = 'all';
   let achievementCategory = 'all';
   let clickBoostExpanded = false;
@@ -8645,6 +8699,221 @@
     bind('buy-prestigemult', buyPrestigeMult);
     bind('buy-autobuyer', buyAutoBuyer);
     if (shopCategory === 'limited') bindLimitedShop();
+  }
+
+  /* ======================================================
+     NEW SHOP ITEM (1.22.0)
+     When a shop item becomes available (affordable) for the first time, the
+     Shop tab flickers yellow (purple if the player's favorite color is yellow).
+     Clicking Shop opens the right category, scrolls to the item and flashes it.
+     More than one new item: each Shop click goes to the next one.
+     Seen items are kept per account in localStorage (fgd_shop_seen_<user>), so
+     they survive Prestige. The first run seeds everything already available or
+     owned as seen, so existing players don't get a flicker for old items.
+     To add a shop item here: add a line to SHOP_WATCH_ITEMS with the id of its
+     buy button, its category, when it is available and when it is owned.
+     ====================================================== */
+  const SHOP_WATCH_ITEMS = [
+    { id: 'buy-boost',        category: 'plain',         available: () => game.clicks >= clickBoostCost(),  owned: () => game.clickBoostOwned > 0 },
+    { id: 'buy-auto',         category: 'plain',         available: () => game.clicks >= autoClickerCost(), owned: () => game.autoClickerOwned > 0 },
+    { id: 'buy-dvd',          category: 'visuals',       available: () => game.clicks >= dvdCost(),         owned: () => game.dvdOwned > 0 },
+    { id: 'buy-amogus',       category: 'visuals',       available: () => game.clicks >= AMOGUS_COST,       owned: () => (game.amogusOwned || 0) > 0 || (game.amogusAlive || 0) > 0 },
+    { id: 'buy-noob',         category: 'visuals',       available: () => game.clicks >= NOOB_COST,         owned: () => game.noobOwned > 0 },
+    { id: 'buy-cursors',      category: 'customization', available: () => !game.cursorsOwned && game.clicks >= CURSOR_COST,             owned: () => !!game.cursorsOwned },
+    { id: 'buy-bg',           category: 'customization', available: () => !game.bgOwned && game.clicks >= BG_COST,                     owned: () => !!game.bgOwned },
+    { id: 'buy-music',        category: 'customization', available: () => !game.musicPlayerOwned && game.clicks >= MUSIC_PLAYER_COST, owned: () => !!game.musicPlayerOwned },
+    { id: 'buy-icon',         category: 'customization', available: () => !game.iconModifierOwned && game.clicks >= ICON_COST,         owned: () => !!game.iconModifierOwned },
+    { id: 'buy-effects',      category: 'customization', available: () => !game.effectsOwned && game.clicks >= EFFECTS_COST,           owned: () => !!game.effectsOwned },
+    { id: 'buy-font-manager', category: 'customization', available: () => !game.fontManagerOwned && game.clicks >= FONT_MANAGER_COST,  owned: () => !!game.fontManagerOwned },
+    { id: 'buy-autokill',     category: 'plain',         available: () => !game.autoKillOwned && game.clicks >= AUTO_KILL_COST,        owned: () => !!game.autoKillOwned },
+    { id: 'buy-offline',      category: 'plain',         available: () => !game.offlineEarningsOwned && game.clicks >= OFFLINE_COST,   owned: () => !!game.offlineEarningsOwned },
+    { id: 'buy-luckycharm',   category: 'plain',         available: () => !game.luckyCharmOwned && game.clicks >= LUCKY_CHARM_COST,    owned: () => !!game.luckyCharmOwned },
+    { id: 'do-prestige',      category: 'prestige',      available: () => game.clicks >= PRESTIGE_COST,      owned: () => (game.prestige || 0) > 0 },
+    { id: 'buy-boost-trade',  category: 'prestige',      available: () => (game.prestige || 0) >= 1,         owned: () => (game.boosts || 0) > 0 },
+    { id: 'buy-headstart',    category: 'prestige',      available: () => (game.prestige || 0) >= headStartCost(),   owned: () => (game.headStartOwned || 0) > 0 },
+    { id: 'buy-prestigemult', category: 'prestige',      available: () => (game.prestige || 0) >= prestigeMultCost(), owned: () => (game.prestigeMultOwned || 0) > 0 },
+    { id: 'buy-autobuyer',    category: 'prestige',      available: () => !game.autoBuyerOwned && (game.prestige || 0) >= AUTO_BUYER_COST, owned: () => !!game.autoBuyerOwned }
+  ];
+  const SHOP_WATCH_MS = 1000;
+  let shopSeenItems = null;
+
+  function shopSeenKey(){
+    return 'fgd_shop_seen_' + (currentUsername || 'guest');
+  }
+
+  function loadShopSeen(){
+    try {
+      const saved = JSON.parse(localStorage.getItem(shopSeenKey()));
+      if (Array.isArray(saved)) return new Set(saved);
+    } catch (e) {}
+    return null;
+  }
+
+  function saveShopSeen(){
+    try { localStorage.setItem(shopSeenKey(), JSON.stringify([...shopSeenItems])); } catch (e) {}
+  }
+
+  function safeCheck(fn){
+    try { return !!fn(); } catch (e) { return false; }
+  }
+
+  function checkShopNewItems(){
+    if (!shopSeenItems) {
+      shopSeenItems = loadShopSeen();
+      if (!shopSeenItems) {
+        // First run for this account: everything already available or owned counts as seen.
+        shopSeenItems = new Set(SHOP_WATCH_ITEMS
+          .filter(item => safeCheck(item.available) || safeCheck(item.owned))
+          .map(item => item.id));
+        saveShopSeen();
+        return;
+      }
+    }
+    let changed = false;
+    SHOP_WATCH_ITEMS.forEach(item => {
+      if (shopSeenItems.has(item.id)) return;
+      if (safeCheck(item.owned)) {
+        // Bought it without opening it from the flicker, so it is not new anymore.
+        shopSeenItems.add(item.id);
+        shopNewItems = shopNewItems.filter(id => id !== item.id);
+        changed = true;
+      } else if (safeCheck(item.available) && !shopNewItems.includes(item.id)) {
+        shopNewItems.push(item.id);
+        changed = true;
+      }
+    });
+    if (changed) {
+      saveShopSeen();
+      updateShopFlicker();
+    }
+  }
+
+  function shopFlickerColor(){
+    const fav = String(currentThemeColor || getLastTheme() || '').toLowerCase();
+    return fav === 'yellow' ? '#a855f7' : '#facc15';
+  }
+
+  function updateShopFlicker(){
+    const shopBtn = tabBar.querySelector('.tab-btn[data-tab="shop"]');
+    if (!shopBtn) return;
+    const on = shopNewItems.length > 0;
+    shopBtn.classList.toggle('shop-new-flicker', on);
+    document.documentElement.style.setProperty('--shop-flicker-color', shopFlickerColor());
+    shopBtn.title = on ? 'Shop (new item available!)' : 'Shop';
+  }
+
+  function nextNewShopItem(){
+    const id = shopNewItems[0];
+    return id ? SHOP_WATCH_ITEMS.find(item => item.id === id) || null : null;
+  }
+
+  function prepareShopCategoryFor(item){
+    if (item.category === 'prestige') {
+      shopCategory = 'prestige';
+    } else if (shopCategory !== 'all' && shopCategory !== item.category) {
+      shopCategory = 'all';
+    }
+  }
+
+  function scrollToNewShopItem(item){
+    shopNewItems = shopNewItems.filter(id => id !== item.id);
+    shopSeenItems.add(item.id);
+    saveShopSeen();
+    updateShopFlicker();
+    // Wait for the tab open animation to start so the card is in place.
+    setTimeout(() => {
+      const btn = document.getElementById(item.id);
+      const card = btn ? btn.closest('.shop-card') : null;
+      if (!card) return;
+      card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      card.classList.remove('shop-new-highlight');
+      void card.offsetWidth;
+      card.classList.add('shop-new-highlight');
+      card.addEventListener('animationend', () => card.classList.remove('shop-new-highlight'), { once: true });
+    }, 60);
+  }
+
+  let shopWatcherStarted = false;
+  function startShopNewItemWatcher(){
+    if (shopWatcherStarted) return;
+    shopWatcherStarted = true;
+    checkShopNewItems();
+    setInterval(checkShopNewItems, SHOP_WATCH_MS);
+  }
+
+  /* ======================================================
+     NOTIFICATION BADGES (1.22.0)
+     A red badge above the Stats tab shows friend requests + unread messages.
+     Inside Stats, Overview shows the friend request count and Messages shows
+     the unread message count. Counts come from getFriendRequests and getChats,
+     polled every NOTIF_POLL_MS and refreshed whenever those lists load.
+     ====================================================== */
+  const NOTIF_POLL_MS = 15000;
+  const NOTIF_BELL_SVG = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 22a2.5 2.5 0 0 0 2.4-2h-4.8a2.5 2.5 0 0 0 2.4 2zm7-6V11a7 7 0 0 0-5.5-6.8V3a1.5 1.5 0 0 0-3 0v1.2A7 7 0 0 0 5 11v5l-2 2v1h18v-1l-2-2z"/></svg>';
+
+  function countUnreadMessages(chats){
+    return (chats || []).reduce((sum, c) => sum + (Number(c.unreadCount) || 0), 0);
+  }
+
+  function setNotifCount(type, value){
+    const n = Math.max(0, Number(value) || 0);
+    if (notifCounts[type] === n) return;
+    notifCounts[type] = n;
+    renderNotificationBadges();
+  }
+
+  function badgeLabel(n){
+    return n > 99 ? '99+' : String(n);
+  }
+
+  function setBadge(el, count, extraClass, withBell){
+    if (!el) return;
+    let badge = el.querySelector(':scope > .notif-badge');
+    if (count <= 0) {
+      if (badge) badge.remove();
+      return;
+    }
+    const html = (withBell ? NOTIF_BELL_SVG : '') + '<span>' + badgeLabel(count) + '</span>';
+    if (!badge) {
+      badge = document.createElement('span');
+      badge.className = 'notif-badge' + (extraClass ? ' ' + extraClass : '');
+      el.appendChild(badge);
+    }
+    if (badge.innerHTML !== html) badge.innerHTML = html;
+  }
+
+  function renderNotificationBadges(){
+    const total = notifCounts.requests + notifCounts.messages;
+    setBadge(tabBar.querySelector('.tab-btn[data-tab="stats"]'), total, 'tab-notif-badge', true);
+    setBadge(document.getElementById('stats-subtab-overview'), notifCounts.requests);
+    setBadge(document.getElementById('stats-subtab-messages'), notifCounts.messages);
+  }
+
+  let notifPollBusy = false;
+  async function refreshNotificationCounts(){
+    if (notifPollBusy || !currentUsername || document.hidden) return;
+    notifPollBusy = true;
+    try {
+      const [reqResult, chatResult] = await Promise.all([
+        sheetRequest({ action: 'getFriendRequests', username: currentUsername }).catch(() => null),
+        sheetRequest({ action: 'getChats', username: currentUsername }).catch(() => null)
+      ]);
+      if (reqResult && reqResult.success) setNotifCount('requests', (reqResult.requests || []).length);
+      if (chatResult && chatResult.success && Array.isArray(chatResult.chats)) setNotifCount('messages', countUnreadMessages(chatResult.chats));
+    } finally {
+      notifPollBusy = false;
+    }
+  }
+
+  let notifPollingStarted = false;
+  function startNotificationPolling(){
+    if (notifPollingStarted) return;
+    notifPollingStarted = true;
+    setTimeout(refreshNotificationCounts, 2000);
+    setInterval(refreshNotificationCounts, NOTIF_POLL_MS);
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden) refreshNotificationCounts();
+    });
   }
 
 
@@ -10957,15 +11226,21 @@
       btn.setAttribute('aria-label', tab.label);
       btn.dataset.tab = tab.id;
       btn.addEventListener('click', () => {
+        // NEW SHOP ITEM: opening the Shop while it flickers jumps to the new item.
+        const newItem = tab.id === 'shop' ? nextNewShopItem() : null;
+        if (newItem) prepareShopCategoryFor(newItem);
         activeTab = tab.id;
         tutorialVisitedTabs.add(tab.id);
         updatePickerVisibility();
         renderTabs();
         renderActiveTab();
         playTabOpenAnimation();
+        if (newItem) scrollToNewShopItem(newItem);
       });
       tabBar.appendChild(btn);
     });
+    renderNotificationBadges();
+    updateShopFlicker();
   }
 
   function playTabOpenAnimation(){
@@ -11292,6 +11567,7 @@
 
     loadFriendRequests();
     loadModReports();
+    renderNotificationBadges();
   }
 
   function switchStatsSubtab(tab){
@@ -11414,6 +11690,7 @@
     try {
       const result = await sheetRequest({ action: 'getChats', username: currentUsername });
       chatsListCache = (result.success && result.chats) ? result.chats : [];
+      if (result.success) setNotifCount('messages', countUnreadMessages(chatsListCache));
       renderChatsList();
     } catch (e) {
       listEl.innerHTML = '<div class="empty-state">Couldn\'t reach the database.</div>';
@@ -12017,6 +12294,7 @@
   async function refreshChatsListSilently(){
     const result = await sheetRequest({ action: 'getChats', username: currentUsername });
     if (!result || !result.success || !Array.isArray(result.chats)) return;
+    setNotifCount('messages', countUnreadMessages(result.chats));
     // Changes to the name, members, unread count or last message all redraw the list.
     const sig = list => list.map(c => [
       c.id, c.name, c.updatedAt || '', c.memberCount || 0, c.unreadCount || 0,
@@ -12063,6 +12341,7 @@
     try {
       const result = await sheetRequest({ action: 'getFriendRequests', username: currentUsername });
       const requests = (result.success && result.requests) ? result.requests : [];
+      if (result.success) setNotifCount('requests', requests.length);
 
       if (!requests.length) {
         card.style.display = 'none';
@@ -12281,6 +12560,8 @@
     };
     setTimeout(run, 3000);
     setInterval(run, INBOX_POLL_MS);
+    startNotificationPolling();
+    startShopNewItemWatcher();
   }
 
   function openGemsConvertDialog(){
@@ -18537,6 +18818,8 @@
     document.addEventListener('touchend', dragEnd);
   })();
 
+  const GAME_REPO_URL = 'https://github.com/FallGameDev/clicker';
+
   function renderSettings(){
     list.innerHTML = `
       <div class="shop-card">
@@ -18611,6 +18894,13 @@
       </div>
       <div class="shop-card">
         <div class="shop-info">
+          <h3>Download the Game</h3>
+          <p>Get the full game files from the GitHub repo.</p>
+        </div>
+        <button class="buy-btn" id="open-download-game">Download</button>
+      </div>
+      <div class="shop-card">
+        <div class="shop-info">
           <h3>Log Out</h3>
           <p>Sign out of your account on this device.</p>
         </div>
@@ -18658,6 +18948,10 @@
     }
 
     document.getElementById('open-debug-panel').addEventListener('click', openDebugPanel);
+    // DOWNLOAD (1.23.0): opens the repo in a new tab. Change GAME_REPO_URL if the repo moves.
+    document.getElementById('open-download-game').addEventListener('click', () => {
+      window.open(GAME_REPO_URL, '_blank', 'noopener');
+    });
 
     document.getElementById('open-reset-data').addEventListener('click', openConfirmReset);
     document.getElementById('replay-tutorial').addEventListener('click', () => maybeShowTutorial(true));
