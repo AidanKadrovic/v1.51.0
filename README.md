@@ -37,9 +37,11 @@ If you fork this project or move it to a new Sheet/Apps Script deployment, updat
 - **Achievements** — unlockable achievement list with hint system.
 - **Workshop / Mods** — browse, install, and upload user mods; installed mods list. Mods made in the editor can run **CGC** code (see below).
 - **Friends & Messages** — friend requests, friend picker, and a simple chat system.
+- **Notification badges** (1.22.0) — a red badge above the Stats tab shows friend requests + unread messages. Inside Stats, Overview shows the friend request count and Messages shows the unread count. Polled every `NOTIF_POLL_MS` (15s).
+- **New shop item alert** (1.22.0) — when a shop item becomes affordable for the first time, the Shop tab flickers yellow (purple if the player's favorite color is yellow). Clicking Shop opens the right category, scrolls to the item and flashes it. New items must be added to `SHOP_WATCH_ITEMS` to get the alert.
 - **Tutorial** — first-time walkthrough that highlights each tab; replayable from Settings.
 - **Click Effects:** Confetti, Screen Shake, Bubbles and Squish, picked from the Click Effects picker after buying it in the shop.
-- **Settings** — mute SFX, light/dark theme, low performance mode (simplifies effects + shows an FPS counter), layout switcher (center/left/right, PC & tablet only), reset data, reset tutorial, view team applications, credits, log out, delete account, and **Debug Mode**.
+- **Settings** — mute SFX, light/dark theme, low performance mode (simplifies effects + shows an FPS counter), layout switcher (center/left/right, PC & tablet only), reset data, reset tutorial, view team applications, credits, download the game (opens the GitHub repo, set in `GAME_REPO_URL`), log out, delete account, and **Debug Mode**.
 - **Debug Mode** — a draggable panel (Settings → Debug Mode → Open) showing live FPS, a few key stats (username, moneys, prestige, gems, click power), a Test Notification button, and a Page Ratio selector (Default / Phone / Tablet / PC) that previews the page at a real device viewport width in an embedded iframe, so responsive breakpoints trigger for real.
 - **Responsive UI** — the game runs on desktop, tablet, and phones (Samsung and iPhone browsers included). On narrow phone widths the main tab bar (Stats / Leaderboard / Shop / Achievements / Settings) switches from labeled pill tabs to a row of circular icon buttons.
 
@@ -84,8 +86,8 @@ Rules:
 Near the top of `index.html`:
 
 ```html
-<!-- Game version: 1.21.0 | Deployment: 205 | Update both on every release, see README.md -->
-<meta name="game-version" content="1.21.0">
+<!-- Game version: 1.23.0 | Deployment: 207 | Update both on every release, see README.md -->
+<meta name="game-version" content="1.23.0">
 ```
 
 Bump both the version comment and the `game-version` meta tag on every release. The deployment number is an internal counter for tracking Apps Script/Sheet deployments — increment it whenever the backend Web App is redeployed, even if the game version string doesn't change.
