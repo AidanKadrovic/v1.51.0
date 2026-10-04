@@ -1,12 +1,12 @@
 [
-  { "label": "Tidal Wave (Shiawase)", "file": "shiawave__tidalwave_.mp3" },
-  { "label": "Lo-Fi Beats", "file": "lofi.mp3" },
-  { "label": "FIVE FIVE!", "file": "55.mp3" },
-  { "label": "Lyin' 2 Me", "file": "l2m.mp3" },
-  { "label": "Good to Be Alive", "file": "gtba.mp3" },
-  { "label": "Show Yourself", "file": "sy.mp3" },
-  { "label": "Masquerade Party", "file": "mp.mp3" },
-  { "label": "Keep Me Going (BIRDBRAIN)", "file": "birdbrain.mp3" },
-  { "label": "Isnt That What Foes Are For", "file": "kys.mp3" },
+  { "label": "Tidal Wave (Shiawase)", "file": "audio/music/shiawave__tidalwave_.mp3" },
+  { "label": "Lo-Fi Beats", "file": "audio/music/lofi.mp3" },
+  { "label": "FIVE FIVE!", "file": "audio/music/55.mp3" },
+  { "label": "Lyin' 2 Me", "file": "audio/music/l2m.mp3" },
+  { "label": "Good to Be Alive", "file": "audio/music/gtba.mp3" },
+  { "label": "Show Yourself", "file": "audio/music/sy.mp3" },
+  { "label": "Masquerade Party", "file": "audio/music/mp.mp3" },
+  { "label": "Keep Me Going (BIRDBRAIN)", "file": "audio/music/birdbrain.mp3" },
+  { "label": "Isnt That What Foes Are For", "file": "audio/music/kys.mp3" },
   { "label": "your verity", "file": "extras/verity.mp3" }
 ]

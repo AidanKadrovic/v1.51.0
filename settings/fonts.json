@@ -1,6 +1,6 @@
 [
   { "label": "Fredoka One", "value": "fredoka", "family": "Fredoka One", "fallback": "cursive" },
-  { "label": "MeFont", "value": "mefont", "family": "MeFontCustom", "fallback": "cursive", "file": "MeFont.ttf" },
+  { "label": "MeFont", "value": "mefont", "family": "MeFontCustom", "fallback": "cursive", "file": "fonts/MeFont.ttf" },
   { "label": "Sans Serif", "value": "sans", "family": "Inter", "fallback": "sans-serif" },
   { "label": "Poppins", "value": "poppins", "family": "Poppins", "fallback": "sans-serif" }
 ]

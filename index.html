@@ -2,25 +2,25 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<!-- Game version: 1.23.0 | Deployment: 207 | Update both on every release, see README.md -->
-<meta name="game-version" content="1.23.0">
+<!-- Game version: 1.23.1 | Deployment: 207 | Update both on every release, see README.md -->
+<meta name="game-version" content="1.23.1">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>The Clicker Game!</title>
-<link rel="icon" type="image/x-icon" href="maksy.ico" id="favicon-link">
+<link rel="icon" type="image/x-icon" href="images/ui/maksy.ico" id="favicon-link">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Poppins:wght@400;500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
   @font-face{
     font-family:'PusabFont';
-    src:url('Pusab.ttf') format('truetype');
+    src:url('fonts/Pusab.ttf') format('truetype');
   }
   @font-face{
     font-family:'PixelatedFont';
-    src:url('pixelated.ttf') format('truetype');
+    src:url('fonts/pixelated.ttf') format('truetype');
   }
   @font-face{
     font-family:'MeFontCustom';
-    src:url('MeFont.ttf') format('truetype');
+    src:url('fonts/MeFont.ttf') format('truetype');
   }
 
   body.ui-font-fredoka *{ font-family:'Fredoka One', cursive !important; }
@@ -6147,7 +6147,7 @@
     width:28px;
     height:28px;
     flex-shrink:0;
-    background:url('money.png') center / contain no-repeat;
+    background:url('images/ui/money.png') center / contain no-repeat;
     filter:drop-shadow(0 2px 0 rgba(0,0,0,0.3));
   }
   body.light-mode .click-counter{
@@ -7124,7 +7124,7 @@
 
   <div class="auth-screen active" data-screen="title" id="screen-title">
     <div class="title-layout">
-      <img src="appearchar.png" class="title-char" alt="">
+      <img src="images/ui/appearchar.png" class="title-char" alt="">
       <div class="title-content">
         <h1 class="title-heading">The Clicker Game!</h1>
         <button class="auth-btn" id="title-play-btn">Play</button>
@@ -7257,7 +7257,7 @@
       </div>
       <div class="public-profile-mods" id="public-profile-mods"></div>
       <div class="public-profile-moneys">
-        <img src="money.png" alt="Moneys">
+        <img src="images/ui/money.png" alt="Moneys">
         <span id="public-profile-clicks"></span>
       </div>
       <div class="public-profile-social-row" id="public-profile-social-row"></div>
@@ -7294,11 +7294,11 @@
       </div>
       <div class="workshop-header-actions">
         <button class="workshop-gems-display" id="workshop-gems-display" title="Convert Moneys to Gems">
-          <img src="gems.png" alt="Gems">
+          <img src="images/ui/gems.png" alt="Gems">
           <span id="workshop-gems-count">0</span>
         </button>
         <button class="workshop-profile-btn" id="workshop-profile-btn" title="My Mods">
-          <img id="workshop-profile-btn-img" src="profile.png" alt="">
+          <img id="workshop-profile-btn-img" src="images/ui/profile.png" alt="">
           <span id="workshop-profile-btn-name">Profile</span>
         </button>
         <button class="workshop-icon-btn" id="workshop-upload-btn" title="Create a mod">+ New Mod</button>
@@ -7381,7 +7381,7 @@
 
 <div class="tutorial-overlay" id="tutorial-overlay">
   <div class="auth-box tutorial-box">
-    <img src="tutorial-guide.png" alt="" class="tutorial-char" id="tutorial-char">
+    <img src="images/ui/tutorial-guide.png" alt="" class="tutorial-char" id="tutorial-char">
     <div class="tutorial-emoji" id="tutorial-emoji" style="display:none;"></div>
     <p class="tutorial-progress" id="tutorial-progress"></p>
     <h1 class="auth-heading" id="tutorial-title"></h1>
@@ -7393,8 +7393,8 @@
     </div>
   </div>
 </div>
-<div class="tutorial-arrow" id="tutorial-arrow"><img src="arrow.png" alt=""></div>
-<img src="biggie.png" alt="" class="tutorial-biggie" id="tutorial-biggie">
+<div class="tutorial-arrow" id="tutorial-arrow"><img src="images/ui/arrow.png" alt=""></div>
+<img src="images/ui/biggie.png" alt="" class="tutorial-biggie" id="tutorial-biggie">
 
 <div class="page">
 
@@ -7402,12 +7402,12 @@
     <div class="click-counter" id="click-counter">0 clicks</div>
 
     <div class="avatar" id="avatar">
-      <img src="profile.png" alt="FallGameDev profile picture">
+      <img src="images/ui/profile.png" alt="FallGameDev profile picture">
       <span class="avatar-emoji" id="avatar-emoji"></span>
     </div>
 
     <audio id="song-audio"></audio>
-    <audio id="default-bg-audio" src="manthishotelreallysucksidontgetcoolmusicoranythingimjuststuckwithBAHABAHAHABAHABAHAB.mp3" loop></audio>
+    <audio id="default-bg-audio" src="audio/music/manthishotelreallysucksidontgetcoolmusicoranythingimjuststuckwithBAHABAHAHABAHABAHAB.mp3" loop></audio>
 
     <div class="preferences-dropdown" id="preferences-dropdown">
       <button class="preferences-toggle" id="preferences-toggle">
@@ -7735,6 +7735,110 @@
     };
   }
 
+  /* ---------- ASSET FOLDERS (1.23.1) ----------
+     The loose files that used to sit next to index.html now live in folders:
+       audio/music/    songs and background music
+       audio/sfx/      short sound effects (click, money, touch...)
+       fonts/          .ttf font files
+       images/badges/  account badges (mod, admin, dev...)
+       images/cursors/ built-in custom cursors
+       images/ui/      game art (money, gems, profile, tutorial...)
+       images/misc/    spare pictures not used by the game yet
+       backgrounds/    color backgrounds and picker backgrounds
+     Old saves, old settings files and old accounts can still hold the short
+     name (like "duck.png"). OLD_ASSET_PATHS turns a short name into its new path.
+     When you add a NEW file, just write its full folder path. Nothing goes here. */
+  const OLD_ASSET_PATHS = {
+    "55.mp3": "audio/music/55.mp3",
+    "birdbrain.mp3": "audio/music/birdbrain.mp3",
+    "gtba.mp3": "audio/music/gtba.mp3",
+    "kys.mp3": "audio/music/kys.mp3",
+    "l2m.mp3": "audio/music/l2m.mp3",
+    "lofi.mp3": "audio/music/lofi.mp3",
+    "mp.mp3": "audio/music/mp.mp3",
+    "shiawave__tidalwave_.mp3": "audio/music/shiawave__tidalwave_.mp3",
+    "sy.mp3": "audio/music/sy.mp3",
+    "manthishotelreallysucksidontgetcoolmusicoranythingimjuststuckwithBAHABAHAHABAHABAHAB.mp3": "audio/music/manthishotelreallysucksidontgetcoolmusicoranythingimjuststuckwithBAHABAHAHABAHABAHAB.mp3",
+    "yourhired.mp3": "audio/music/yourhired.mp3",
+    "go ahead, start crying.mp3": "audio/music/go ahead, start crying.mp3",
+    "minecraft.mp3": "audio/music/minecraft.mp3",
+    "tfwcacyt.mp3": "audio/music/tfwcacyt.mp3",
+    "egg.mp3": "audio/music/egg.mp3",
+    "click.mp3": "audio/sfx/click.mp3",
+    "money.mp3": "audio/sfx/money.mp3",
+    "touch.mp3": "audio/sfx/touch.mp3",
+    "mogus.mp3": "audio/sfx/mogus.mp3",
+    "goat.mp3": "audio/sfx/goat.mp3",
+    "FredokaOne.ttf": "fonts/FredokaOne.ttf",
+    "MeFont.ttf": "fonts/MeFont.ttf",
+    "Pusab.ttf": "fonts/Pusab.ttf",
+    "ben.ttf": "fonts/ben.ttf",
+    "caveat.ttf": "fonts/caveat.ttf",
+    "gang.ttf": "fonts/gang.ttf",
+    "pixelated.ttf": "fonts/pixelated.ttf",
+    "sonic.ttf": "fonts/sonic.ttf",
+    "fam.png": "images/badges/fam.png",
+    "cc.png": "images/badges/cc.png",
+    "mod.png": "images/badges/mod.png",
+    "admin.png": "images/badges/admin.png",
+    "dev.png": "images/badges/dev.png",
+    "owner.png": "images/badges/owner.png",
+    "director.png": "images/badges/director.png",
+    "ver.png": "images/badges/ver.png",
+    "duck.png": "images/cursors/duck.png",
+    "banan.png": "images/cursors/banan.png",
+    "error.png": "images/cursors/error.png",
+    "money.png": "images/ui/money.png",
+    "gems.png": "images/ui/gems.png",
+    "heart.png": "images/ui/heart.png",
+    "profile.png": "images/ui/profile.png",
+    "appearchar.png": "images/ui/appearchar.png",
+    "tutorial-guide.png": "images/ui/tutorial-guide.png",
+    "arrow.png": "images/ui/arrow.png",
+    "biggie.png": "images/ui/biggie.png",
+    "maksy.ico": "images/ui/maksy.ico",
+    "nana.png": "images/misc/nana.png",
+    "rick.png": "images/misc/rick.png",
+    "rose.png": "images/misc/rose.png",
+    "spoopy.png": "images/misc/spoopy.png",
+    "backroom.jpeg": "backgrounds/backroom.jpeg",
+    "zen.jpeg": "backgrounds/zen.jpeg",
+    "space.jpg": "backgrounds/space.jpg"
+  };
+
+  // Returns the new folder path for an old root file name. Anything else
+  // (data: URLs, https links, "default", already-moved paths) comes back unchanged.
+  function fixAssetPath(path){
+    if (typeof path !== 'string') return path;
+    return Object.prototype.hasOwnProperty.call(OLD_ASSET_PATHS, path) ? OLD_ASSET_PATHS[path] : path;
+  }
+
+  // Updates the picker choices inside a save that was written before the move.
+  // selectedIcon is left alone on purpose: its 'profile.png' value is the
+  // picker's id for "Default", not a file path.
+  function migrateSavedAssetPaths(save){
+    if (!save || typeof save !== 'object') return save;
+    ['selectedSongFile', 'selectedCursor', 'selectedBg'].forEach(key => {
+      if (typeof save[key] === 'string') save[key] = fixAssetPath(save[key]);
+    });
+    return save;
+  }
+
+  // Safety net: accounts saved on the sheet may still point at an old root file
+  // (for example a profileIcon of "profile.png"). If a picture fails to load and
+  // its src is one of the old names, try once more from the new folder.
+  document.addEventListener('error', e => {
+    const img = e.target;
+    if (!img || img.tagName !== 'IMG' || img.dataset.assetRetry) return;
+    let name = (img.getAttribute('src') || '').split('?')[0];
+    try { name = decodeURIComponent(name); } catch (err) {} // a broken % in a link must not throw here
+    const fixed = fixAssetPath(name);
+    if (fixed !== name) {
+      img.dataset.assetRetry = '1'; // only ever retry once, so a missing file cannot loop
+      img.src = fixed;
+    }
+  }, true); // capture: image error events do not bubble
+
   let game = defaultGame();
 
   const PICKER_CHOSEN_KEYS = ['songChosen', 'cursorChosen', 'bgChosen', 'iconChosen', 'effectChosen', 'fontManagerChosen'];
@@ -7751,7 +7855,9 @@
           if (saved[key] === undefined) saved[key] = true;
         });
         game = Object.assign(defaultGame(), saved);
+        migrateSavedAssetPaths(game); // old saves hold pre-folder file names
       }
+      game.dvdBehind = true; // DVDs always sit behind the page (moved here from the loading screen)
     } catch(e) {}
   }
 
@@ -7792,7 +7898,7 @@
   }
 
   avatarEl.addEventListener('click', () => {
-    playSound('click.mp3');
+    playSound('audio/sfx/click.mp3');
     const earnedThisClick = earnClicks(game.clickPower);
     cgcFire('c.click', rt => ({ click: rt.cv.click + 1, earned: earnedThisClick })); // CGC
     updateCounter();
@@ -7869,7 +7975,7 @@
 
   function buyMusicPlayer(){
     if (game.musicPlayerOwned || game.clicks < MUSIC_PLAYER_COST) return;
-    playSound('money.mp3');
+    playSound('audio/sfx/money.mp3');
     game.clicks -= MUSIC_PLAYER_COST;
     game.musicPlayerOwned = true;
     updateCounter();
@@ -7881,7 +7987,7 @@
 
   function buyCursors(){
     if (game.cursorsOwned || game.clicks < CURSOR_COST) return;
-    playSound('money.mp3');
+    playSound('audio/sfx/money.mp3');
     game.clicks -= CURSOR_COST;
     game.cursorsOwned = true;
     updateCounter();
@@ -7893,7 +7999,7 @@
 
    function buyBackground(){
     if (game.bgOwned || game.clicks < BG_COST) return;
-    playSound('money.mp3');
+    playSound('audio/sfx/money.mp3');
     game.clicks -= BG_COST;
     game.bgOwned = true;
     updateCounter();
@@ -7905,7 +8011,7 @@
 
   function buyOfflineEarnings(){
     if (game.offlineEarningsOwned || game.clicks < OFFLINE_COST) return;
-    playSound('money.mp3');
+    playSound('audio/sfx/money.mp3');
     game.clicks -= OFFLINE_COST;
     game.offlineEarningsOwned = true;
     updateCounter();
@@ -7916,7 +8022,7 @@
 
   function buyIconModifier(){
     if (game.iconModifierOwned || game.clicks < ICON_COST) return;
-    playSound('money.mp3');
+    playSound('audio/sfx/money.mp3');
     game.clicks -= ICON_COST;
     game.iconModifierOwned = true;
     updateCounter();
@@ -7928,7 +8034,7 @@
 
   function buyAutoKill(){
     if (game.autoKillOwned || game.clicks < AUTO_KILL_COST) return;
-    playSound('money.mp3');
+    playSound('audio/sfx/money.mp3');
     game.clicks -= AUTO_KILL_COST;
     game.autoKillOwned = true;
     updateCounter();
@@ -7972,7 +8078,7 @@
     if (n <= 0) return;
     const cost = noobLevelBulkCost(n);
     if (game.clicks < cost) return;
-    playSound('money.mp3');
+    playSound('audio/sfx/money.mp3');
     game.clicks -= cost;
     game.noobLevel = noobLevel() + n;
     updateCounter();
@@ -7994,7 +8100,7 @@
 
   function buyNoob(){
     if (game.clicks < NOOB_COST) return;
-    playSound('money.mp3');
+    playSound('audio/sfx/money.mp3');
     game.clicks -= NOOB_COST;
     game.noobOwned += 1;
     updateCounter();
@@ -8006,7 +8112,7 @@
 
   function buyEffects(){
     if (game.effectsOwned || game.clicks < EFFECTS_COST) return;
-    playSound('money.mp3');
+    playSound('audio/sfx/money.mp3');
     game.clicks -= EFFECTS_COST;
     game.effectsOwned = true;
     updateCounter();
@@ -8018,7 +8124,7 @@
 
   function buyFontManager(){
     if (game.fontManagerOwned || game.clicks < FONT_MANAGER_COST) return;
-    playSound('money.mp3');
+    playSound('audio/sfx/money.mp3');
     game.clicks -= FONT_MANAGER_COST;
     game.fontManagerOwned = true;
     updateCounter();
@@ -8030,7 +8136,7 @@
 
   function buyLuckyCharm(){
     if (game.luckyCharmOwned || game.clicks < LUCKY_CHARM_COST) return;
-    playSound('money.mp3');
+    playSound('audio/sfx/money.mp3');
     game.clicks -= LUCKY_CHARM_COST;
     game.luckyCharmOwned = true;
     updateCounter();
@@ -8042,7 +8148,7 @@
   function buyClickBoost(){
     const cost = clickBoostCost();
     if (game.clicks < cost) return;
-    playSound('money.mp3');
+    playSound('audio/sfx/money.mp3');
     game.clicks -= cost;
     game.clickBoostOwned += 1;
     game.clickPower += 1;
@@ -8056,7 +8162,7 @@
     if (n <= 0) return;
     const cost = clickBoostBulkCost(n);
     if (game.clicks < cost) return;
-    playSound('money.mp3');
+    playSound('audio/sfx/money.mp3');
     game.clicks -= cost;
     game.clickBoostOwned += n;
     game.clickPower += n;
@@ -8111,7 +8217,7 @@
   }
   function buyAutoSpeed(level){
     if (!canBuyAutoSpeed(level)) return;
-    playSound('money.mp3');
+    playSound('audio/sfx/money.mp3');
     game.clicks -= AUTO_SPEED_LEVELS[level].cost;
     game.autoSpeedLevel = level;
     updateCounter();
@@ -8123,7 +8229,7 @@
   function buyAutoClicker(){
     const cost = autoClickerCost();
     if (game.clicks < cost) return;
-    playSound('money.mp3');
+    playSound('audio/sfx/money.mp3');
     game.clicks -= cost;
     game.autoClickerOwned += 1;
     updateCounter();
@@ -8189,7 +8295,7 @@
 
   function buySwing(level){
     if (!canBuySwing(level)) return;
-    playSound('money.mp3');
+    playSound('audio/sfx/money.mp3');
     game.clicks -= SWING_LEVELS[level].cost;
     game.swingLevel = level;
     game.swingMultiplier = true;
@@ -8202,7 +8308,7 @@
 
   function buyDvd(){
     if (game.clicks < dvdCost()) return;
-    playSound('money.mp3');
+    playSound('audio/sfx/money.mp3');
     game.clicks -= dvdCost();
     if (game.dvdOwned === 0) game.dvdBehind = true;
     game.dvdOwned += 1;
@@ -8260,7 +8366,7 @@
   }
   function buyAmogusTasks(n){
     if (!canBuyAmogusTasks(n)) return;
-    playSound('money.mp3');
+    playSound('audio/sfx/money.mp3');
     game.clicks -= amogusTaskBulkCost(n);
     game.amogusExtraTasks = amogusExtraTasks() + n;
     updateCounter();
@@ -8285,7 +8391,7 @@
 
   function buyAmogus(){
     if (game.clicks < AMOGUS_COST) return;
-    playSound('money.mp3');
+    playSound('audio/sfx/money.mp3');
     game.clicks -= AMOGUS_COST;
     game.amogusOwned += 1;
     game.amogusAlive += 1;
@@ -8298,7 +8404,7 @@
 
   function buyBoost(){
     if ((game.prestige || 0) < 1) return;
-    playSound('money.mp3');
+    playSound('audio/sfx/money.mp3');
     game.prestige -= 1;
     game.boosts = (game.boosts || 0) + 1;
     saveGame();
@@ -8313,7 +8419,7 @@
   function buyHeadStart(){
     const cost = headStartCost();
     if ((game.prestige || 0) < cost) return;
-    playSound('money.mp3');
+    playSound('audio/sfx/money.mp3');
     game.prestige -= cost;
     game.headStartOwned += 1;
     saveGame();
@@ -8324,7 +8430,7 @@
   function buyPrestigeMult(){
     const cost = prestigeMultCost();
     if ((game.prestige || 0) < cost) return;
-    playSound('money.mp3');
+    playSound('audio/sfx/money.mp3');
     game.prestige -= cost;
     game.prestigeMultOwned += 1;
     saveGame();
@@ -8334,7 +8440,7 @@
 
   function buyAutoBuyer(){
     if (game.autoBuyerOwned || (game.prestige || 0) < AUTO_BUYER_COST) return;
-    playSound('money.mp3');
+    playSound('audio/sfx/money.mp3');
     game.prestige -= AUTO_BUYER_COST;
     game.autoBuyerOwned = true;
     saveGame();
@@ -9103,7 +9209,7 @@
       return `<div class="limited-preview font${cls}" style="--rarity:${LIMITED_RARITIES[item.rarity].color};font-family:'${item.family}', 'Fredoka One', cursive;">Aa</div>`;
     }
     if (item.type === 'frame') {
-      return `<div class="limited-preview frame${cls}" style="--rarity:${LIMITED_RARITIES[item.rarity].color};"><div class="pf-preview pf-frame pf-frame-${item.id}"><img src="${currentProfileIcon || 'profile.png'}" alt=""></div></div>`;
+      return `<div class="limited-preview frame${cls}" style="--rarity:${LIMITED_RARITIES[item.rarity].color};"><div class="pf-preview pf-frame pf-frame-${item.id}"><img src="${currentProfileIcon || 'images/ui/profile.png'}" alt=""></div></div>`;
     }
     return `<div class="limited-preview block${cls}" style="--rarity:${LIMITED_RARITIES[item.rarity].color};"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">${LUCKY_BLOCK_SVG}</svg></div>`;
   }
@@ -9175,7 +9281,7 @@
             <p class="limited-reset">New items in <strong id="limited-countdown">${formatLimitedCountdown(limitedMsLeft())}</strong></p>
           </div>
           <button class="limited-gems" id="limited-gems-btn" title="Convert Moneys to Gems">
-            <img src="gems.png" alt="Gems"><span>${gems.toLocaleString()}</span><span class="limited-gems-plus">+</span>
+            <img src="images/ui/gems.png" alt="Gems"><span>${gems.toLocaleString()}</span><span class="limited-gems-plus">+</span>
           </button>
         </div>
       </div>
@@ -9204,7 +9310,7 @@
     if ((game.gems || 0) < price) return;
     if (item.type === 'block') { openLuckyBlock(item); return; }
     if (isOwnedCosmetic(id)) return;
-    playSound('money.mp3');
+    playSound('audio/sfx/money.mp3');
     game.gems -= price;
     game.cosmeticsOwned = cleanCosmeticList((game.cosmeticsOwned || []).concat(id));
     saveGame();
@@ -9222,7 +9328,7 @@
       if (id && !(validShopFrame(id) && isOwnedCosmetic(id))) return;
       game.equippedFrame = id || '';
     } else return;
-    playSound('click.mp3');
+    playSound('audio/sfx/click.mp3');
     saveGame();
     syncToSheet();
     if (activeTab === 'shop') renderShop();
@@ -9259,7 +9365,7 @@
     saveGame();
     syncToSheet();
     updateWorkshopGemsDisplay();
-    playSound('money.mp3');
+    playSound('audio/sfx/money.mp3');
 
     const overlay = document.createElement('div');
     overlay.className = 'lucky-overlay';
@@ -9278,7 +9384,7 @@
     const stage = overlay.querySelector('#lucky-stage');
     const countEl = overlay.querySelector('#lucky-count');
     let count = 5;
-    playSound('click.mp3');
+    playSound('audio/sfx/click.mp3');
     const timer = setInterval(() => {
       count--;
       if (count > 0) {
@@ -9286,7 +9392,7 @@
         countEl.classList.remove('tick');
         void countEl.offsetWidth;
         countEl.classList.add('tick');
-        playSound('click.mp3');
+        playSound('audio/sfx/click.mp3');
         return;
       }
       clearInterval(timer);
@@ -9329,7 +9435,7 @@
     }
 
     function showResult(){
-      playSound('money.mp3');
+      playSound('audio/sfx/money.mp3');
       const typeLabel = prize.type === 'font' ? 'Profile Font' : 'Profile Frame';
       stage.innerHTML = `
         <div class="lucky-result" style="--rarity:${LIMITED_RARITIES[prize.rarity].color};">
@@ -9369,15 +9475,15 @@
 
   /* ---------- MUSIC PLAYER ---------- */
   const SONGS = [
-    { label: "Tidal Wave (Shiawase)", file: "shiawave__tidalwave_.mp3" },
-    { label: "Lo-Fi Beats", file: "lofi.mp3" },
-    { label: "FIVE FIVE!", file: "55.mp3" },
-    { label: "Lyin' 2 Me", file: "l2m.mp3" },
-    { label: "Good to Be Alive", file: "gtba.mp3" },
-    { label: "Show Yourself", file: "sy.mp3" },
-    { label: "Masquerade Party", file: "mp.mp3" },
-    { label: "Keep Me Going (BIRDBRAIN)", file: "birdbrain.mp3" },
-    { label: "Isnt That What Foes Are For", file: "kys.mp3" },
+    { label: "Tidal Wave (Shiawase)", file: "audio/music/shiawave__tidalwave_.mp3" },
+    { label: "Lo-Fi Beats", file: "audio/music/lofi.mp3" },
+    { label: "FIVE FIVE!", file: "audio/music/55.mp3" },
+    { label: "Lyin' 2 Me", file: "audio/music/l2m.mp3" },
+    { label: "Good to Be Alive", file: "audio/music/gtba.mp3" },
+    { label: "Show Yourself", file: "audio/music/sy.mp3" },
+    { label: "Masquerade Party", file: "audio/music/mp.mp3" },
+    { label: "Keep Me Going (BIRDBRAIN)", file: "audio/music/birdbrain.mp3" },
+    { label: "Isnt That What Foes Are For", file: "audio/music/kys.mp3" },
     { label: "your verity", file: "extras/verity.mp3" }
   ];
 
@@ -9388,9 +9494,9 @@
   const loopBtn = document.getElementById('loop-btn');
   const defaultBgAudio = document.getElementById('default-bg-audio');
 
-  const DEFAULT_BG_SONG = 'manthishotelreallysucksidontgetcoolmusicoranythingimjuststuckwithBAHABAHAHABAHABAHAB.mp3';
-  const TUTORIAL_BG_SONG = 'yourhired.mp3';
-  const AUTH_BG_SONG = 'go ahead, start crying.mp3';
+  const DEFAULT_BG_SONG = 'audio/music/manthishotelreallysucksidontgetcoolmusicoranythingimjuststuckwithBAHABAHAHABAHABAHAB.mp3';
+  const TUTORIAL_BG_SONG = 'audio/music/yourhired.mp3';
+  const AUTH_BG_SONG = 'audio/music/go ahead, start crying.mp3';
 
   function updateDefaultBgVolume(){
     if (!defaultBgAudio) return;
@@ -9523,9 +9629,9 @@
 
   const CURSORS = [
     { label: "System", file: "default" },
-    { label: "Duck", file: "duck.png" },
-    { label: "Banana", file: "banan.png" },
-    { label: "Error", file: "error.png" }
+    { label: "Duck", file: "images/cursors/duck.png" },
+    { label: "Banana", file: "images/cursors/banan.png" },
+    { label: "Error", file: "images/cursors/error.png" }
   ];
 
   function renderCursorOption(entry){
@@ -9761,15 +9867,15 @@
      Add your own backgrounds to this list. Each entry needs:
        label - shown in the dropdown
        file  - "default" for the site's normal background, or an image
-               filename (uploaded to the server) to use as a full-page background
+               path (a picture in the backgrounds folder) to use as a full-page background
      Example:
-       { label: "Space", file: "space.png" }
+       { label: "Space", file: "backgrounds/space.png" }
   ------------------------------------------------- */
   const BACKGROUNDS = [
     { label: "Color", file: "default" },
-    { label: "Backrooms", file: "backroom.jpeg" },
-    { label: "Grace", file: "zen.jpeg" },
-    { label: "Space Nebula", file: "space.jpg" }
+    { label: "Backrooms", file: "backgrounds/backroom.jpeg" },
+    { label: "Grace", file: "backgrounds/zen.jpeg" },
+    { label: "Space Nebula", file: "backgrounds/space.jpg" }
   ];
 
   const bgPickerEl = document.getElementById('bg-picker');
@@ -10138,7 +10244,7 @@
   function cleanSettingsFiles(list){
     return (Array.isArray(list) ? list : [])
       .filter(e => e && typeof e.label === 'string' && typeof e.file === 'string' && e.label.trim() && e.file.trim())
-      .map(e => ({ label: e.label.trim(), file: e.file.trim() }));
+      .map(e => ({ label: e.label.trim(), file: fixAssetPath(e.file.trim()) })); // fixAssetPath: old settings files still work
   }
 
   function rebuildPickerSelect(select, placeholderText, entries, valueOf){
@@ -10194,7 +10300,7 @@
   }
 
   // fonts.json entries: { label, value, family, fallback, file?, google? }
-  //   file   = a .ttf/.otf/.woff2 next to index.html, loaded with @font-face
+  //   file   = a .ttf/.otf/.woff2 in the fonts folder (like "fonts/caveat.ttf"), loaded with @font-face
   //   google = true to load the family from Google Fonts
   function applySettingsFonts(list){
     const fonts = (Array.isArray(list) ? list : []).filter(f =>
@@ -10205,7 +10311,7 @@
     fonts.forEach(f => {
       const family = quote(f.family.trim());
       const fallback = quote(f.fallback || 'sans-serif');
-      if (f.file) css.push(`@font-face{font-family:'${family}';src:url('${quote(f.file)}');font-display:swap;}`);
+      if (f.file) css.push(`@font-face{font-family:'${family}';src:url('${quote(fixAssetPath(f.file))}');font-display:swap;}`);
       if (f.google) {
         const href = 'https://fonts.googleapis.com/css2?family=' + encodeURIComponent(family).replace(/%20/g, '+') + '&display=swap';
         if (!document.querySelector(`link[href="${href}"]`)) {
@@ -10893,7 +10999,7 @@
     document.body.appendChild(payout);
     setTimeout(() => payout.remove(), 1350);
 
-    playSound('money.mp3');
+    playSound('audio/sfx/money.mp3');
     game.clicks += amount;
     inst.bank = 0;
     updateNoobBankText(inst);
@@ -11110,7 +11216,7 @@
     function kill(reward){
       if (dead) return;
       dead = true;
-      playSound('mogus.mp3');
+      playSound('audio/sfx/mogus.mp3');
       el.classList.add('dead');
       el.classList.remove('working', 'tasking', 'done');
       activeCrewmates.delete(crewEntry);
@@ -11351,17 +11457,17 @@
       <div class="leaderboard-row${entry.username === currentUsername ? ' me' : ''}${i === 0 ? ' rank-1' : i === 1 ? ' rank-2' : i === 2 ? ' rank-3' : ''}${hasPrestige ? ' has-prestige' : ''}" data-username="${entry.username}">
         <span class="leaderboard-rank">#${i + 1}</span>
         <div class="leaderboard-avatar${frameClassAttr(entry.username === currentUsername ? game.equippedFrame : entry.profileFrame)}">
-          <img src="${entry.profileIcon || 'profile.png'}" alt="${entry.username}">
+          <img src="${entry.profileIcon || 'images/ui/profile.png'}" alt="${entry.username}">
         </div>
         <span class="leaderboard-name" data-username="${entry.username}" style="color:${authColor(entry.auth)}">${entry.username}${authBadge(entry.auth)}</span>
         <span class="leaderboard-stats">
           <span class="leaderboard-clicks">
-            <img src="money.png" alt="Moneys">
+            <img src="images/ui/money.png" alt="Moneys">
             ${Number(entry.clicks || 0).toLocaleString()}
           </span>
           ${hasPrestige ? `
           <span class="leaderboard-prestige">
-            <img src="heart.png" alt="Prestige">
+            <img src="images/ui/heart.png" alt="Prestige">
             ${prestige.toLocaleString()}
           </span>` : ''}
         </span>
@@ -11492,19 +11598,19 @@
       <div class="stats-subtab-pane" id="stats-pane-overview">
         <div class="stats-card">
           <div class="stats-avatar" id="stats-avatar-click">
-            <img src="${currentProfileIcon || 'profile.png'}" alt="Profile">
+            <img src="${currentProfileIcon || 'images/ui/profile.png'}" alt="Profile">
           </div>
           <h2 class="stats-name" id="stats-name-click" style="color:${authColor(currentAuth)}">${currentUsername || 'Guest'}${authBadge(currentAuth)}</h2>
           <div class="stats-moneys">
-            <img src="money.png" alt="Moneys">
+            <img src="images/ui/money.png" alt="Moneys">
             <span>${game.clicks.toLocaleString()}</span>
           </div>
           <div class="stats-prestige">
-            <img src="heart.png" alt="Prestige">
+            <img src="images/ui/heart.png" alt="Prestige">
             <span>${(game.prestige || 0).toLocaleString()}</span>
           </div>
           <div class="stats-gems">
-            <img src="gems.png" alt="Gems">
+            <img src="images/ui/gems.png" alt="Gems">
             <span>${(game.gems || 0).toLocaleString()}</span>
             <button class="gems-plus-btn" id="gems-plus-btn" title="Convert Moneys to Gems">+</button>
           </div>
@@ -11765,7 +11871,7 @@
       listEl.innerHTML = friendPickerFriendsCache.map(f => `
         <label class="friend-picker-row">
           <input type="checkbox" value="${escapeChatHtml(f.username)}">
-          <div class="leaderboard-avatar"><img src="${f.profileIcon || 'profile.png'}" alt=""></div>
+          <div class="leaderboard-avatar"><img src="${f.profileIcon || 'images/ui/profile.png'}" alt=""></div>
           <span class="leaderboard-name" style="color:${authColor(f.auth)}">${escapeChatHtml(f.username)}${authBadge(f.auth)}</span>
         </label>
       `).join('');
@@ -11902,7 +12008,7 @@
       const canRemove = canManage && !isMe && m.role !== 'owner';
       return `
         <div class="chat-member-row" data-username="${escapeChatHtml(m.username)}">
-          <div class="leaderboard-avatar"><img src="${escapeChatHtml(m.profileIcon || 'profile.png')}" alt=""></div>
+          <div class="leaderboard-avatar"><img src="${escapeChatHtml(m.profileIcon || 'images/ui/profile.png')}" alt=""></div>
           <span class="chat-member-name" style="color:${authColor(m.auth)}">${escapeChatHtml(m.username)}${authBadge(m.auth)}</span>
           ${isMe ? '<span class="chat-role-pill you">You</span>' : ''}
           ${m.role === 'owner' ? '<span class="chat-role-pill owner">Owner</span>' : ''}
@@ -12079,7 +12185,7 @@
         ? `<button class="chat-report-btn chat-delete-btn" type="button" data-delete-id="${escapeChatHtml(String(msg.id))}">Delete</button>`
         : '';
       const avatar = card
-        ? `<img class="chat-msg-avatar" src="${escapeChatHtml(card.profileIcon || 'profile.png')}" alt="">`
+        ? `<img class="chat-msg-avatar" src="${escapeChatHtml(card.profileIcon || 'images/ui/profile.png')}" alt="">`
         : '';
       const nameStyle = (!mine && card) ? ` style="color:${authColor(card.auth)}"` : '';
       const badge = (!mine && card) ? authBadge(card.auth) : '';
@@ -12351,7 +12457,7 @@
       card.style.display = 'flex';
       listEl.innerHTML = requests.map(r => `
         <div class="friend-request-row" data-username="${r.username}">
-          <div class="leaderboard-avatar"><img src="${r.profileIcon || 'profile.png'}" alt=""></div>
+          <div class="leaderboard-avatar"><img src="${r.profileIcon || 'images/ui/profile.png'}" alt=""></div>
           <span class="leaderboard-name" style="color:${authColor(r.auth)}">${r.username}${authBadge(r.auth)}</span>
           <div class="friend-request-btns">
             <button class="friend-action-btn accept" data-action="accept">Accept</button>
@@ -12798,7 +12904,7 @@
     workshopOverlay.classList.add('visible');
     workshopSearchInput.value = workshopSearchQuery || '';
     workshopBody.innerHTML = '<div class="empty-state loading-state">Loading...</div>';
-    document.getElementById('workshop-profile-btn-img').src = currentProfileIcon || 'profile.png';
+    document.getElementById('workshop-profile-btn-img').src = currentProfileIcon || 'images/ui/profile.png';
     document.getElementById('workshop-profile-btn-name').textContent = currentUsername || 'Guest';
     updateWorkshopGemsDisplay();
     try {
@@ -12906,7 +13012,7 @@
         ${art}
         ${o.installed ? '<span class="mio-badge mio-badge-installed">Installed</span>' : ''}
         ${o.hidePrice ? '' : (item.price
-          ? `<span class="mio-badge mio-badge-price"><img src="gems.png" alt="">${esc(item.price)}</span>`
+          ? `<span class="mio-badge mio-badge-price"><img src="images/ui/gems.png" alt="">${esc(item.price)}</span>`
           : '<span class="mio-badge mio-badge-free">Free</span>')}
         ${o.hideTag ? '' : `<span class="mio-tag mio-thumb-tag${o.blurTag ? ' nsfw-blur' : ''}">${esc(item.category || 'Other')}</span>`}
       </div>
@@ -13201,7 +13307,7 @@
                 <h3 class="mio-panel-heading">Details</h3>
                 <dl class="mio-meta-list">
                   <div><dt>Downloads</dt><dd><span class="workshop-download-count"><span id="workshop-download-count">${item.downloads || 0}</span></span></dd></div>
-                  <div><dt>Price</dt><dd>${item.price ? `<span class="workshop-item-price"><img src="gems.png" alt="">${esc(item.price)} Gems</span>` : 'Free'}</dd></div>
+                  <div><dt>Price</dt><dd>${item.price ? `<span class="workshop-item-price"><img src="images/ui/gems.png" alt="">${esc(item.price)} Gems</span>` : 'Free'}</dd></div>
                   ${item.version ? `<div><dt>Version</dt><dd>v${esc(item.version)}</dd></div>` : ''}
                   <div><dt>Category</dt><dd>${esc(item.category || 'Other')}</dd></div>
                   ${item.repoUrl ? `<div><dt>Source</dt><dd><a href="${esc(item.repoUrl)}" target="_blank" rel="noopener">${esc(shortRepo(item.repoUrl))}</a></dd></div>` : ''}
@@ -13469,7 +13575,7 @@
       </div>
       <div class="workshop-profile-banner" style="background:${bannerStyle};">
         <div class="workshop-profile-avatar">
-          <img src="${currentProfileIcon || 'profile.png'}" alt="">
+          <img src="${currentProfileIcon || 'images/ui/profile.png'}" alt="">
         </div>
       </div>
       <h2 class="workshop-profile-name" style="color:${authColor(currentAuth)}">${currentUsername || 'Guest'}${authBadge(currentAuth)}${currentCommissionsOpen ? commissionsBadgeHTML() : ''}</h2>
@@ -17193,7 +17299,7 @@
     return localStorage.getItem(THEME_KEY) || 'green';
   }
   function getLastProfileIcon(){
-    return localStorage.getItem(PROFILE_ICON_KEY) || 'profile.png';
+    return fixAssetPath(localStorage.getItem(PROFILE_ICON_KEY)) || 'images/ui/profile.png';
   }
   function getLastAuth(){
     return localStorage.getItem(AUTH_KEY) || 'none';
@@ -17246,12 +17352,33 @@
     };
   }
 
+  // BUG FIX (1.23.1): startGame() calls syncToSheet every second. It used to send the
+  // whole save every time, even when nothing changed, and it could start a new request
+  // while the last one was still on its way. Slow requests could then land out of order
+  // and save older numbers over newer ones. Now:
+  //   - only one save request runs at a time
+  //   - an unchanged save is only re-sent every SYNC_HEARTBEAT_MS
+  //   - a failed save is never marked as sent, so the next tick tries again
+  const SYNC_HEARTBEAT_MS = 15000; // how often an unchanged save is still sent
+  let syncInFlight = false;        // true while a save request is waiting for its answer
+  let lastSyncedJson = '';         // the last save the API received, as text
+  let lastSyncAt = 0;              // when that save was sent (ms)
+
   async function syncToSheet(){
-    if (!currentUsername) return;
+    if (!currentUsername || offlineMode) return; // offline: the local save is the only copy
+    if (syncInFlight) return;                    // the next tick picks up anything newer
+    const payload = buildSyncPayload();
+    const json = JSON.stringify(payload);
+    if (json === lastSyncedJson && Date.now() - lastSyncAt < SYNC_HEARTBEAT_MS) return;
+    syncInFlight = true;
     try {
-      await sheetRequest(buildSyncPayload());
+      await sheetRequest(payload);
+      lastSyncedJson = json;
+      lastSyncAt = Date.now();
     } catch (e) {
       // Network hiccup - local save already has the data, will retry next interval.
+    } finally {
+      syncInFlight = false;
     }
   }
 
@@ -17277,7 +17404,7 @@
     let previousPickerPrefs = {};
     let savedRaw = null;
     try {
-      savedRaw = JSON.parse(localStorage.getItem(SAVE_KEY));
+      savedRaw = migrateSavedAssetPaths(JSON.parse(localStorage.getItem(SAVE_KEY))); // old saves hold pre-folder file names
       if (savedRaw && savedRaw.lastSeen) previousLastSeen = savedRaw.lastSeen;
       if (savedRaw && Array.isArray(savedRaw.unlockedAchievements)) previousAchievements = savedRaw.unlockedAchievements;
       if (savedRaw && savedRaw.totalPrestige) previousTotalPrestige = savedRaw.totalPrestige;
@@ -17511,8 +17638,10 @@
   }
 
   function actuallyHideLoadingScreen(){
-    game.dvdBehind = true;
-    saveGame();
+    // BUG FIX (1.23.1): this used to call saveGame() here. In offline mode the save
+    // has not been loaded yet at this point (startGame() runs right after), so that
+    // wrote an empty game over the player's real save and wiped their progress.
+    // dvdBehind is now forced on inside loadGame() instead.
 
     if (!loadingScreenEl) return;
     loadingScreenEl.classList.add('hidden');
@@ -17726,7 +17855,7 @@
 
     friendsListEl.innerHTML = filtered.map(f => `
       <div class="friends-row" data-username="${f.username}">
-        <div class="leaderboard-avatar"><img src="${f.profileIcon || 'profile.png'}" alt=""></div>
+        <div class="leaderboard-avatar"><img src="${f.profileIcon || 'images/ui/profile.png'}" alt=""></div>
         <span class="leaderboard-name" style="color:${authColor(f.auth)}">${f.username}${authBadge(f.auth)}</span>
         <button class="friend-action-btn accept friend-gift-btn" type="button" title="Send a gift">Gift</button>
       </div>
@@ -17919,7 +18048,7 @@
   async function openPublicProfile(identifier, skipUrlUpdate){
     if (!identifier) return;
 
-    publicProfileImg.src = 'profile.png';
+    publicProfileImg.src = 'images/ui/profile.png';
     publicProfileName.textContent = 'Loading...';
     publicProfileName.style.fontFamily = '';
     publicProfileName.style.color = '';
@@ -17954,7 +18083,7 @@
 
       const account = result.account;
       currentViewedProfile = account;
-      publicProfileImg.src = account.profileIcon || 'profile.png';
+      publicProfileImg.src = account.profileIcon || 'images/ui/profile.png';
       publicProfileName.innerHTML = account.username + authBadge(account.auth) + (account.commissionsOpen ? commissionsBadgeHTML() : '');
       publicProfileName.style.color = authColor(account.auth);
       publicProfileBanner.style.background = account.bannerImage
@@ -18349,7 +18478,8 @@
     if (loadedFontFamilies.has(fontFile)) return Promise.resolve(loadedFontFamilies.get(fontFile) || '');
 
     const familyName = 'CustomFont_' + fontFile.replace(/[^a-zA-Z0-9]/g, '_');
-    const face = new FontFace(familyName, `url('${fontFile}')`);
+    // fixAssetPath: accounts saved before the folder move hold a bare name like "gang.ttf"
+    const face = new FontFace(familyName, `url('${fixAssetPath(fontFile)}')`);
 
     return face.load().then(loaded => {
       document.fonts.add(loaded);
@@ -18375,13 +18505,13 @@
 
   function authBadge(auth){
     const key = String(auth || 'none').toLowerCase();
-    if (key === 'fam') return `<img src="fam.png" class="auth-badge" alt="fam">`;
-    if (key === 'cc') return `<img src="cc.png" class="auth-badge" alt="cc">`;
-    if (key === 'mod') return `<img src="mod.png" class="auth-badge" alt="mod">`;
-    if (key === 'admin') return `<img src="admin.png" class="auth-badge" alt="admin">`;
-    if (key === 'dev') return `<img src="dev.png" class="auth-badge" alt="dev">`;
-    if (key === 'owner') return `<img src="owner.png" class="auth-badge" alt="owner">`;
-    if (key === 'director' || key === 'dir') return `<img src="director.png" class="auth-badge" alt="director">`;
+    if (key === 'fam') return `<img src="images/badges/fam.png" class="auth-badge" alt="fam">`;
+    if (key === 'cc') return `<img src="images/badges/cc.png" class="auth-badge" alt="cc">`;
+    if (key === 'mod') return `<img src="images/badges/mod.png" class="auth-badge" alt="mod">`;
+    if (key === 'admin') return `<img src="images/badges/admin.png" class="auth-badge" alt="admin">`;
+    if (key === 'dev') return `<img src="images/badges/dev.png" class="auth-badge" alt="dev">`;
+    if (key === 'owner') return `<img src="images/badges/owner.png" class="auth-badge" alt="owner">`;
+    if (key === 'director' || key === 'dir') return `<img src="images/badges/director.png" class="auth-badge" alt="director">`;
     if (key === 'none') return '';
     return `<span class="auth-badge-unknown">?</span>`;
   }
@@ -19011,7 +19141,7 @@
       listEl.innerHTML = staff.map(entry => `
         <div class="leaderboard-row" data-username="${entry.username}" style="cursor:pointer;">
           <div class="leaderboard-avatar">
-            <img src="${entry.profileIcon || 'profile.png'}" alt="${entry.username}">
+            <img src="${entry.profileIcon || 'images/ui/profile.png'}" alt="${entry.username}">
           </div>
           <span class="leaderboard-name" data-username="${entry.username}" style="color:${authColor(entry.auth)}">${entry.username}${authBadge(entry.auth)}</span>
         </div>
@@ -19351,8 +19481,8 @@
   let tutorialPollTimer = null;
 
   /* ---------- TUTORIAL GUIDES (arrow and Biggie) ----------
-     The arrow (arrow.png) points at the element the current step wants
-     clicked. Biggie (biggie.png) shows up under the cursor and stretches
+     The arrow (images/ui/arrow.png) points at the element the current step wants
+     clicked. Biggie (images/ui/biggie.png) shows up under the cursor and stretches
      out whenever the player clicks something the step does not allow.
      ------------------------------------------------- */
   const tutorialArrowEl = document.getElementById('tutorial-arrow');
@@ -19473,8 +19603,8 @@
 
   let tutorialBiggieTimer = null;
 
-  // If biggie.png cannot be loaded (for example it is not in the same folder
-  // as index.html), swap in a simple drawn Biggie so a blocked click is never silent.
+  // If biggie.png cannot be loaded (for example it is not in the images/ui
+  // folder), swap in a simple drawn Biggie so a blocked click is never silent.
   const BIGGIE_FALLBACK_SRC = 'data:image/svg+xml;utf8,' + encodeURIComponent(
     "<svg xmlns='http://www.w3.org/2000/svg' width='800' height='800' viewBox='0 0 800 800'>" +
     "<path d='M60 730 L170 640 M665 650 L745 765 M30 330 L80 310 M720 340 L790 395' stroke='#000' stroke-width='18' stroke-linecap='round' fill='none'/>" +
@@ -19489,7 +19619,7 @@
   function ensureBiggieImage(){
     if (tutorialBiggieEl.src === BIGGIE_FALLBACK_SRC) return;
     if (tutorialBiggieEl.complete && tutorialBiggieEl.naturalWidth === 0) {
-      console.warn('biggie.png could not be loaded. Put it in the same folder as index.html.');
+      console.warn('images/ui/biggie.png could not be loaded. Put biggie.png in the images/ui folder.');
       tutorialBiggieEl.src = BIGGIE_FALLBACK_SRC;
     }
   }
@@ -20155,7 +20285,7 @@
     const btn = e.target.closest('button, .link-card');
     if (!btn) return;
     if (btn.contains(e.relatedTarget)) return;
-    playSound('touch.mp3');
+    playSound('audio/sfx/touch.mp3');
   });
 
   /* ---------- BOOTSTRAP ---------- */

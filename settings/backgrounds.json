@@ -1,6 +1,6 @@
 [
   { "label": "Color", "file": "default" },
-  { "label": "Backrooms", "file": "backroom.jpeg" },
-  { "label": "Grace", "file": "zen.jpeg" },
-  { "label": "Space Nebula", "file": "space.jpg" }
+  { "label": "Backrooms", "file": "backgrounds/backroom.jpeg" },
+  { "label": "Grace", "file": "backgrounds/zen.jpeg" },
+  { "label": "Space Nebula", "file": "backgrounds/space.jpg" }
 ]

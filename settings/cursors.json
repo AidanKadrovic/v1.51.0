@@ -1,6 +1,6 @@
 [
   { "label": "System", "file": "default" },
-  { "label": "Duck", "file": "duck.png" },
-  { "label": "Banana", "file": "banan.png" },
-  { "label": "Error", "file": "error.png" }
+  { "label": "Duck", "file": "images/cursors/duck.png" },
+  { "label": "Banana", "file": "images/cursors/banan.png" },
+  { "label": "Error", "file": "images/cursors/error.png" }
 ]
