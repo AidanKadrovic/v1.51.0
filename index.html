@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<!-- Game version: 1.31.0 | Deployment: 208 | Update both on every release, see README.md -->
-<meta name="game-version" content="1.31.0">
+<!-- Game version: 1.32.0 | Deployment: 208 | Update both on every release, see README.md -->
+<meta name="game-version" content="1.32.0">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>The Clicker Game!</title>
 <link rel="icon" type="image/x-icon" href="images/ui/maksy.ico" id="favicon-link">
@@ -7488,6 +7488,7 @@
       <h1 class="auth-heading">Choose a password!</h1>
       <p class="auth-sub">This will be private for logging back in.</p>
       <input type="password" id="password-input" class="auth-input" placeholder="Password" autocomplete="off">
+      <input type="email" id="signup-email-input" class="auth-input" placeholder="Email (optional, for resetting your password)" autocomplete="off">
       <button class="auth-btn" id="password-submit">Submit</button>
     </div>
   </div>
@@ -7527,6 +7528,7 @@
       <input type="password" id="login-password-input" class="auth-input" placeholder="Password" autocomplete="off">
       <button class="auth-btn" id="login-submit">Log In</button>
       <p class="auth-error" id="login-error" style="display:none;">Incorrect username or password.</p>
+      <a href="#" class="auth-link" id="forgot-password-link">Forgot your password?</a>
       <a href="#" class="auth-link" id="make-account-link">Don't have an account? Sign up</a>
     </div>
   </div>
@@ -7558,6 +7560,10 @@
       <input type="text" id="edit-tiktok-input" class="auth-input" placeholder="TikTok username" autocomplete="off">
       <input type="text" id="edit-twitch-input" class="auth-input" placeholder="Twitch username" autocomplete="off">
       <input type="text" id="edit-discord-input" class="auth-input" placeholder="Discord username" autocomplete="off">
+      <input type="email" id="edit-email-input" class="auth-input" placeholder="Recovery email (for password resets)" autocomplete="off">
+      <input type="password" id="edit-email-pass-input" class="auth-input" placeholder="Your current password (needed to save the email)" autocomplete="off">
+      <button class="auth-btn secondary" id="edit-email-save-btn" type="button">Save recovery email</button>
+      <p class="auth-sub" id="edit-email-status" style="min-height:1em;margin-top:4px;"></p>
       <input type="text" id="edit-roblox-input" class="auth-input" placeholder="Roblox username or profile link" autocomplete="off">
     </div>
     <button class="auth-btn" id="edit-profile-save">Save Changes</button>
@@ -19481,6 +19487,18 @@ ${hasCode
   // Replace YOUR-PROJECT-REF with the part before .supabase.co in your Project URL.
   const SHEET_API_URL = 'https://ttofzdqwxfskjedvqxkm.supabase.co/functions/v1/api';
 
+  // PASSWORD RESET (1.32.0): email + forgot-password live in a separate edge
+  // function called "reset". Same server, /api swapped for /reset.
+  const RESET_API_URL = SHEET_API_URL.replace(/\/api\/?$/, '/reset');
+  async function resetRequest(payload){
+    const res = await fetch(RESET_API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain' }, // text/plain skips the browser's extra preflight
+      body: JSON.stringify(payload)
+    });
+    return await res.json();
+  }
+
   function getSiteOpens(){
     return parseInt(localStorage.getItem(SITE_OPENS_KEY) || '0', 10);
   }
@@ -22200,6 +22218,7 @@ ${hasCode
     const pw = passwordInput.value;
     if (!pw) return;
     draftAccount.password = pw;
+    draftAccount.email = (document.getElementById('signup-email-input').value || '').trim();
     showAuthScreen('color');
   });
 
@@ -22322,6 +22341,10 @@ ${hasCode
       currentAuth = 'none';
       currentFont = 'Default';
       currentVisits = 1;
+      // RESET (1.32.0): save the optional recovery email now the account exists.
+      if (draftAccount.email) {
+        resetRequest({ action: 'setEmail', username: draftAccount.username, password: draftAccount.password, email: draftAccount.email }).catch(() => {});
+      }
       SAVE_KEY = 'fallgamedev-clicker-save-' + currentUsername;
 
       applyAccountTheme(draftAccount.favColor);
@@ -22339,6 +22362,168 @@ ${hasCode
   const loginPasswordInput = document.getElementById('login-password-input');
   const loginSubmit = document.getElementById('login-submit');
   const loginError = document.getElementById('login-error');
+
+  /* ---------- PASSWORD RESET UI (1.32.0) ----------
+     A "Forgot your password?" link on the login screen opens this overlay.
+     Step 1: type a username or email, a code is emailed. Step 2: type the code
+     and a new password. All the real work is in the "reset" edge function. */
+  let resetAccount = '';
+  function resetMsg(text, isError){
+    const err = document.getElementById('reset-error');
+    const ok = document.getElementById('reset-ok');
+    if (!err || !ok) return;
+    err.style.display = isError && text ? 'block' : 'none';
+    ok.style.display = !isError && text ? 'block' : 'none';
+    (isError ? err : ok).textContent = text || '';
+  }
+  function showResetStep(step){
+    const s1 = document.getElementById('reset-step-1');
+    const s2 = document.getElementById('reset-step-2');
+    if (s1) s1.style.display = step === 1 ? 'block' : 'none';
+    if (s2) s2.style.display = step === 2 ? 'block' : 'none';
+  }
+  function closeResetOverlay(){
+    const o = document.getElementById('reset-overlay');
+    if (o) o.classList.remove('visible');
+  }
+  function ensureResetStyles(){
+    if (document.getElementById('reset-overlay-style')) return;
+    const st = document.createElement('style');
+    st.id = 'reset-overlay-style';
+    st.textContent = '.reset-overlay{position:fixed;inset:0;z-index:5000;display:none;align-items:center;justify-content:center;background:rgba(10,8,20,0.72);padding:20px;}' +
+      '.reset-overlay.visible{display:flex;}' +
+      '.reset-box{position:relative;max-width:420px;width:100%;}' +
+      '.reset-ok{color:var(--moneys-green);font-size:13px;margin:8px 0 0;}';
+    document.head.appendChild(st);
+  }
+  async function resetSendCode(){
+    const input = document.getElementById('reset-account-input');
+    resetAccount = (input.value || '').trim();
+    if (!resetAccount) { resetMsg('Type your username or email first.', true); return; }
+    const btn = document.getElementById('reset-send-btn');
+    btn.disabled = true; btn.textContent = 'Sending...';
+    resetMsg('');
+    try {
+      const r = await resetRequest({ action: 'requestPasswordReset', account: resetAccount });
+      if (r.success) {
+        showResetStep(2);
+        resetMsg('If there is an email on that account, a code is on the way. Check your inbox and the spam folder.', false);
+      } else if (r.error === 'noemail') {
+        resetMsg("No email is set for that account, so a code can't be sent. Ask the game's owner to help you get back in.", true);
+      } else {
+        resetMsg('Something went wrong. Try again in a minute.', true);
+      }
+    } catch (e) {
+      resetMsg("Couldn't reach the server. Check your connection and try again.", true);
+    } finally {
+      btn.disabled = false; btn.textContent = 'Send code';
+    }
+  }
+  async function resetFinish(){
+    const code = (document.getElementById('reset-code-input').value || '').trim();
+    const newPass = document.getElementById('reset-newpass-input').value;
+    if (!code) { resetMsg('Type the code from your email.', true); return; }
+    if (!newPass) { resetMsg('Type a new password.', true); return; }
+    const btn = document.getElementById('reset-finish-btn');
+    btn.disabled = true; btn.textContent = 'Changing...';
+    resetMsg('');
+    try {
+      const r = await resetRequest({ action: 'resetPassword', account: resetAccount, code, password: newPass });
+      if (r.success) {
+        resetMsg('Password changed! You can log in with your new password now.', false);
+        const nameBox = document.getElementById('login-username-input');
+        if (nameBox && resetAccount.indexOf('@') === -1) nameBox.value = resetAccount;
+        setTimeout(closeResetOverlay, 2200);
+      } else if (r.error === 'badcode') {
+        resetMsg('That code is wrong. Check your email and try again.', true);
+      } else if (r.error === 'expired') {
+        resetMsg('That code ran out (codes last 15 minutes). Send a new one.', true);
+      } else if (r.error === 'toomany') {
+        resetMsg('Too many wrong tries. Send a new code and start over.', true);
+      } else if (r.error === 'badpass') {
+        resetMsg('Type a new password.', true);
+      } else {
+        resetMsg('Something went wrong. Try again.', true);
+      }
+    } catch (e) {
+      resetMsg("Couldn't reach the server. Try again.", true);
+    } finally {
+      btn.disabled = false; btn.textContent = 'Change password';
+    }
+  }
+  function ensureResetOverlay(){
+    let o = document.getElementById('reset-overlay');
+    if (o) return o;
+    ensureResetStyles();
+    o = document.createElement('div');
+    o.id = 'reset-overlay';
+    o.className = 'reset-overlay';
+    o.setAttribute('role', 'dialog');
+    o.setAttribute('aria-modal', 'true');
+    o.innerHTML = '' +
+      '<div class="auth-box reset-box">' +
+        '<button class="extras-close" id="reset-close" aria-label="Close">&times;</button>' +
+        '<h1 class="auth-heading">Reset password</h1>' +
+        '<div id="reset-step-1">' +
+          '<p class="auth-sub">Type your username or the email on your account. We send a code to that email.</p>' +
+          '<input type="text" id="reset-account-input" class="auth-input" placeholder="Username or email" autocomplete="off">' +
+          '<button class="auth-btn" id="reset-send-btn">Send code</button>' +
+        '</div>' +
+        '<div id="reset-step-2" style="display:none;">' +
+          '<p class="auth-sub">Type the code from the email and pick a new password.</p>' +
+          '<input type="text" id="reset-code-input" class="auth-input" placeholder="Code from the email" autocomplete="off" maxlength="10">' +
+          '<input type="password" id="reset-newpass-input" class="auth-input" placeholder="New password" autocomplete="off">' +
+          '<button class="auth-btn" id="reset-finish-btn">Change password</button>' +
+          '<button class="auth-btn secondary" id="reset-resend-btn">Send a new code</button>' +
+        '</div>' +
+        '<p class="auth-error" id="reset-error" style="display:none;"></p>' +
+        '<p class="reset-ok" id="reset-ok" style="display:none;"></p>' +
+      '</div>';
+    document.body.appendChild(o);
+    o.addEventListener('click', (e) => { if (e.target === o) closeResetOverlay(); });
+    o.querySelector('#reset-close').addEventListener('click', closeResetOverlay);
+    o.querySelector('#reset-send-btn').addEventListener('click', resetSendCode);
+    o.querySelector('#reset-finish-btn').addEventListener('click', resetFinish);
+    o.querySelector('#reset-resend-btn').addEventListener('click', () => { showResetStep(1); resetMsg(''); });
+    o.querySelector('#reset-account-input').addEventListener('keydown', (e) => { if (e.key === 'Enter') resetSendCode(); });
+    o.querySelector('#reset-newpass-input').addEventListener('keydown', (e) => { if (e.key === 'Enter') resetFinish(); });
+    return o;
+  }
+  function openResetOverlay(){
+    const o = ensureResetOverlay();
+    showResetStep(1);
+    resetMsg('');
+    const nameBox = document.getElementById('login-username-input');
+    const acct = document.getElementById('reset-account-input');
+    if (acct) acct.value = (nameBox && nameBox.value.trim()) || '';
+    o.classList.add('visible');
+    if (acct) acct.focus();
+  }
+  const forgotLink = document.getElementById('forgot-password-link');
+  if (forgotLink) forgotLink.addEventListener('click', (e) => { e.preventDefault(); openResetOverlay(); });
+
+  // Settings: save a recovery email (needs the current password to prove it's you).
+  const editEmailSaveBtn = document.getElementById('edit-email-save-btn');
+  if (editEmailSaveBtn) editEmailSaveBtn.addEventListener('click', async () => {
+    const email = (document.getElementById('edit-email-input').value || '').trim();
+    const pass = document.getElementById('edit-email-pass-input').value;
+    const status = document.getElementById('edit-email-status');
+    if (!pass) { status.textContent = 'Type your current password to save.'; return; }
+    editEmailSaveBtn.disabled = true; status.textContent = 'Saving...';
+    try {
+      const r = await resetRequest({ action: 'setEmail', username: currentUsername, password: pass, email });
+      status.textContent = r.success ? (email ? 'Recovery email saved!' : 'Recovery email removed.')
+        : r.error === 'invalid' ? "That password doesn't match your account."
+        : r.error === 'bademail' ? 'That email address looks wrong.'
+        : r.error === 'taken' ? 'That email is already on another account.'
+        : 'Something went wrong. Try again.';
+      if (r.success) document.getElementById('edit-email-pass-input').value = '';
+    } catch (e) {
+      status.textContent = "Couldn't reach the server. Try again.";
+    } finally {
+      editEmailSaveBtn.disabled = false;
+    }
+  });
 
   const noticeOverlay = document.getElementById('notice-overlay');
   const noticeTitle = document.getElementById('notice-title');
