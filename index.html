@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<!-- Game version: 1.29.1 | Deployment: 208 | Update both on every release, see README.md -->
-<meta name="game-version" content="1.29.1">
+<!-- Game version: 1.30.0 | Deployment: 208 | Update both on every release, see README.md -->
+<meta name="game-version" content="1.30.0">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>The Clicker Game!</title>
 <link rel="icon" type="image/x-icon" href="images/ui/maksy.ico" id="favicon-link">
@@ -16642,6 +16642,8 @@
     const code = String(draft.code || '').trim();
     const hasCode = code && code !== String(CGC_DEFAULT_CODE).trim();
     const payloadNames = (draft.payload || []).map(f => f.name);
+    // RESOURCE PACKS (1.30.0): names already in the pack, so the AI doesn't make them twice.
+    const packNames = (type) => ((draft.files && draft.files[type]) || []).map(f => f.name).join(', ') || 'none';
     const fence = '```';
     return base + `
 
@@ -16650,8 +16652,9 @@ IMPORTANT: ANSWER FORMAT (this replaces "WHAT TO GIVE ME" above)
 You are connected straight to the game's mod editor. A program reads your answer, so follow this format exactly.
 
 PART 1. The full CGC code, in one code block that starts with ${fence}cgc
+LEAVE PART 1 OUT when the player only wants a resource pack (new icons, cursors, backgrounds or music) and nothing that needs code. Then the code in the editor is left alone. Never write code that does nothing just to have some.
 
-PART 2. One FILE block for every NEW file the code uses. There are four kinds:
+PART 2. One FILE block for every NEW file. There are four kinds:
 
 FILE: star.png
 ${fence}svg
@@ -16683,6 +16686,16 @@ ${fence}
 
 PART 3. One or two short, friendly sentences for the player (a kid) saying what you made.
 
+WHERE A FILE GOES
+A plain name like "FILE: star.png" goes in the Payload folder, which is only for files the CODE uses.
+To make a RESOURCE PACK, put a folder in front of the name. These files need no code at all, the player just picks them in the game:
+- FILE: icons/dragon.png       a clicker avatar the player can pick (svg or link). Drawn at 128 pixels.
+- FILE: cursors/sword.png      a mouse cursor (svg or link). Drawn at 32 pixels, so keep it very simple with a thick outline, pointing to the top left.
+- FILE: backgrounds/space.png  a full page background (svg or link). Use a wide viewBox like 0 0 640 360 and fill the whole picture, no see-through parts.
+- FILE: music/chill.mp3        a song for the music player (extras, link or sound).
+The name after the folder is what the player sees in the picker, so make it a nice one.
+Already in the resource pack: icons: ${packNames('icons')}; cursors: ${packNames('cursors')}; backgrounds: ${packNames('bg')}; music: ${packNames('music')}.
+
 RULES FOR FILES
 - File names use only lowercase letters, numbers, - and _ and end with the right ending.
 - Every file name used in the code must be in Payload already or have a FILE block.
@@ -16701,7 +16714,8 @@ ${hasCode
     let text = String(reply || '');
     const files = [];
     text = text.replace(/FILE:[ \t]*([^\n`]+?)[ \t]*\r?\n+```[ \t]*([a-zA-Z]+)[^\n]*\r?\n([\s\S]*?)```/g, (all, name, kind, body) => {
-      files.push({ name: cgcCleanFileName(name), kind: kind.toLowerCase(), body: body.trim() });
+      const where = cgcHelperSplitName(name);
+      files.push({ name: where.name, folder: where.folder, kind: kind.toLowerCase(), body: body.trim() });
       return '';
     });
     let code = '';
@@ -16712,7 +16726,64 @@ ${hasCode
   }
 
   // FILE kind "svg": draws the AI's SVG onto a canvas and returns it as an image data URL.
-  function cgcHelperSvgToImage(svg){
+  /* ---------- RESOURCE PACKS (1.30.0) ----------
+     The AI can also make files for the editor's Icons, Cursors, Backgrounds and Music
+     sections, with no code and no Payload. It says where a file goes with a folder in
+     front of the name ("icons/dragon.png") or, through the connector, a "folder" field. */
+  // folder name the AI uses -> where it lives in the draft, and how pictures are drawn for it.
+  const CGC_PACK_FOLDERS = {
+    icons:       { type: 'icons',   label: 'Icons',       size: 128, format: 'png' },
+    cursors:     { type: 'cursors', label: 'Cursors',     size: 32,  format: 'png' },
+    backgrounds: { type: 'bg',      label: 'Backgrounds', size: 640, format: 'jpeg' },
+    music:       { type: 'music',   label: 'Music',       audio: true }
+  };
+  // Other words an AI might use for the same folders.
+  const CGC_PACK_ALIASES = { icon: 'icons', avatars: 'icons', cursor: 'cursors', bg: 'backgrounds', background: 'backgrounds', songs: 'music', song: 'music', payload: '' };
+
+  // "icons/Dragon.png" -> { folder: 'icons', name: 'dragon.png' }. No folder means the Payload folder.
+  function cgcHelperSplitName(raw, folderField){
+    const text = String(raw || '').trim().replace(/\\/g, '/');
+    const slash = text.lastIndexOf('/');
+    let folder = String(folderField || (slash === -1 ? '' : text.slice(0, slash))).trim().toLowerCase().replace(/^\/+|\/+$/g, '');
+    if (Object.prototype.hasOwnProperty.call(CGC_PACK_ALIASES, folder)) folder = CGC_PACK_ALIASES[folder];
+    return { folder: CGC_PACK_FOLDERS[folder] ? folder : '', name: cgcCleanFileName(slash === -1 ? text : text.slice(slash + 1)) };
+  }
+
+  // "space-dragon.png" -> "Space dragon", the name shown in the game's pickers.
+  function cgcHelperPackTitle(fileName){
+    const base = String(fileName).replace(/\.[a-z0-9]+$/i, '').replace(/[-_]+/g, ' ').trim() || 'File';
+    return (base.charAt(0).toUpperCase() + base.slice(1)).slice(0, 40);
+  }
+
+  // Puts a finished file where it belongs: a resource pack section, or the Payload folder.
+  // A file with the same name is replaced, so asking again doesn't pile up copies.
+  function cgcHelperAddFile(draft, made){
+    const pack = CGC_PACK_FOLDERS[made.folder];
+    if (!pack) {
+      const at = draft.payload.findIndex(f => f.name === made.name);
+      if (at === -1) draft.payload.push({ name: made.name, url: made.url }); else draft.payload[at] = { name: made.name, url: made.url };
+      return;
+    }
+    const list = draft.files[pack.type];
+    const title = cgcHelperPackTitle(made.name);
+    const at = list.findIndex(f => String(f.name).toLowerCase() === title.toLowerCase());
+    if (at === -1) list.push({ name: title, url: made.url }); else list[at] = { name: title, url: made.url };
+  }
+
+  // Everything Undo needs to put a mod back the way it was.
+  function cgcHelperSnapshot(draft){
+    return { code: draft.code, payload: JSON.parse(JSON.stringify(draft.payload || [])), files: JSON.parse(JSON.stringify(draft.files || {})) };
+  }
+  function cgcHelperRestore(draft, snap){
+    draft.code = snap.code;
+    draft.payload = snap.payload;
+    if (snap.files) draft.files = Object.assign(newModEditorDraft().files, snap.files);
+  }
+
+  // size: the most pixels wide or tall. format: 'png' (see-through, for icons and cursors),
+  // 'jpeg' (solid, for backgrounds) or nothing (smallest file, for Payload pictures).
+  function cgcHelperSvgToImage(svg, size, format){
+    const max = size || CGC_HELPER_IMAGE_SIZE;
     return new Promise((resolve, reject) => {
       if (!/<svg[\s>]/i.test(svg)) return reject(new Error('it was not an svg drawing'));
       const img = new Image();
@@ -16720,15 +16791,19 @@ ${hasCode
       img.onerror = () => { clearTimeout(timer); reject(new Error('the svg drawing was broken')); };
       img.onload = () => {
         clearTimeout(timer);
-        const w0 = img.naturalWidth || CGC_HELPER_IMAGE_SIZE, h0 = img.naturalHeight || CGC_HELPER_IMAGE_SIZE;
-        const scale = CGC_HELPER_IMAGE_SIZE / Math.max(w0, h0);
+        const w0 = img.naturalWidth || max, h0 = img.naturalHeight || max;
+        const scale = max / Math.max(w0, h0);
         const c = document.createElement('canvas');
         c.width = Math.max(1, Math.round(w0 * scale));
         c.height = Math.max(1, Math.round(h0 * scale));
-        c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+        const ctx = c.getContext('2d');
+        if (format === 'jpeg') { ctx.fillStyle = '#000'; ctx.fillRect(0, 0, c.width, c.height); } // backgrounds have no see-through parts
+        ctx.drawImage(img, 0, 0, c.width, c.height);
         try {
-          const webp = c.toDataURL('image/webp', 0.85); // smallest, keeps see-through parts
-          resolve(webp.indexOf('data:image/webp') === 0 ? webp : c.toDataURL('image/png'));
+          if (format === 'png') return resolve(c.toDataURL('image/png')); // works everywhere, needed for cursors
+          const webp = c.toDataURL('image/webp', format === 'jpeg' ? 0.7 : 0.85); // smallest
+          if (webp.indexOf('data:image/webp') === 0) return resolve(webp);
+          resolve(format === 'jpeg' ? c.toDataURL('image/jpeg', 0.7) : c.toDataURL('image/png'));
         } catch (e) { reject(new Error('the drawing used something that is not allowed')); }
       };
       // An SVG shown as an image can't run scripts, so this is safe.
@@ -16813,18 +16888,23 @@ ${hasCode
 
   // Turns one FILE block into a { name, url } payload file. Throws with a kid-friendly reason if it can't.
   async function cgcHelperBuildFile(file, extras){
-    const isAudio = /\.(mp3|wav|ogg|m4a|aac|opus)$/i.test(file.name);
-    if (file.kind === 'svg') return { name: file.name, url: await cgcHelperSvgToImage(file.body) };
-    if (file.kind === 'sound') return { name: file.name, url: cgcHelperMakeSound(file.body) };
+    const pack = CGC_PACK_FOLDERS[file.folder]; // undefined for Payload files
+    const isAudio = pack ? !!pack.audio : /\.(mp3|wav|ogg|m4a|aac|opus)$/i.test(file.name);
+    const done = (url) => ({ name: file.name, folder: pack ? file.folder : '', url });
+    // A picture can't be a song and a song can't be a picture.
+    if (pack && pack.audio && file.kind === 'svg') throw new Error('music has to be a sound, a link or a song from extras');
+    if (pack && !pack.audio && (file.kind === 'sound' || file.kind === 'extras')) throw new Error(`${pack.label.toLowerCase()} have to be a picture (svg or link)`);
+    if (file.kind === 'svg') return done(await cgcHelperSvgToImage(file.body, pack && pack.size, pack && pack.format));
+    if (file.kind === 'sound') return done(cgcHelperMakeSound(file.body));
     if (file.kind === 'extras') {
       const wanted = file.body.split(/\r?\n/)[0].trim();
       const match = extras.find(n => n.toLowerCase() === wanted.toLowerCase());
       if (!match) throw new Error(`"${wanted}" is not in the game's extras folder`);
-      return { name: file.name, url: extrasFileUrl(match) };
+      return done(extrasFileUrl(match));
     }
     if (file.kind === 'link') {
       const url = file.body.split(/\s+/)[0];
-      return { name: file.name, url: await cgcHelperTestLink(url, isAudio) };
+      return done(await cgcHelperTestLink(url, isAudio));
     }
     throw new Error(`"${file.kind}" is not a kind of file the game knows`);
   }
@@ -16854,7 +16934,7 @@ ${hasCode
     cgcHelper.steps = [];
     cgcHelper.said = '';
     // Remember everything so Undo can put it back.
-    cgcHelper.undo = { code: draft.code, payload: JSON.parse(JSON.stringify(draft.payload || [])) };
+    cgcHelper.undo = cgcHelperSnapshot(draft);
     let useSearch = cgcHelper.search;
     let problems = [];
 
@@ -16879,7 +16959,8 @@ ${hasCode
         }
         if (!stillHere()) return;
         const answer = cgcHelperParse(reply);
-        if (!answer.code) throw Object.assign(new Error(`${ai.name} didn't send any code. Try asking in a different way.`), { friendly: true });
+        // RESOURCE PACKS (1.30.0): an answer with only files is fine, the code is then left alone.
+        if (!answer.code && !answer.files.length) throw Object.assign(new Error(`${ai.name} didn't send any code or files. Try asking in a different way.`), { friendly: true });
         cgcHelper.said = answer.said;
         problems = [];
 
@@ -16887,9 +16968,7 @@ ${hasCode
         for (const file of answer.files) {
           cgcHelperStep(`${file.kind === 'link' || file.kind === 'extras' ? 'Finding' : 'Making'} ${file.name}...`);
           try {
-            const made = await cgcHelperBuildFile(file, extras);
-            const at = draft.payload.findIndex(f => f.name === made.name);
-            if (at === -1) draft.payload.push(made); else draft.payload[at] = made;
+            cgcHelperAddFile(draft, await cgcHelperBuildFile(file, extras));
           } catch (e) {
             cgcHelperStep(`Couldn't get ${file.name}: ${e.message}.`, 'bad');
             problems.push(`FILE ${file.name} (${file.kind}) failed: ${e.message}. Send it a different way, like an svg drawing or a sound.`);
@@ -16897,19 +16976,27 @@ ${hasCode
         }
         if (!stillHere()) return;
 
-        // Put the code in the editor and try it.
-        cgcHelperStep('Putting the code in the editor and testing it...');
-        draft.code = answer.code + '\n';
+        // Put the code in the editor and try it. A resource pack has no new code, so there is nothing to test.
+        if (answer.code) {
+          cgcHelperStep('Putting the code in the editor and testing it...');
+          draft.code = answer.code + '\n';
+        } else {
+          cgcHelperStep('Adding the files to your resource pack...');
+        }
         saveModEditorDraft();
         renderModEditor();
-        let parseError = '';
-        try { CGC.parse(draft.code); } catch (e) { parseError = e.line ? `Line ${e.line}: ${e.message}` : e.message; }
-        if (parseError) problems.push(parseError);
-        else problems = problems.concat(await cgcHelperTestErrors());
+        if (answer.code) {
+          let parseError = '';
+          try { CGC.parse(draft.code); } catch (e) { parseError = e.line ? `Line ${e.line}: ${e.message}` : e.message; }
+          if (parseError) problems.push(parseError);
+          else problems = problems.concat(await cgcHelperTestErrors());
+        }
         if (!stillHere()) return;
 
         if (!problems.length) {
-          cgcHelperStep('All done! The test is running below. Click Undo if you liked the old version better.', 'ok');
+          cgcHelperStep(answer.code
+            ? 'All done! The test is running below. Click Undo if you liked the old version better.'
+            : 'All done! Scroll down to Icons, Cursors, Backgrounds and Music to see the new files. Click Undo to take them out.', 'ok');
           return;
         }
         if (round === CGC_HELPER_MAX_FIXES) {
@@ -16931,8 +17018,7 @@ ${hasCode
   // Undo: puts back the code and files from before the AI changed them.
   function cgcHelperUndo(){
     if (!cgcHelper.undo || !modEditorDraft || cgcHelper.busy) return;
-    modEditorDraft.code = cgcHelper.undo.code;
-    modEditorDraft.payload = cgcHelper.undo.payload;
+    cgcHelperRestore(modEditorDraft, cgcHelper.undo);
     cgcHelper.undo = null;
     cgcHelper.steps = [{ text: 'Your old code and files are back.', kind: 'ok' }];
     cgcHelper.said = '';
@@ -17011,6 +17097,13 @@ ${hasCode
           name: d.name || '',
           code: d.code || '',
           files: (d.payload || []).map(f => f.name),
+          // RESOURCE PACKS (1.30.0): what is already in the Icons, Cursors, Backgrounds and Music sections.
+          pack: {
+            icons: (d.files.icons || []).map(f => f.name),
+            cursors: (d.files.cursors || []).map(f => f.name),
+            backgrounds: (d.files.bg || []).map(f => f.name),
+            music: (d.files.music || []).map(f => f.name)
+          },
           extras: extrasFilesCache || [],
           errors: errors || [],
           testedDraft: testedDraft || cgcAiStoreGet(CGC_LINK_SEEN_KEY)
@@ -17019,7 +17112,7 @@ ${hasCode
     });
     if (!res.ok) throw new Error('connector');
     const data = await res.json();
-    cgcLink.sentCode = d.code;
+    cgcLink.sentCode = d.code + '|' + modEditorFileCount(); // changes when the code or the resource pack changes
     return data.draft || null;
   }
 
@@ -17029,38 +17122,43 @@ ${hasCode
     cgcLink.busy = true;
     cgcLink.steps = [];
     cgcLink.said = String(draft.message || '');
-    cgcLink.undo = { code: d.code, payload: JSON.parse(JSON.stringify(d.payload || [])) };
+    cgcLink.undo = cgcHelperSnapshot(d);
     const problems = [];
     try {
       cgcLinkStep('Your AI sent a mod!', 'ok');
       let extras = [];
       try { extras = await loadExtrasAudioFiles(); } catch (e) {}
       for (const f of (Array.isArray(draft.files) ? draft.files : [])) {
-        const file = { name: cgcCleanFileName(f.name), kind: String(f.kind || '').toLowerCase(), body: String(f.content || '').trim() };
+        const where = cgcHelperSplitName(f.name, f.folder);
+        const file = { name: where.name, folder: where.folder, kind: String(f.kind || '').toLowerCase(), body: String(f.content || '').trim() };
         cgcLinkStep(`${file.kind === 'link' || file.kind === 'extras' ? 'Finding' : 'Making'} ${file.name}...`);
         try {
-          const made = await cgcHelperBuildFile(file, extras);
-          const at = d.payload.findIndex(x => x.name === made.name);
-          if (at === -1) d.payload.push(made); else d.payload[at] = made;
+          cgcHelperAddFile(d, await cgcHelperBuildFile(file, extras));
         } catch (e) {
           cgcLinkStep(`Couldn't get ${file.name}: ${e.message}.`, 'bad');
           problems.push(`File ${file.name} (${file.kind}) failed: ${e.message}. Send it a different way, like an svg drawing or a sound.`);
         }
       }
       if (modEditorDraft !== d) return; // the player left the editor
-      cgcLinkStep('Putting the code in the editor and testing it...');
-      d.code = String(draft.code || '').replace(/\s+$/, '') + '\n';
+      // RESOURCE PACKS (1.30.0): a mod with no code is a resource pack. The code in the editor stays as it is.
+      const newCode = String(draft.code || '').trim();
+      cgcLinkStep(newCode ? 'Putting the code in the editor and testing it...' : 'Adding the files to your resource pack...');
+      if (newCode) d.code = newCode + '\n';
       saveModEditorDraft();
       renderModEditor();
-      let parseError = '';
-      try { CGC.parse(d.code); } catch (e) { parseError = e.line ? `Line ${e.line}: ${e.message}` : e.message; }
-      if (parseError) problems.push(parseError);
-      else (await cgcHelperTestErrors()).forEach(t => problems.push(t));
+      if (newCode) {
+        let parseError = '';
+        try { CGC.parse(d.code); } catch (e) { parseError = e.line ? `Line ${e.line}: ${e.message}` : e.message; }
+        if (parseError) problems.push(parseError);
+        else (await cgcHelperTestErrors()).forEach(t => problems.push(t));
+      }
       if (modEditorDraft !== d) return;
       cgcAiStoreSet(CGC_LINK_SEEN_KEY, draft.id);
       await cgcLinkCheckIn(problems, draft.id);
-      if (problems.length) cgcLinkStep(`The test found ${problems.length} problem${problems.length === 1 ? '' : 's'}. Your AI can see ${problems.length === 1 ? 'it' : 'them'}, so ask it to fix ${problems.length === 1 ? 'it' : 'them'}. First one: ${problems[0]}`, 'bad');
-      else cgcLinkStep('All done! The test is running below. Click Undo if you liked the old version better.', 'ok');
+      if (problems.length) cgcLinkStep(`Found ${problems.length} problem${problems.length === 1 ? '' : 's'}. Your AI can see ${problems.length === 1 ? 'it' : 'them'}, so ask it to fix ${problems.length === 1 ? 'it' : 'them'}. First one: ${problems[0]}`, 'bad');
+      else cgcLinkStep(newCode
+        ? 'All done! The test is running below. Click Undo if you liked the old version better.'
+        : 'All done! Scroll down to Icons, Cursors, Backgrounds and Music to see the new files. Click Undo to take them out.', 'ok');
     } catch (e) {
       cgcLinkStep("Something went wrong loading the AI's mod. Ask your AI to send it again.", 'bad');
     } finally {
@@ -17082,7 +17180,7 @@ ${hasCode
     }
     try {
       let draft;
-      if (cgcLink.sentCode !== modEditorDraft.code) {
+      if (cgcLink.sentCode !== modEditorDraft.code + '|' + modEditorFileCount()) {
         // The player changed the code, so tell the server. This also returns any waiting mod.
         draft = await cgcLinkCheckIn();
       } else {
@@ -17134,8 +17232,7 @@ ${hasCode
   // Undo for a mod the AI sent through the connector.
   function cgcLinkUndo(){
     if (!cgcLink.undo || !modEditorDraft || cgcLink.busy) return;
-    modEditorDraft.code = cgcLink.undo.code;
-    modEditorDraft.payload = cgcLink.undo.payload;
+    cgcHelperRestore(modEditorDraft, cgcLink.undo);
     cgcLink.undo = null;
     cgcLink.steps = [{ text: 'Your old code and files are back.', kind: 'ok' }];
     cgcLink.said = '';
@@ -17147,7 +17244,7 @@ ${hasCode
   function cgcLinkPanelHtml(){
     const esc = escapeChatHtml;
     const code = cgcLinkPretty(cgcLinkCode());
-    const say = `Use The Clicker Game connector. My connect code is ${code}. Make a mod that `;
+    const say = `Use The Clicker Game connector. My connect code is ${code}. Make a mod or resource pack that `;
     const steps = cgcLink.steps.length
       ? `<ul class="cgc-helper-steps" role="status">${cgcLink.steps.map(st => `<li class="${st.kind}">${esc(st.text)}</li>`).join('')}</ul>` : '';
     let live;
@@ -17193,7 +17290,7 @@ ${hasCode
     on('cgc-link-url-copy', (el) => cgcLinkCopy(cgcConnectorUrl(), el, 'Copy link'));
     on('cgc-link-add-claude', () => window.open(cgcClaudeAddUrl(), '_blank', 'noopener'));
     on('cgc-link-code-copy', (el) => cgcLinkCopy(code, el, 'Copy code'));
-    on('cgc-link-say-copy', (el) => cgcLinkCopy(`Use The Clicker Game connector. My connect code is ${code}. Make a mod that `, el, 'Copy'));
+    on('cgc-link-say-copy', (el) => cgcLinkCopy(`Use The Clicker Game connector. My connect code is ${code}. Make a mod or resource pack that `, el, 'Copy'));
     on('cgc-link-code-new', () => { cgcLinkNewCode(); cgcLink.steps = []; cgcLinkStart(); });
     on('cgc-link-listen', () => { if (cgcLink.listening) { cgcLinkStop(); cgcRenderHelper(); } else cgcLinkStart(); });
     on('cgc-link-undo', cgcLinkUndo);
@@ -17222,7 +17319,7 @@ ${hasCode
     const panel = ai ? `
       <div class="cgc-helper-panel" style="--ai-color:${ai.color}">
         <h4>What should ${esc(ai.name)} make or change?</h4>
-        <textarea id="cgc-helper-request" maxlength="2000" placeholder="Example: add a dragon you can click that breathes fire, with a roar sound and a Scales currency."${busy}>${esc(cgcHelper.request)}</textarea>
+        <textarea id="cgc-helper-request" maxlength="2000" placeholder="Example: add a dragon you can click that breathes fire, with a roar sound. Or: make a space resource pack with 3 icons, a cursor and a background."${busy}>${esc(cgcHelper.request)}</textarea>
         <label class="cgc-helper-check"><input type="checkbox" id="cgc-helper-search"${cgcHelper.search ? ' checked' : ''}${busy}> Let it search the internet for files (can use more of your key)</label>
         <div class="cgc-ai-row">
           <button class="auth-btn" id="cgc-helper-go"${busy}>${cgcHelper.busy ? 'Working...' : 'Go'}</button>

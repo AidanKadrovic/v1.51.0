@@ -1,5 +1,5 @@
 // =====================================================================
-// The Clicker Game! AI CONNECTOR (MCP server)                  1.29.0
+// The Clicker Game! AI CONNECTOR (MCP server)                  1.30.0
 // =====================================================================
 // This is a Supabase Edge Function. It lets AI apps that support "connectors"
 // (also called MCP servers), like Claude and ChatGPT, talk to the game.
@@ -31,14 +31,27 @@ const MAX_FILE_CHARS = 60000;              // biggest single file (an svg drawin
 const MAX_BODY_CHARS = 400000;             // biggest request this function reads
 const LINK_LIFETIME_MS = 24 * 60 * 60 * 1000; // connect codes stop working a day after the game last checked in
 const PROTOCOL_VERSION = "2025-06-18";     // newest MCP version this server was written for
-const SERVER_INFO = { name: "the-clicker-game", title: "The Clicker Game!", version: "1.0.0" };
+const SERVER_INFO = { name: "the-clicker-game", title: "The Clicker Game!", version: "1.1.0" };
 
 // The CGC language rules. Copied from CGC_VIBE_PROMPT in index.html, keep them in sync.
 const CGC_GUIDE = "CGC (Clicker Game Code) is a small Lua-like language for mods in \"The Clicker Game!\". Write ONLY valid CGC. Do not use JavaScript, Lua functions, tables, arrays or anything not listed below.\n\nHOW CGC RUNS\n- The code runs top to bottom once when the mod loads. After that, \"when\" blocks run every time their event happens.\n- Comments start with --\n- Text uses double quotes. Join text with .. like \"Score: \" .. var.score. Use \\n for a new line.\n- There are no functions, tables or for/while loops. Use events, variables and repeat instead.\n- One statement per line.\n\nPREFIXES\nc.        game events: c.load, c.click (the player clicks the game's clicker), c.tick (10 times a second), c.second, c.buy (shop purchase), c.prestige\ncv.       read-only outputs of game events: cv.click (clicks so far), cv.earned, cv.tick, cv.second, cv.buy (item name), cv.prestige, cv.mousex, cv.mousey (0 to 100, last object click)\nv.        game variables you can read: v.moneys, v.prestige, v.gems, v.clickpower, v.boosts, v.autoclickers, v.achievements, v.username, v.hour, v.muted, v.prestigecost\nvar.      your variables. Make them first: var.create(\"score\", 0)\nev.       your events. Make them first: ev.create(\"levelUp\")\nstorage.  like var, but saved to the player's account forever: storage.create(\"best\", 0)\nname.png  a file in the Payload folder, like canvas.cookie.png\n\nSTATEMENTS\nprint(\"text\")\nvar.create(\"name\", startValue)      ev.create(\"name\")      storage.create(\"name\", startValue)\nvar.score.add(1)   .subtract(1)   .multiply(2)   .divide(2)   .set(5)\n   (these math words also work on storage. variables, currencies and number locals)\nlocal name = value\nlocal group = objectA, objectB, objectC      (commas make a group, att on a group changes all of them)\nname = new value                            (changes an existing local)\natt object.attribute = value\nwhen(c.click) ... end\nwhen(ev.levelUp) ... end\nwhen(myObject.click) ... end                (object events: click, hover, leave, drop)\ndo.ev.levelUp                               (runs your event)\ndo.c.click                                  (clicks the game's clicker once)\ndo.c.prestige                               (opens the prestige window, only if the player qualifies)\nif condition then ... elseif condition then ... else ... end\nrepeat(5) ... end                           (max 1000)\nplay(obj)   stop(obj)   show(obj)   hide(obj)   remove(obj)\nEvery when, if and repeat needs its own end. A local made inside a block only exists inside it.\n\nOBJECTS\ncanvas.circle   canvas.rect   canvas.tri   canvas(\"some text\")\ncanvas.cookie.png    a picture from the Payload folder\ncanvas.pop.mp3       a sound object, play it with play(name)\ngame.action          a button in Stats > Mods next to Uninstall. Set its text with att btn.action = \"Text\" and use when(btn.click).\ngame.cur             a currency shown in Stats > Mods, saved automatically. Name it with att gold.cur = \"Gold\". Use it like a number: gold.add(1), if gold >= 10 then\nLimits: 400 objects, 12 actions and 8 currencies per mod.\n\nATTRIBUTES (set with att obj.name = value, read with obj.name)\npos.x, pos.y      0 to 100, percent of the screen. The middle of the object goes there. Default 50, 50 (center).\nsize.x, size.y    pixels, or text like \"100%\" for percent of the screen. \"size\" sets both.\nclickable, dragable, visible, loop      true or false\nscale (1 is normal), rotate (degrees), opacity (0 to 1), layer (higher draws on top, default 1), round (corner radius in pixels for rects and pictures)\ncolor             \"red\", \"#ff8800\" or \"rgb(255, 136, 0)\". Fill color for shapes, letter color for text.\ntext, fontsize    words on a shape or text object, and their size in pixels\nimage             swap a picture: \"other.png\"\nevent             \"levelUp\" makes clicking the object run ev.levelUp\nfile              a sound file. A clickable object with a file plays it when clicked.\nvolume (0 to 1), speed (1 normal, 2 twice as fast, negative plays it backwards)\nActions and currencies only have: action (or cur), color (yellow if not set), icon (a Payload picture). Actions can also have event.\n\nOPERATORS AND FUNCTIONS\n+ - * / % ^      == ~= < > <= >=      and or not      (false, nil, 0 and \"\" count as false)\nfloor(x) ceil(x) round(x, decimals) abs(x) min(a, b) max(a, b) sqrt(x) random(a, b) pick(a, b, c) format(n) text(x) number(x) upper(x) lower(x)\n\nRULES THE GAME ENFORCES (code that breaks them does nothing)\n- Moneys: only v.moneys.add(1) or v.moneys.add(v.clickpower), at most 15 times a second. v.moneys.subtract(n) only works if the player has n. Moneys can't be set, multiplied or divided.\n- Prestige only through do.c.prestige, and only if the player has enough moneys.\n- Gems can never be changed.\n- For any other kind of money, make your own with game.cur.\n\nSTYLE\n- Create every var, ev, storage and local above the lines that use it.\n- Use storage for progress the player should keep.\n- Add a short comment above each part so a kid can follow it.\n\nEXAMPLE OF VALID CGC\nlocal gold = game.cur\natt gold.cur = \"Gold\"\nstorage.create(\"bestStreak\", 0)\n\nlocal button = canvas.circle\natt button.pos.x = 90\natt button.pos.y = 85\natt button.size = 100\natt button.color = \"#ff5da0\"\natt button.clickable = true\natt button.text = \"+1 Gold\"\n\nwhen(button.click)\n  gold.add(1)\n  if gold % 10 == 0 then\n    print(\"You have \" .. format(gold) .. \" gold!\")\n  end\nend";
 
 // How the AI describes the files a mod needs. The GAME turns these into real files.
-const FILE_GUIDE = `FILES
-Every file name used in the code must already be in the player's Payload folder (get_mod lists them) or be sent in send_mod's "files" list. Each file has a name, a kind and content:
+const FILE_GUIDE = `TWO THINGS YOU CAN MAKE
+1. A MOD WITH CODE: CGC code, plus files in the Payload folder that the code uses.
+2. A RESOURCE PACK: just files the player picks in the game (clicker icons, mouse cursors, page backgrounds, music). It needs NO code. Call send_mod with files only and leave "code" out. Never write code that does nothing just to have some.
+One send_mod can do both at once.
+
+FILES
+Each file has a name, a kind, content, and an optional folder:
+- folder "payload" (or no folder): a file the CODE uses. Every file name used in the code must already be in the player's Payload folder (get_mod lists them) or be sent here.
+- folder "icons": a clicker avatar the player can pick (svg or link). Drawn at 128 pixels.
+- folder "cursors": a mouse cursor (svg or link). Drawn at 32 pixels, so keep it very simple with a thick outline, pointing to the top left.
+- folder "backgrounds": a full page background (svg or link). Use a wide viewBox like 0 0 640 360 and fill the whole picture, no see-through parts.
+- folder "music": a song for the music player (extras, link or sound).
+For resource pack files, the name is what the player sees in the picker, so make it a nice one.
+
+The kinds:
 - kind "svg": content is a full <svg> drawing with viewBox, width and height. The game turns it into an image. The name must end in .png. Keep it simple and cartoony with a transparent background. No scripts, no links to other images.
 - kind "sound": content is a note list, one note per line: frequency in Hz, then milliseconds. 0 Hz is silence. An optional first line picks the wave: "wave sine", "wave square", "wave saw" or "wave noise". At most 5 seconds in total. The name must end in .wav.
 - kind "extras": content is the exact name of a song that comes with the game (get_mod lists them). The name should end in .mp3.
@@ -48,7 +61,7 @@ File names use only lowercase letters, numbers, - and _ plus the ending. Use sha
 HOW TO WORK
 1. Ask the player for their connect code if they didn't give it. The game shows it in the mod editor under "AI connector".
 2. Call get_mod to see the code and files they already have, and any errors from the last test.
-3. Call send_mod with the COMPLETE new code and any new files.
+3. Call send_mod with the COMPLETE new code and any new files. For a resource pack, send only files.
 4. Wait about 10 seconds, then call get_mod again. If "errors" is not empty, fix them and call send_mod again.
 5. Tell the player in one or two short, friendly sentences what you made. They are probably a kid.`;
 
@@ -63,7 +76,7 @@ const TOOLS = [
   {
     name: "get_mod",
     title: "Read the player's mod",
-    description: "Returns what is in the player's mod editor right now: the CGC code, the names of the files in the Payload folder, the songs that come with the game, and the errors from the last test run. Call it before changing a mod, and again about 10 seconds after send_mod to check for errors.",
+    description: "Returns what is in the player's mod editor right now: the CGC code, the names of the files in the Payload folder, what is in the resource pack (icons, cursors, backgrounds, music), the songs that come with the game, and the errors from the last test run. Call it before changing a mod, and again about 10 seconds after send_mod to check for errors.",
     inputSchema: {
       type: "object",
       properties: { connect_code: { type: "string", description: "The player's connect code from the game's mod editor, like ABCD-2345." } },
@@ -75,20 +88,21 @@ const TOOLS = [
   {
     name: "send_mod",
     title: "Send a mod to the game",
-    description: "Sends CGC code (and optional files) to the player's mod editor in The Clicker Game!. The game replaces the code in the editor, makes the files, and runs a test. The player can undo it. It never publishes anything and never changes moneys or Gems.",
+    description: "Sends a mod to the player's mod editor in The Clicker Game!: CGC code, files, or both. Send only files (no code) to make a resource pack of icons, cursors, backgrounds and music. The game makes the files, and if there is code it replaces the code in the editor and runs a test. The player can undo it. It never publishes anything and never changes moneys or Gems.",
     inputSchema: {
       type: "object",
       properties: {
         connect_code: { type: "string", description: "The player's connect code from the game's mod editor, like ABCD-2345." },
-        code: { type: "string", description: "The COMPLETE CGC code for the mod. It replaces what is in the editor." },
+        code: { type: "string", description: "The COMPLETE CGC code for the mod. It replaces what is in the editor. Leave it out for a resource pack, and the code in the editor is left alone." },
         files: {
           type: "array",
-          description: "New files the code needs. See get_cgc_guide for what each kind means.",
+          description: "New files. See get_cgc_guide for what each kind and folder means.",
           items: {
             type: "object",
             properties: {
               name: { type: "string", description: "File name, like dragon.png or roar.wav." },
               kind: { type: "string", enum: ["svg", "sound", "extras", "link"] },
+              folder: { type: "string", enum: ["payload", "icons", "cursors", "backgrounds", "music"], description: "Where the file goes. payload (the default) is for files the code uses. The others make a resource pack and need no code." },
               content: { type: "string", description: "The svg drawing, the note list, the extras song name, or the https link." },
             },
             required: ["name", "kind", "content"],
@@ -97,7 +111,7 @@ const TOOLS = [
         },
         message: { type: "string", description: "One or two short sentences for the player about what you made." },
       },
-      required: ["connect_code", "code"],
+      required: ["connect_code"],
       additionalProperties: false,
     },
   },
@@ -172,6 +186,16 @@ async function writeLink(code, link) {
   if (!res.ok) throw new Error("storage");
 }
 
+// Keeps only the four resource pack lists, cut down to safe sizes.
+function cleanPack(pack) {
+  const out = {};
+  for (const key of ["icons", "cursors", "backgrounds", "music"]) {
+    const list = pack && Array.isArray(pack[key]) ? pack[key] : [];
+    out[key] = list.slice(0, 60).map((n) => String(n).slice(0, 60));
+  }
+  return out;
+}
+
 // ---------- the game's side: /mcp/link ----------
 // POST { code, state }  the game checks in: saves what is in the editor, gets any waiting mod back.
 // GET  ?code=...        the game just asks if a mod is waiting.
@@ -199,6 +223,7 @@ async function handleGame(req, url) {
     name: String(st.name || "").slice(0, 80),
     code: String(st.code || "").slice(0, MAX_CODE_CHARS),
     files: (Array.isArray(st.files) ? st.files : []).slice(0, 60).map((n) => String(n).slice(0, 60)),
+    pack: cleanPack(st.pack),
     extras: (Array.isArray(st.extras) ? st.extras : []).slice(0, 100).map((n) => String(n).slice(0, 80)),
     errors: (Array.isArray(st.errors) ? st.errors : []).slice(0, 10).map((n) => String(n).slice(0, 300)),
     testedDraft: String(st.testedDraft || "").slice(0, 40),
@@ -230,6 +255,7 @@ async function callTool(name, args) {
       mod_name: st.name || "",
       code: st.code || "",
       payload_files: st.files || [],
+      resource_pack: cleanPack(st.pack),
       songs_that_come_with_the_game: st.extras || [],
       errors: st.errors || [],
       note: waiting
@@ -240,7 +266,9 @@ async function callTool(name, args) {
 
   if (name === "send_mod") {
     const mod = String(args.code || "");
-    if (!mod.trim()) return toolText("The code is empty. Send the complete CGC code.", true);
+    const hasFiles = Array.isArray(args.files) && args.files.length > 0;
+    // A resource pack has files and no code. Sending nothing at all is a mistake.
+    if (!mod.trim() && !hasFiles) return toolText("There is nothing to send. Send CGC code, files for a resource pack, or both.", true);
     if (mod.length > MAX_CODE_CHARS) return toolText(`The code is too long (${mod.length} letters, the most is ${MAX_CODE_CHARS}). Make it shorter.`, true);
     const files = Array.isArray(args.files) ? args.files : [];
     if (files.length > MAX_FILES) return toolText(`That is too many files (${files.length}, the most is ${MAX_FILES}).`, true);
@@ -251,7 +279,9 @@ async function callTool(name, args) {
       const fname = String((f && f.name) || "").trim();
       if (!fname || ["svg", "sound", "extras", "link"].indexOf(kind) === -1) return toolText(`File "${fname}" needs a name and a kind of svg, sound, extras or link.`, true);
       if (content.length > MAX_FILE_CHARS) return toolText(`File "${fname}" is too big. Make it simpler.`, true);
-      clean.push({ name: fname.slice(0, 60), kind, content });
+      const folder = String((f && f.folder) || "").toLowerCase();
+      if (folder && ["payload", "icons", "cursors", "backgrounds", "music"].indexOf(folder) === -1) return toolText(`File "${fname}" has folder "${folder}". Use payload, icons, cursors, backgrounds or music.`, true);
+      clean.push({ name: fname.slice(0, 60), kind, content, folder: folder === "payload" ? "" : folder });
     }
     const draft = {
       id: Date.now().toString(36) + Math.random().toString(36).slice(2, 8),
@@ -262,7 +292,9 @@ async function callTool(name, args) {
     };
     // seenAt is left alone: only the game checking in keeps a link alive.
     await writeLink(code, { draft, state: link.state || {}, seenAt: link.seenAt });
-    return toolText("Sent! The game picks it up within a few seconds, puts it in the mod editor, makes the files and runs a test. Call get_mod in about 10 seconds to see if the test found errors.");
+    return toolText(mod.trim()
+      ? "Sent! The game picks it up within a few seconds, puts it in the mod editor, makes the files and runs a test. Call get_mod in about 10 seconds to see if the test found errors."
+      : "Sent! The game picks it up within a few seconds and adds the files to the player's resource pack. Call get_mod in about 10 seconds to check that every file was made.");
   }
 
   return toolText(`There is no tool called "${name}".`, true);

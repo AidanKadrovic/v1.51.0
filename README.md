@@ -108,8 +108,8 @@ Rules:
 Near the top of `index.html`:
 
 ```html
-<!-- Game version: 1.29.1 | Deployment: 208 | Update both on every release, see README.md -->
-<meta name="game-version" content="1.29.1">
+<!-- Game version: 1.30.0 | Deployment: 208 | Update both on every release, see README.md -->
+<meta name="game-version" content="1.30.0">
 ```
 
 Bump both the version comment and the `game-version` meta tag on every release. The deployment number is an internal counter for tracking Apps Script/Sheet deployments - increment it whenever the backend Web App is redeployed, even if the game version string doesn't change.
@@ -166,5 +166,6 @@ Rules for changing CGC:
   - Server: `supabase/functions/mcp/index.ts`, a Supabase Edge Function with three tools (`get_cgc_guide`, `get_mod`, `send_mod`). **Turn it on once:** Supabase dashboard > Edge Functions > Deploy a new function > Via editor, name it exactly `mcp`, paste the file, turn OFF "Verify JWT" (same as the `api` function), Deploy. It keeps its data in a private Storage bucket called `ai-links` that it creates by itself. It never touches accounts, moneys or Gems. The connector link is the API link with `api` swapped for `mcp` (`cgcConnectorUrl()`).
   - Game: the **AI connector** button above the code box (`cgcLinkPanelHtml()`). It shows a connect code, checks in with the server every few seconds while the panel is open (`cgcLinkTick()`), loads what the AI sent (`cgcLinkApply()`), runs a test and reports errors back so the AI can fix them.
   - `CGC_GUIDE` inside the function is a copy of the rules in `CGC_VIBE_PROMPT`. When CGC changes, update both and deploy the function again.
+- **AI resource packs** (1.30.0) - the AI helper and the AI connector can make files for the editor's Icons, Cursors, Backgrounds and Music sections with no code and no Payload. A file says where it goes with a folder: `FILE: icons/dragon.png` for the Ask buttons, or a `folder` field in the connector's `send_mod`. `CGC_PACK_FOLDERS` holds the sizes (icons 128px, cursors 32px, backgrounds 640px). Code is optional now, so a files-only answer leaves the editor's code alone. **The `mcp` function changed, so paste `supabase/functions/mcp/index.ts` into Supabase and deploy it again.**
 - Every code box in `CGC_GUIDE` is real CGC. After changing the language or a guide page, paste its code boxes into the editor and run them.
 - `MOD_EDITOR_SIZE_LIMIT` (250K) caps a mod's files, payload and code together.
