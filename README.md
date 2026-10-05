@@ -108,8 +108,8 @@ Rules:
 Near the top of `index.html`:
 
 ```html
-<!-- Game version: 1.25.0 | Deployment: 208 | Update both on every release, see README.md -->
-<meta name="game-version" content="1.25.0">
+<!-- Game version: 1.26.0 | Deployment: 208 | Update both on every release, see README.md -->
+<meta name="game-version" content="1.26.0">
 ```
 
 Bump both the version comment and the `game-version` meta tag on every release. The deployment number is an internal counter for tracking Apps Script/Sheet deployments - increment it whenever the backend Web App is redeployed, even if the game version string doesn't change.
@@ -159,5 +159,6 @@ Rules for changing CGC:
 
 - New game variables for `v.` go in `cgcGameVar()`. New writable ones need a rule in both hosts.
 - New attributes go in `setAttr()` and the Attributes table in `CGC_GUIDE`.
-- Keep `CGC_EXAMPLE_BAKERY` working: load it in the editor and click Run test after any change.
+- Keep `CGC_EXAMPLE_PET` (the guide's Hungry pet example) working: load it in the editor and click Run test after any change.
+- Every code box in `CGC_GUIDE` is real CGC. After changing the language or a guide page, paste its code boxes into the editor and run them.
 - `MOD_EDITOR_SIZE_LIMIT` (250K) caps a mod's files, payload and code together.

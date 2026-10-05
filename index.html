@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<!-- Game version: 1.25.0 | Deployment: 208 | Update both on every release, see README.md -->
-<meta name="game-version" content="1.25.0">
+<!-- Game version: 1.26.0 | Deployment: 208 | Update both on every release, see README.md -->
+<meta name="game-version" content="1.26.0">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>The Clicker Game!</title>
 <link rel="icon" type="image/x-icon" href="images/ui/maksy.ico" id="favicon-link">
@@ -15076,8 +15076,8 @@
     return { VERSION, tokenize, parse, Runtime, CgcError, formatNumber, GAME_EVENTS, OBJECT_EVENTS };
   })();
 
-  // The Bakery example (Cookie Clicker style). Shown in the guide. Same code as the "bakery" template in CGC_TEMPLATES.
-  const CGC_EXAMPLE_BAKERY = "-- Bakery: a Cookie Clicker (by Orteil) style mod, written in CGC.\n-- Needs cookie.png in the Payload folder.\n\n-- ===== Currency and saved progress =====\nlocal cookies = game.cur\natt cookies.cur = \"Cookies\"\natt cookies.color = \"#e8b06a\"\natt cookies.icon = \"cookie.png\"\n\nstorage.create(\"cursors\", 0)\nstorage.create(\"grandmas\", 0)\nstorage.create(\"farms\", 0)\nstorage.create(\"mines\", 0)\nstorage.create(\"baked\", 0)\nstorage.create(\"open\", true)\n\nvar.create(\"cps\", 0)\nvar.create(\"perclick\", 1)\nvar.create(\"newsTimer\", 0)\n\nev.create(\"refresh\")\nev.create(\"bake\")\nev.create(\"toggleBakery\")\n\n-- ===== Background =====\nlocal sky = canvas.rect\natt sky.size.x = \"100%\"\natt sky.size.y = \"100%\"\natt sky.color = \"#0d2342\"\natt sky.layer = 0\n\nlocal leftPanel = canvas.rect\natt leftPanel.pos.x = 17\natt leftPanel.size.x = \"34%\"\natt leftPanel.size.y = \"100%\"\natt leftPanel.color = \"rgba(0, 0, 0, 0.35)\"\natt leftPanel.layer = 0\n\nlocal storePanel = canvas.rect\natt storePanel.pos.x = 86\natt storePanel.size.x = \"28%\"\natt storePanel.size.y = \"100%\"\natt storePanel.color = \"#3a2414\"\natt storePanel.layer = 0\n\n-- ===== Left side: bakery name, counter, the big cookie =====\nlocal title = canvas(\"Your bakery\")\natt title.pos.y = 8\natt title.pos.x = 17\natt title.fontsize = 26\natt title.color = \"#f5deb3\"\n\nlocal counter = canvas(\"0 cookies\")\natt counter.pos.x = 17\natt counter.pos.y = 15\natt counter.fontsize = 34\natt counter.color = \"#ffffff\"\n\nlocal perSec = canvas(\"per second: 0\")\natt perSec.pos.x = 17\natt perSec.pos.y = 21\natt perSec.fontsize = 16\natt perSec.color = \"#d8d8d8\"\n\nlocal cookie = canvas.cookie.png\natt cookie.pos.x = 17\natt cookie.pos.y = 55\natt cookie.size.x = 260\natt cookie.size.y = 260\natt cookie.clickable = true\natt cookie.event = \"bake\"\n\nlocal clickInfo = canvas(\"Game clicks this session: 0\")\natt clickInfo.pos.x = 17\natt clickInfo.pos.y = 92\natt clickInfo.fontsize = 13\natt clickInfo.color = \"#9fb3d1\"\n\n-- ===== Middle: news ticker and close button =====\nlocal news = canvas(\"News: a new bakery opened in town.\")\natt news.pos.x = 50\natt news.pos.y = 5\natt news.fontsize = 15\natt news.color = \"#ffffff\"\n\nlocal closeBtn = canvas.rect\natt closeBtn.pos.x = 50\natt closeBtn.pos.y = 94\natt closeBtn.size.x = 170\natt closeBtn.size.y = 40\natt closeBtn.color = \"#7a1f1f\"\natt closeBtn.clickable = true\natt closeBtn.round = 10\natt closeBtn.text = \"Close bakery\"\natt closeBtn.fontsize = 15\n\nlocal buildingsTitle = canvas(\"Your buildings\")\natt buildingsTitle.pos.x = 50\natt buildingsTitle.pos.y = 30\natt buildingsTitle.fontsize = 22\natt buildingsTitle.color = \"#f5deb3\"\n\nlocal buildings = canvas(\"\")\natt buildings.pos.x = 50\natt buildings.pos.y = 48\natt buildings.fontsize = 17\natt buildings.color = \"#ffffff\"\n\nlocal allTime = canvas(\"\")\natt allTime.pos.x = 50\natt allTime.pos.y = 66\natt allTime.fontsize = 14\natt allTime.color = \"#9fb3d1\"\n\nlocal golden = canvas.circle\natt golden.size.x = 64\natt golden.size.y = 64\natt golden.color = \"#ffd34d\"\natt golden.clickable = true\natt golden.visible = false\natt golden.layer = 3\n\n-- ===== Right side: the store =====\nlocal storeTitle = canvas(\"Store\")\natt storeTitle.pos.x = 86\natt storeTitle.pos.y = 6\natt storeTitle.fontsize = 28\natt storeTitle.color = \"#f5deb3\"\n\nlocal cursorBtn = canvas.rect\nlocal grandmaBtn = canvas.rect\nlocal farmBtn = canvas.rect\nlocal mineBtn = canvas.rect\nlocal buttons = cursorBtn, grandmaBtn, farmBtn, mineBtn\natt buttons.pos.x = 86\natt buttons.size.x = \"26%\"\natt buttons.size.y = 64\natt buttons.clickable = true\natt buttons.round = 10\natt buttons.fontsize = 15\natt cursorBtn.pos.y = 16\natt grandmaBtn.pos.y = 27\natt farmBtn.pos.y = 38\natt mineBtn.pos.y = 49\n\nlocal bakery = sky, leftPanel, storePanel, title, counter, perSec, cookie, clickInfo, news, closeBtn, storeTitle, buttons, buildingsTitle, buildings, allTime\n\n-- ===== Actions in Stats > Mods =====\nlocal toggle = game.action\natt toggle.action = \"Close bakery\"\natt toggle.color = \"#e8b06a\"\natt toggle.icon = \"cookie.png\"\n\nlocal reset = game.action(\"Reset bakery\")\natt reset.color = \"#ff6b6b\"\n\n-- ===== Events =====\nwhen(ev.refresh)\n  var.cps.set(storage.cursors * 0.1 + storage.grandmas * 1 + storage.farms * 8 + storage.mines * 47)\n  att counter.text = format(floor(cookies)) .. \" cookies\"\n  att perSec.text = \"per second: \" .. format(var.cps, 1)\n  att buildings.text = \"Cursors: \" .. storage.cursors .. \"\\nGrandmas: \" .. storage.grandmas .. \"\\nFarms: \" .. storage.farms .. \"\\nMines: \" .. storage.mines\n  att allTime.text = \"Cookies baked all time: \" .. format(floor(storage.baked))\n\n  local cursorPrice = floor(15 * 1.15 ^ storage.cursors)\n  local grandmaPrice = floor(100 * 1.15 ^ storage.grandmas)\n  local farmPrice = floor(1100 * 1.15 ^ storage.farms)\n  local minePrice = floor(12000 * 1.15 ^ storage.mines)\n  att cursorBtn.text = \"Cursor   \" .. format(cursorPrice) .. \"   (\" .. storage.cursors .. \")\"\n  att grandmaBtn.text = \"Grandma   \" .. format(grandmaPrice) .. \"   (\" .. storage.grandmas .. \")\"\n  att farmBtn.text = \"Farm   \" .. format(farmPrice) .. \"   (\" .. storage.farms .. \")\"\n  att mineBtn.text = \"Mine   \" .. format(minePrice) .. \"   (\" .. storage.mines .. \")\"\n\n  att buttons.color = \"#4a3020\"\n  att buttons.opacity = 0.55\n  if cookies >= cursorPrice then\n    att cursorBtn.color = \"#6b4a2b\"\n    att cursorBtn.opacity = 1\n  end\n  if cookies >= grandmaPrice then\n    att grandmaBtn.color = \"#6b4a2b\"\n    att grandmaBtn.opacity = 1\n  end\n  if cookies >= farmPrice then\n    att farmBtn.color = \"#6b4a2b\"\n    att farmBtn.opacity = 1\n  end\n  if cookies >= minePrice then\n    att mineBtn.color = \"#6b4a2b\"\n    att mineBtn.opacity = 1\n  end\nend\n\nwhen(ev.bake)\n  cookies.add(var.perclick)\n  storage.baked.add(var.perclick)\n  att cookie.scale = 0.93\n  v.moneys.add(1)\n  do.ev.refresh\nend\n\nwhen(cookie.hover)\n  att cookie.scale = 1.05\nend\n\nwhen(cookie.leave)\n  att cookie.scale = 1\nend\n\nwhen(c.tick)\n  cookies.add(var.cps / 10)\n  storage.baked.add(var.cps / 10)\n  if cookie.scale < 1 then\n    att cookie.scale = 1.05\n  end\n  do.ev.refresh\nend\n\nwhen(c.second)\n  var.newsTimer.add(1)\n  if var.newsTimer >= 8 then\n    var.newsTimer.set(0)\n    att news.text = \"News: \" .. pick(\"grandmas report record cookie numbers.\", \"scientists say cookies are 99% delicious.\", \"a farm grew a cookie the size of a car.\", \"local man clicks so hard his mouse files a complaint.\", \"cookie stocks are going up.\")\n  end\n  if storage.open and not golden.visible and random(1, 25) == 1 then\n    att golden.pos.x = random(40, 66)\n    att golden.pos.y = random(15, 85)\n    att golden.visible = true\n  end\nend\n\nwhen(golden.click)\n  local bonus = max(13, floor(var.cps * 60))\n  cookies.add(bonus)\n  att golden.visible = false\n  att news.text = \"Golden cookie! +\" .. format(bonus) .. \" cookies\"\n  print(\"Golden cookie clicked for \" .. bonus)\nend\n\n-- Clicking the game's own clicker bakes a cookie too\nwhen(c.click)\n  cookies.add(1)\n  att clickInfo.text = \"Game clicks this session: \" .. cv.click\nend\n\nwhen(c.buy)\n  att news.text = \"News: you bought \" .. cv.buy .. \" in the game shop.\"\nend\n\nwhen(cursorBtn.click)\n  local price = floor(15 * 1.15 ^ storage.cursors)\n  if cookies >= price then\n    cookies.subtract(price)\n    storage.cursors.add(1)\n  end\n  do.ev.refresh\nend\n\nwhen(grandmaBtn.click)\n  local price = floor(100 * 1.15 ^ storage.grandmas)\n  if cookies >= price then\n    cookies.subtract(price)\n    storage.grandmas.add(1)\n  end\n  do.ev.refresh\nend\n\nwhen(farmBtn.click)\n  local price = floor(1100 * 1.15 ^ storage.farms)\n  if cookies >= price then\n    cookies.subtract(price)\n    storage.farms.add(1)\n  end\n  do.ev.refresh\nend\n\nwhen(mineBtn.click)\n  local price = floor(12000 * 1.15 ^ storage.mines)\n  if cookies >= price then\n    cookies.subtract(price)\n    storage.mines.add(1)\n  end\n  do.ev.refresh\nend\n\nwhen(closeBtn.click)\n  do.ev.toggleBakery\nend\n\nwhen(ev.toggleBakery)\n  storage.open.set(not storage.open)\n  att bakery.visible = storage.open\n  if not storage.open then\n    att golden.visible = false\n    att toggle.action = \"Open bakery\"\n  else\n    att toggle.action = \"Close bakery\"\n  end\nend\n\nwhen(toggle.click)\n  do.ev.toggleBakery\nend\n\nwhen(reset.click)\n  cookies.set(0)\n  storage.cursors.set(0)\n  storage.grandmas.set(0)\n  storage.farms.set(0)\n  storage.mines.set(0)\n  print(\"Bakery reset\")\n  do.ev.refresh\nend\n\n-- ===== Start =====\natt bakery.visible = storage.open\nif not storage.open then\n  att toggle.action = \"Open bakery\"\nend\ndo.ev.refresh\nprint(\"Bakery loaded. Baked so far: \" .. format(floor(storage.baked)))\n";
+  // The Hungry pet example. Shown on the last page of the guide (1.26.0).
+  const CGC_EXAMPLE_PET = "-- Hungry pet: a pet that gets hungry over time.\n-- Earn Treats by clicking the clicker, then feed it.\n-- It only uses shapes and text, so it needs no files.\n\n-- ===== Currency and saved progress =====\nlocal treats = game.cur\natt treats.cur = \"Treats\"\natt treats.color = \"#ff9d5c\"\n\nstorage.create(\"hunger\", 0)   -- 0 is full, 100 is starving\nstorage.create(\"fed\", 0)      -- how many times the pet was fed\nstorage.create(\"level\", 1)\n\n-- ===== Events, made first so objects below can use them =====\nev.create(\"feed\")\nev.create(\"refresh\")\n\n-- ===== The pet: a circle with a face made of text =====\nlocal body = canvas.circle\natt body.size = 120\natt body.pos.x = 88\natt body.pos.y = 70\natt body.text = \":)\"\natt body.fontsize = 40\natt body.clickable = true\natt body.event = \"feed\"       -- clicking the pet runs ev.feed\n\n-- ===== The fullness bar and its label =====\nlocal barBack = canvas.rect\natt barBack.size.x = 140\natt barBack.size.y = 12\natt barBack.round = 6\natt barBack.color = \"#2a2340\"\n\nlocal barFill = canvas.rect\natt barFill.size.y = 12\natt barFill.round = 6\natt barFill.layer = 2\n\nlocal bars = barBack, barFill\natt bars.pos.x = 88\natt bars.pos.y = 84\n\nlocal label = canvas(\"\")\natt label.pos.x = 88\natt label.pos.y = 89\natt label.fontsize = 14\natt label.color = \"#ffffff\"\n\n-- ===== A button in Stats > Mods that also feeds the pet =====\nlocal feed = game.action\natt feed.action = \"Feed (10 Treats)\"\natt feed.color = \"#ff9d5c\"\natt feed.event = \"feed\"\n\n-- ===== refresh: redraw the pet so it matches the numbers =====\nwhen(ev.refresh)\n  local full = 100 - storage.hunger\n  att barFill.size.x = max(2, full * 1.4)\n  att label.text = \"Level \" .. storage.level .. \" | \" .. full .. \"% full\"\n  if storage.hunger >= 70 then\n    att body.text = \":(\"\n    att body.color = \"#ff6b6b\"\n    att barFill.color = \"#ff6b6b\"\n  elseif storage.hunger >= 35 then\n    att body.text = \":|\"\n    att body.color = \"#ffcb3d\"\n    att barFill.color = \"#ffcb3d\"\n  else\n    att body.text = \":)\"\n    att body.color = \"#7cc7ff\"\n    att barFill.color = \"#4ade80\"\n  end\nend\n\n-- ===== feed: costs 10 Treats, every 5 feeds is a level up =====\nwhen(ev.feed)\n  if storage.hunger <= 0 then\n    print(\"Your pet is full.\")\n  elseif treats < 10 then\n    print(\"You need 10 Treats. Click the clicker to earn them.\")\n  else\n    treats.subtract(10)\n    storage.hunger.set(max(0, storage.hunger - 25))\n    storage.fed.add(1)\n    if storage.fed % 5 == 0 then\n      storage.level.add(1)\n      print(\"Your pet grew to level \" .. storage.level .. \"!\")\n    end\n  end\n  do.ev.refresh\nend\n\n-- ===== Earning Treats =====\nwhen(c.click)\n  treats.add(1)\nend\n\n-- ===== Getting hungry: 1 hunger every 3 seconds =====\nwhen(c.second)\n  if cv.second % 3 == 0 then\n    if storage.hunger < 100 then\n      storage.hunger.add(1)\n      do.ev.refresh\n    end\n  end\nend\n\n-- ===== A happy pet wiggles, a hungry pet sits still =====\nvar.create(\"wiggle\", 0)\nwhen(c.tick)\n  var.wiggle.add(1)\n  if storage.hunger < 35 then\n    att body.rotate = (abs(var.wiggle % 20 - 10) - 5) * 2\n  else\n    att body.rotate = 0\n  end\nend\n\n-- ===== Grow a little when the mouse is over the pet =====\nwhen(body.hover)\n  att body.scale = 1.1\nend\nwhen(body.leave)\n  att body.scale = 1\nend\n\ndo.ev.refresh\n";
 
   /* ---------- CGC HIGHLIGHTER ----------
      Colors CGC code for the editor and the guide. Works on raw text and
@@ -15791,31 +15791,6 @@
     }
   }
 
-  // Draws a cookie so the example works before anyone uploads cookie.png.
-  function cgcMakeCookieImage(){
-    const size = 256;
-    const c = document.createElement('canvas');
-    c.width = size;
-    c.height = size;
-    const ctx = c.getContext('2d');
-    const g = ctx.createRadialGradient(size * 0.42, size * 0.38, size * 0.05, size / 2, size / 2, size * 0.48);
-    g.addColorStop(0, '#f1c27d');
-    g.addColorStop(0.75, '#d99a4e');
-    g.addColorStop(1, '#a8682a');
-    ctx.fillStyle = g;
-    ctx.beginPath();
-    ctx.arc(size / 2, size / 2, size * 0.47, 0, Math.PI * 2);
-    ctx.fill();
-    const chips = [[0.32, 0.3], [0.6, 0.26], [0.72, 0.5], [0.45, 0.5], [0.28, 0.62], [0.55, 0.72], [0.38, 0.82], [0.7, 0.72], [0.5, 0.36]];
-    chips.forEach(([x, y], i) => {
-      ctx.fillStyle = '#4a2a14';
-      ctx.beginPath();
-      ctx.ellipse(size * x, size * y, size * (0.045 + (i % 3) * 0.008), size * 0.038, i, 0, Math.PI * 2);
-      ctx.fill();
-    });
-    const webp = c.toDataURL('image/webp', 0.85);
-    return webp.indexOf('data:image/webp') === 0 ? webp : c.toDataURL('image/png');
-  }
 
   const CGC_TEMPLATES = [
     { id: "hello", title: "Hello World", desc: "The starting code. Prints a message to the console.", files: [],
@@ -15837,9 +15812,7 @@
     { id: "events", title: "Custom events", desc: "Make your own event and run it with do.", files: [],
       code: "-- Your own events: write code once, run it from anywhere with do.\n\nev.create(\"levelUp\")\nvar.create(\"level\", 1)\nvar.create(\"xp\", 0)\n\nwhen(ev.levelUp)\n  var.level.add(1)\n  var.xp.set(0)\n  print(\"Level up! You are level \" .. var.level)\nend\n\nwhen(c.click)\n  var.xp.add(1)\n  if var.xp >= 25 then\n    do.ev.levelUp\n  end\nend\n" },
     { id: "shop", title: "Upgrade shop", desc: "Buy upgrades with your own currency. The price goes up each time.", files: [],
-      code: "-- An upgrade you buy with your own currency. The price goes up each time.\n\nlocal crystals = game.cur\natt crystals.cur = \"Crystals\"\natt crystals.color = \"#c1aef0\"\n\nstorage.create(\"miners\", 0)\n\nlocal buy = game.action\natt buy.color = \"#c1aef0\"\n\nev.create(\"refresh\")\nwhen(ev.refresh)\n  local price = floor(10 * 1.2 ^ storage.miners)\n  att buy.action = \"Buy miner (\" .. format(price) .. \")\"\nend\n\nwhen(c.click)\n  crystals.add(1)\nend\n\nwhen(c.second)\n  crystals.add(storage.miners)\nend\n\nwhen(buy.click)\n  local price = floor(10 * 1.2 ^ storage.miners)\n  if crystals >= price then\n    crystals.subtract(price)\n    storage.miners.add(1)\n    print(\"You have \" .. storage.miners .. \" miners\")\n  else\n    print(\"You need \" .. format(price) .. \" crystals\")\n  end\n  do.ev.refresh\nend\n\ndo.ev.refresh\n" },
-    { id: "bakery", title: "Cookie Clicker bakery", desc: "The full example: big cookie, store, golden cookies, news and actions.", files: ["cookie.png"],
-      code: "-- Bakery: a Cookie Clicker (by Orteil) style mod, written in CGC.\n-- Needs cookie.png in the Payload folder.\n\n-- ===== Currency and saved progress =====\nlocal cookies = game.cur\natt cookies.cur = \"Cookies\"\natt cookies.color = \"#e8b06a\"\natt cookies.icon = \"cookie.png\"\n\nstorage.create(\"cursors\", 0)\nstorage.create(\"grandmas\", 0)\nstorage.create(\"farms\", 0)\nstorage.create(\"mines\", 0)\nstorage.create(\"baked\", 0)\nstorage.create(\"open\", true)\n\nvar.create(\"cps\", 0)\nvar.create(\"perclick\", 1)\nvar.create(\"newsTimer\", 0)\n\nev.create(\"refresh\")\nev.create(\"bake\")\nev.create(\"toggleBakery\")\n\n-- ===== Background =====\nlocal sky = canvas.rect\natt sky.size.x = \"100%\"\natt sky.size.y = \"100%\"\natt sky.color = \"#0d2342\"\natt sky.layer = 0\n\nlocal leftPanel = canvas.rect\natt leftPanel.pos.x = 17\natt leftPanel.size.x = \"34%\"\natt leftPanel.size.y = \"100%\"\natt leftPanel.color = \"rgba(0, 0, 0, 0.35)\"\natt leftPanel.layer = 0\n\nlocal storePanel = canvas.rect\natt storePanel.pos.x = 86\natt storePanel.size.x = \"28%\"\natt storePanel.size.y = \"100%\"\natt storePanel.color = \"#3a2414\"\natt storePanel.layer = 0\n\n-- ===== Left side: bakery name, counter, the big cookie =====\nlocal title = canvas(\"Your bakery\")\natt title.pos.y = 8\natt title.pos.x = 17\natt title.fontsize = 26\natt title.color = \"#f5deb3\"\n\nlocal counter = canvas(\"0 cookies\")\natt counter.pos.x = 17\natt counter.pos.y = 15\natt counter.fontsize = 34\natt counter.color = \"#ffffff\"\n\nlocal perSec = canvas(\"per second: 0\")\natt perSec.pos.x = 17\natt perSec.pos.y = 21\natt perSec.fontsize = 16\natt perSec.color = \"#d8d8d8\"\n\nlocal cookie = canvas.cookie.png\natt cookie.pos.x = 17\natt cookie.pos.y = 55\natt cookie.size.x = 260\natt cookie.size.y = 260\natt cookie.clickable = true\natt cookie.event = \"bake\"\n\nlocal clickInfo = canvas(\"Game clicks this session: 0\")\natt clickInfo.pos.x = 17\natt clickInfo.pos.y = 92\natt clickInfo.fontsize = 13\natt clickInfo.color = \"#9fb3d1\"\n\n-- ===== Middle: news ticker and close button =====\nlocal news = canvas(\"News: a new bakery opened in town.\")\natt news.pos.x = 50\natt news.pos.y = 5\natt news.fontsize = 15\natt news.color = \"#ffffff\"\n\nlocal closeBtn = canvas.rect\natt closeBtn.pos.x = 50\natt closeBtn.pos.y = 94\natt closeBtn.size.x = 170\natt closeBtn.size.y = 40\natt closeBtn.color = \"#7a1f1f\"\natt closeBtn.clickable = true\natt closeBtn.round = 10\natt closeBtn.text = \"Close bakery\"\natt closeBtn.fontsize = 15\n\nlocal buildingsTitle = canvas(\"Your buildings\")\natt buildingsTitle.pos.x = 50\natt buildingsTitle.pos.y = 30\natt buildingsTitle.fontsize = 22\natt buildingsTitle.color = \"#f5deb3\"\n\nlocal buildings = canvas(\"\")\natt buildings.pos.x = 50\natt buildings.pos.y = 48\natt buildings.fontsize = 17\natt buildings.color = \"#ffffff\"\n\nlocal allTime = canvas(\"\")\natt allTime.pos.x = 50\natt allTime.pos.y = 66\natt allTime.fontsize = 14\natt allTime.color = \"#9fb3d1\"\n\nlocal golden = canvas.circle\natt golden.size.x = 64\natt golden.size.y = 64\natt golden.color = \"#ffd34d\"\natt golden.clickable = true\natt golden.visible = false\natt golden.layer = 3\n\n-- ===== Right side: the store =====\nlocal storeTitle = canvas(\"Store\")\natt storeTitle.pos.x = 86\natt storeTitle.pos.y = 6\natt storeTitle.fontsize = 28\natt storeTitle.color = \"#f5deb3\"\n\nlocal cursorBtn = canvas.rect\nlocal grandmaBtn = canvas.rect\nlocal farmBtn = canvas.rect\nlocal mineBtn = canvas.rect\nlocal buttons = cursorBtn, grandmaBtn, farmBtn, mineBtn\natt buttons.pos.x = 86\natt buttons.size.x = \"26%\"\natt buttons.size.y = 64\natt buttons.clickable = true\natt buttons.round = 10\natt buttons.fontsize = 15\natt cursorBtn.pos.y = 16\natt grandmaBtn.pos.y = 27\natt farmBtn.pos.y = 38\natt mineBtn.pos.y = 49\n\nlocal bakery = sky, leftPanel, storePanel, title, counter, perSec, cookie, clickInfo, news, closeBtn, storeTitle, buttons, buildingsTitle, buildings, allTime\n\n-- ===== Actions in Stats > Mods =====\nlocal toggle = game.action\natt toggle.action = \"Close bakery\"\natt toggle.color = \"#e8b06a\"\natt toggle.icon = \"cookie.png\"\n\nlocal reset = game.action(\"Reset bakery\")\natt reset.color = \"#ff6b6b\"\n\n-- ===== Events =====\nwhen(ev.refresh)\n  var.cps.set(storage.cursors * 0.1 + storage.grandmas * 1 + storage.farms * 8 + storage.mines * 47)\n  att counter.text = format(floor(cookies)) .. \" cookies\"\n  att perSec.text = \"per second: \" .. format(var.cps, 1)\n  att buildings.text = \"Cursors: \" .. storage.cursors .. \"\\nGrandmas: \" .. storage.grandmas .. \"\\nFarms: \" .. storage.farms .. \"\\nMines: \" .. storage.mines\n  att allTime.text = \"Cookies baked all time: \" .. format(floor(storage.baked))\n\n  local cursorPrice = floor(15 * 1.15 ^ storage.cursors)\n  local grandmaPrice = floor(100 * 1.15 ^ storage.grandmas)\n  local farmPrice = floor(1100 * 1.15 ^ storage.farms)\n  local minePrice = floor(12000 * 1.15 ^ storage.mines)\n  att cursorBtn.text = \"Cursor   \" .. format(cursorPrice) .. \"   (\" .. storage.cursors .. \")\"\n  att grandmaBtn.text = \"Grandma   \" .. format(grandmaPrice) .. \"   (\" .. storage.grandmas .. \")\"\n  att farmBtn.text = \"Farm   \" .. format(farmPrice) .. \"   (\" .. storage.farms .. \")\"\n  att mineBtn.text = \"Mine   \" .. format(minePrice) .. \"   (\" .. storage.mines .. \")\"\n\n  att buttons.color = \"#4a3020\"\n  att buttons.opacity = 0.55\n  if cookies >= cursorPrice then\n    att cursorBtn.color = \"#6b4a2b\"\n    att cursorBtn.opacity = 1\n  end\n  if cookies >= grandmaPrice then\n    att grandmaBtn.color = \"#6b4a2b\"\n    att grandmaBtn.opacity = 1\n  end\n  if cookies >= farmPrice then\n    att farmBtn.color = \"#6b4a2b\"\n    att farmBtn.opacity = 1\n  end\n  if cookies >= minePrice then\n    att mineBtn.color = \"#6b4a2b\"\n    att mineBtn.opacity = 1\n  end\nend\n\nwhen(ev.bake)\n  cookies.add(var.perclick)\n  storage.baked.add(var.perclick)\n  att cookie.scale = 0.93\n  v.moneys.add(1)\n  do.ev.refresh\nend\n\nwhen(cookie.hover)\n  att cookie.scale = 1.05\nend\n\nwhen(cookie.leave)\n  att cookie.scale = 1\nend\n\nwhen(c.tick)\n  cookies.add(var.cps / 10)\n  storage.baked.add(var.cps / 10)\n  if cookie.scale < 1 then\n    att cookie.scale = 1.05\n  end\n  do.ev.refresh\nend\n\nwhen(c.second)\n  var.newsTimer.add(1)\n  if var.newsTimer >= 8 then\n    var.newsTimer.set(0)\n    att news.text = \"News: \" .. pick(\"grandmas report record cookie numbers.\", \"scientists say cookies are 99% delicious.\", \"a farm grew a cookie the size of a car.\", \"local man clicks so hard his mouse files a complaint.\", \"cookie stocks are going up.\")\n  end\n  if storage.open and not golden.visible and random(1, 25) == 1 then\n    att golden.pos.x = random(40, 66)\n    att golden.pos.y = random(15, 85)\n    att golden.visible = true\n  end\nend\n\nwhen(golden.click)\n  local bonus = max(13, floor(var.cps * 60))\n  cookies.add(bonus)\n  att golden.visible = false\n  att news.text = \"Golden cookie! +\" .. format(bonus) .. \" cookies\"\n  print(\"Golden cookie clicked for \" .. bonus)\nend\n\n-- Clicking the game's own clicker bakes a cookie too\nwhen(c.click)\n  cookies.add(1)\n  att clickInfo.text = \"Game clicks this session: \" .. cv.click\nend\n\nwhen(c.buy)\n  att news.text = \"News: you bought \" .. cv.buy .. \" in the game shop.\"\nend\n\nwhen(cursorBtn.click)\n  local price = floor(15 * 1.15 ^ storage.cursors)\n  if cookies >= price then\n    cookies.subtract(price)\n    storage.cursors.add(1)\n  end\n  do.ev.refresh\nend\n\nwhen(grandmaBtn.click)\n  local price = floor(100 * 1.15 ^ storage.grandmas)\n  if cookies >= price then\n    cookies.subtract(price)\n    storage.grandmas.add(1)\n  end\n  do.ev.refresh\nend\n\nwhen(farmBtn.click)\n  local price = floor(1100 * 1.15 ^ storage.farms)\n  if cookies >= price then\n    cookies.subtract(price)\n    storage.farms.add(1)\n  end\n  do.ev.refresh\nend\n\nwhen(mineBtn.click)\n  local price = floor(12000 * 1.15 ^ storage.mines)\n  if cookies >= price then\n    cookies.subtract(price)\n    storage.mines.add(1)\n  end\n  do.ev.refresh\nend\n\nwhen(closeBtn.click)\n  do.ev.toggleBakery\nend\n\nwhen(ev.toggleBakery)\n  storage.open.set(not storage.open)\n  att bakery.visible = storage.open\n  if not storage.open then\n    att golden.visible = false\n    att toggle.action = \"Open bakery\"\n  else\n    att toggle.action = \"Close bakery\"\n  end\nend\n\nwhen(toggle.click)\n  do.ev.toggleBakery\nend\n\nwhen(reset.click)\n  cookies.set(0)\n  storage.cursors.set(0)\n  storage.grandmas.set(0)\n  storage.farms.set(0)\n  storage.mines.set(0)\n  print(\"Bakery reset\")\n  do.ev.refresh\nend\n\n-- ===== Start =====\natt bakery.visible = storage.open\nif not storage.open then\n  att toggle.action = \"Open bakery\"\nend\ndo.ev.refresh\nprint(\"Bakery loaded. Baked so far: \" .. format(floor(storage.baked)))\n" },
+      code: "-- An upgrade you buy with your own currency. The price goes up each time.\n\nlocal crystals = game.cur\natt crystals.cur = \"Crystals\"\natt crystals.color = \"#c1aef0\"\n\nstorage.create(\"miners\", 0)\n\nlocal buy = game.action\natt buy.color = \"#c1aef0\"\n\nev.create(\"refresh\")\nwhen(ev.refresh)\n  local price = floor(10 * 1.2 ^ storage.miners)\n  att buy.action = \"Buy miner (\" .. format(price) .. \")\"\nend\n\nwhen(c.click)\n  crystals.add(1)\nend\n\nwhen(c.second)\n  crystals.add(storage.miners)\nend\n\nwhen(buy.click)\n  local price = floor(10 * 1.2 ^ storage.miners)\n  if crystals >= price then\n    crystals.subtract(price)\n    storage.miners.add(1)\n    print(\"You have \" .. storage.miners .. \" miners\")\n  else\n    print(\"You need \" .. format(price) .. \" crystals\")\n  end\n  do.ev.refresh\nend\n\ndo.ev.refresh\n" }
   ];
   const CGC_VIBE_PROMPT = "You are writing a mod for \"The Clicker Game!\" in CGC (Clicker Game Code), a small Lua-like language that runs inside the game. Write ONLY valid CGC. Do not use JavaScript, Lua functions, tables, arrays or anything not listed below.\n\nMY MOD IDEA:\n[Describe your mod here. Example: a pet on the screen that gets hungry over time, and I feed it with a currency I earn by clicking.]\n\nWHAT TO GIVE ME\n1. One code block with the full CGC code.\n2. A list of every file the code uses from the Payload folder (pictures: .png .jpg .gif .webp, sounds: .mp3 .wav .ogg) and what each one should look or sound like. Use shapes and text instead of files when you can.\n\nHOW CGC RUNS\n- The code runs top to bottom once when the mod loads. After that, \"when\" blocks run every time their event happens.\n- Comments start with --\n- Text uses double quotes. Join text with .. like \"Score: \" .. var.score. Use \\n for a new line.\n- There are no functions, tables or for/while loops. Use events, variables and repeat instead.\n- One statement per line.\n\nPREFIXES\nc.        game events: c.load, c.click (the player clicks the game's clicker), c.tick (10 times a second), c.second, c.buy (shop purchase), c.prestige\ncv.       read-only outputs of game events: cv.click (clicks so far), cv.earned, cv.tick, cv.second, cv.buy (item name), cv.prestige, cv.mousex, cv.mousey (0 to 100, last object click)\nv.        game variables you can read: v.moneys, v.prestige, v.gems, v.clickpower, v.boosts, v.autoclickers, v.achievements, v.username, v.hour, v.muted, v.prestigecost\nvar.      your variables. Make them first: var.create(\"score\", 0)\nev.       your events. Make them first: ev.create(\"levelUp\")\nstorage.  like var, but saved to the player's account forever: storage.create(\"best\", 0)\nname.png  a file in the Payload folder, like canvas.cookie.png\n\nSTATEMENTS\nprint(\"text\")\nvar.create(\"name\", startValue)      ev.create(\"name\")      storage.create(\"name\", startValue)\nvar.score.add(1)   .subtract(1)   .multiply(2)   .divide(2)   .set(5)\n   (these math words also work on storage. variables, currencies and number locals)\nlocal name = value\nlocal group = objectA, objectB, objectC      (commas make a group, att on a group changes all of them)\nname = new value                            (changes an existing local)\natt object.attribute = value\nwhen(c.click) ... end\nwhen(ev.levelUp) ... end\nwhen(myObject.click) ... end                (object events: click, hover, leave, drop)\ndo.ev.levelUp                               (runs your event)\ndo.c.click                                  (clicks the game's clicker once)\ndo.c.prestige                               (opens the prestige window, only if the player qualifies)\nif condition then ... elseif condition then ... else ... end\nrepeat(5) ... end                           (max 1000)\nplay(obj)   stop(obj)   show(obj)   hide(obj)   remove(obj)\nEvery when, if and repeat needs its own end. A local made inside a block only exists inside it.\n\nOBJECTS\ncanvas.circle   canvas.rect   canvas.tri   canvas(\"some text\")\ncanvas.cookie.png    a picture from the Payload folder\ncanvas.pop.mp3       a sound object, play it with play(name)\ngame.action          a button in Stats > Mods next to Uninstall. Set its text with att btn.action = \"Text\" and use when(btn.click).\ngame.cur             a currency shown in Stats > Mods, saved automatically. Name it with att gold.cur = \"Gold\". Use it like a number: gold.add(1), if gold >= 10 then\nLimits: 400 objects, 12 actions and 8 currencies per mod.\n\nATTRIBUTES (set with att obj.name = value, read with obj.name)\npos.x, pos.y      0 to 100, percent of the screen. The middle of the object goes there. Default 50, 50 (center).\nsize.x, size.y    pixels, or text like \"100%\" for percent of the screen. \"size\" sets both.\nclickable, dragable, visible, loop      true or false\nscale (1 is normal), rotate (degrees), opacity (0 to 1), layer (higher draws on top, default 1), round (corner radius in pixels for rects and pictures)\ncolor             \"red\", \"#ff8800\" or \"rgb(255, 136, 0)\". Fill color for shapes, letter color for text.\ntext, fontsize    words on a shape or text object, and their size in pixels\nimage             swap a picture: \"other.png\"\nevent             \"levelUp\" makes clicking the object run ev.levelUp\nfile              a sound file. A clickable object with a file plays it when clicked.\nvolume (0 to 1), speed (1 normal, 2 twice as fast, negative plays it backwards)\nActions and currencies only have: action (or cur), color (yellow if not set), icon (a Payload picture). Actions can also have event.\n\nOPERATORS AND FUNCTIONS\n+ - * / % ^      == ~= < > <= >=      and or not      (false, nil, 0 and \"\" count as false)\nfloor(x) ceil(x) round(x, decimals) abs(x) min(a, b) max(a, b) sqrt(x) random(a, b) pick(a, b, c) format(n) text(x) number(x) upper(x) lower(x)\n\nRULES THE GAME ENFORCES (code that breaks them does nothing)\n- Moneys: only v.moneys.add(1) or v.moneys.add(v.clickpower), at most 15 times a second. v.moneys.subtract(n) only works if the player has n. Moneys can't be set, multiplied or divided.\n- Prestige only through do.c.prestige, and only if the player has enough moneys.\n- Gems can never be changed.\n- For any other kind of money, make your own with game.cur.\n\nSTYLE\n- Create every var, ev, storage and local above the lines that use it.\n- Use storage for progress the player should keep.\n- Add a short comment above each part so a kid can follow it.\n\nEXAMPLE OF VALID CGC\nlocal gold = game.cur\natt gold.cur = \"Gold\"\nstorage.create(\"bestStreak\", 0)\n\nlocal button = canvas.circle\natt button.pos.x = 90\natt button.pos.y = 85\natt button.size = 100\natt button.color = \"#ff5da0\"\natt button.clickable = true\natt button.text = \"+1 Gold\"\n\nwhen(button.click)\n  gold.add(1)\n  if gold % 10 == 0 then\n    print(\"You have \" .. format(gold) .. \" gold!\")\n  end\nend\n";
 
@@ -15907,7 +15880,6 @@
     return 'data:audio/wav;base64,' + btoa(bin);
   }
   const CGC_TEMPLATE_FILES = {
-    'cookie.png': () => cgcMakeCookieImage(),
     'coin.png': () => cgcMakeCoinImage(),
     'star.png': () => cgcMakeStarImage(),
     'beep.wav': () => cgcMakeBeepSound()
@@ -15916,7 +15888,8 @@
   // mode: 'replace' swaps the code, 'add' puts the template under the current code.
   function cgcApplyTemplate(id, mode){
     const d = modEditorDraft;
-    const t = CGC_TEMPLATES.find(x => x.id === id);
+    // id is a template id, or a whole template object (the guide's example page uses that).
+    const t = (id && typeof id === 'object') ? id : CGC_TEMPLATES.find(x => x.id === id);
     if (!d || !t) return;
     const current = String(d.code || '').trim();
     const isEmpty = !current || current === CGC_DEFAULT_CODE;
@@ -15933,8 +15906,8 @@
     renderModEditor();
     modEditorStatus(`${t.title} template ${mode === 'add' && !isEmpty ? 'added' : 'loaded'}${added.length ? ', and ' + added.join(', ') + ' added to Payload' : ''}. Click Run test to try it.`);
   }
-  // Kept for the guide's Bakery page.
-  function cgcLoadExample(){ cgcApplyTemplate('bakery', 'replace'); }
+  // The "Load into the editor" button on the guide's example page.
+  function cgcLoadExample(){ cgcApplyTemplate({ title: 'Hungry pet', files: [], code: CGC_EXAMPLE_PET }, 'replace'); }
 
   function cgcTemplateMenuHtml(){
     const esc = escapeChatHtml;
@@ -16041,6 +16014,9 @@
 
   function cgcCode(src){ return `<pre class="cgc-doc-code">${cgcHighlight(src)}</pre>`; }
 
+  // GUIDE PAGES (1.26.0): added Your first mod, Timers & animation, Buttons & menus, Sounds & music,
+  // Saving progress, Testing your mod, Recipes, Publishing & remixing and Cheat sheet.
+  // Every code box on these pages is real CGC, so test it in the editor after changing one.
   const CGC_GUIDE = [
     { id: 'start', title: 'Start here', html: () => `
       <p><strong>CGC</strong> (Clicker Game Code) is the language mods are written in. Your code runs once when the mod loads, then keeps reacting to things (clicks, timers, buttons) for as long as the mod is installed.</p>
@@ -16061,6 +16037,22 @@
       </table>
       <p>Lines starting with <code>--</code> are notes for humans. CGC skips them.</p>
       ${cgcCode('-- This is a note\nprint("This runs")')}` },
+
+    { id: 'first', title: 'Your first mod', html: () => `
+      <p>Let's build a real mod step by step: a click counter that shows on the screen and remembers its number. Type each part into the code box, then click <strong>Run test</strong> to see it work.</p>
+      <h4>Step 1: put words on the screen</h4>
+      <p><code>canvas("...")</code> makes text. Saving it in a <code>local</code> gives it a name, so you can change it later with <code>att</code>.</p>
+      ${cgcCode("local label = canvas(\"Clicks: 0\")\natt label.pos.x = 50\natt label.pos.y = 8\natt label.fontsize = 24\natt label.color = \"#ffffff\"")}
+      <h4>Step 2: count the clicks</h4>
+      <p>Add this under your step 1 code. It makes a variable to hold the number. Then it uses <code>when(c.click)</code> to add 1 every time the player clicks the clicker, and updates the words. In a test, the <strong>Game click</strong> button pretends to be the clicker.</p>
+      ${cgcCode("var.create(\"clicks\", 0)\n\nwhen(c.click)\n  var.clicks.add(1)\n  att label.text = \"Clicks: \" .. var.clicks\nend")}
+      <h4>Step 3: remember the number</h4>
+      <p>A <code>var</code> forgets everything when the game closes. Change <code>var</code> to <code>storage</code> and the number is saved to the player's account.</p>
+      <h4>Step 4: add a reward</h4>
+      <p><code>%</code> gives what is left over after dividing. If clicks divided by 25 leaves 0, the player just hit 25, 50, 75 and so on.</p>
+      <h4>The finished mod</h4>
+      ${cgcCode("-- A click counter that is saved to the player's account.\n\nstorage.create(\"clicks\", 0)\n\nlocal label = canvas(\"Clicks: \" .. storage.clicks)\natt label.pos.x = 50\natt label.pos.y = 8\natt label.fontsize = 24\natt label.color = \"#ffffff\"\n\nwhen(c.click)\n  storage.clicks.add(1)\n  att label.text = \"Clicks: \" .. storage.clicks\n  if storage.clicks % 25 == 0 then\n    att label.color = pick(\"#ff5da0\", \"#4ade80\", \"#ffcb3d\", \"#7cc7ff\")\n    print(\"Nice! \" .. storage.clicks .. \" clicks.\")\n  end\nend")}
+      <p>That is a whole mod. Next, try the <strong>Templates</strong> button above the code box for more starting points, or keep reading.</p>` },
 
     { id: 'events', title: 'Events', html: () => `
       <p>An event is "something happened". Use <code>when</code> to run code every time it happens. Everything between <code>when(...)</code> and <code>end</code> runs each time.</p>
@@ -16196,6 +16188,83 @@
         <tr><td><code>text(x)</code> <code>number(x)</code> <code>upper(x)</code> <code>lower(x)</code></td><td>Convert things</td></tr>
       </table>` },
 
+    { id: 'timers', title: 'Timers &amp; animation', html: () => `
+      <p>CGC has two clocks. <code>c.second</code> runs once every second and is best for countdowns and slow things. <code>c.tick</code> runs 10 times a second and is best for moving things smoothly.</p>
+      <h4>Do something every few seconds</h4>
+      <p><code>cv.second</code> counts the seconds since the mod loaded. Use <code>%</code> to pick out every 10th one.</p>
+      ${cgcCode("when(c.second)\n  if cv.second % 10 == 0 then\n    print(\"10 more seconds went by\")\n  end\nend")}
+      <h4>A cooldown</h4>
+      <p>A cooldown is a wait before you can do something again. Keep the seconds left in a variable and count it down.</p>
+      ${cgcCode("var.create(\"wait\", 0)\n\nlocal button = canvas.rect\natt button.size.x = 150\natt button.size.y = 44\natt button.round = 10\natt button.pos.x = 88\natt button.pos.y = 85\natt button.clickable = true\natt button.text = \"Bonus click\"\n\nwhen(button.click)\n  if var.wait <= 0 then\n    do.c.click\n    var.wait.set(5)\n    att button.text = \"Wait 5\"\n  end\nend\n\nwhen(c.second)\n  if var.wait > 0 then\n    var.wait.subtract(1)\n    if var.wait <= 0 then\n      att button.text = \"Bonus click\"\n    else\n      att button.text = \"Wait \" .. var.wait\n    end\n  end\nend")}
+      <h4>Moving something</h4>
+      <p>To move an object, change its position a little bit on every tick. This ball slides right, then turns around at the edge.</p>
+      ${cgcCode("local ball = canvas.circle\natt ball.size = 40\natt ball.color = \"#ff5da0\"\natt ball.pos.y = 20\n\nvar.create(\"x\", 0)\nvar.create(\"dir\", 1)\n\nwhen(c.tick)\n  var.x.add(var.dir * 2)\n  if var.x >= 100 then\n    var.dir.set(-1)\n  end\n  if var.x <= 0 then\n    var.dir.set(1)\n  end\n  att ball.pos.x = var.x\nend")}
+      <h4>Spinning and popping</h4>
+      <p>You can read an attribute and set it again in the same line. Here a shape spins forever, and it pops bigger on every click, then shrinks back.</p>
+      ${cgcCode("local shape = canvas.tri\natt shape.size = 60\natt shape.color = \"#ffcb3d\"\natt shape.pos.x = 90\natt shape.pos.y = 30\n\nvar.create(\"pop\", 1)\n\nwhen(c.click)\n  var.pop.set(1.5)\nend\n\nwhen(c.tick)\n  att shape.rotate = shape.rotate + 6\n  var.pop.set(max(1, var.pop - 0.05))\n  att shape.scale = var.pop\nend")}
+      <p class="mio-side-note">Tip: keep tick code short. It runs 10 times a second, so slow code there slows the whole game.</p>` },
+
+    { id: 'ui', title: 'Buttons &amp; menus', html: () => `
+      <p>Shapes, text and a few attributes are all you need to build your own buttons and windows.</p>
+      <h4>A button that reacts</h4>
+      <p>A <code>canvas.rect</code> with <code>text</code> and <code>clickable</code> is a button. <code>.hover</code> and <code>.leave</code> let it light up when the mouse is over it.</p>
+      ${cgcCode("local button = canvas.rect\natt button.size.x = 150\natt button.size.y = 46\natt button.round = 12\natt button.pos.x = 88\natt button.pos.y = 88\natt button.color = \"#4ade80\"\natt button.text = \"Press me\"\natt button.clickable = true\n\nwhen(button.hover)\n  att button.color = \"#86efac\"\nend\nwhen(button.leave)\n  att button.color = \"#4ade80\"\nend\nwhen(button.click)\n  print(\"Pressed!\")\nend")}
+      <h4>A menu that opens and closes</h4>
+      <p>Put the parts of the menu in a group, then show or hide the whole group at once. <code>layer</code> decides what is drawn on top.</p>
+      ${cgcCode("var.create(\"open\", false)\n\nlocal panel = canvas.rect\natt panel.size.x = 260\natt panel.size.y = 160\natt panel.round = 16\natt panel.color = \"#2a2340\"\natt panel.layer = 5\n\nlocal title = canvas(\"My menu\")\natt title.pos.y = 44\natt title.fontsize = 20\natt title.color = \"#ffffff\"\natt title.layer = 6\n\nlocal menu = panel, title\natt menu.visible = false\n\nlocal toggle = canvas.rect\natt toggle.size.x = 110\natt toggle.size.y = 40\natt toggle.round = 10\natt toggle.pos.x = 90\natt toggle.pos.y = 10\natt toggle.text = \"Menu\"\natt toggle.clickable = true\n\nwhen(toggle.click)\n  var.open.set(not var.open)\n  att menu.visible = var.open\nend")}
+      <h4>Many buttons, one event</h4>
+      <p>The <code>event</code> attribute makes a click run one of your events. Now several buttons can share the same code.</p>
+      ${cgcCode("ev.create(\"cheer\")\nwhen(ev.cheer)\n  print(pick(\"Yay!\", \"Woo!\", \"Nice!\"))\nend\n\nlocal a = canvas.circle\nlocal b = canvas.circle\nlocal both = a, b\natt both.size = 60\natt both.pos.y = 85\natt both.clickable = true\natt both.event = \"cheer\"\natt a.pos.x = 82\natt b.pos.x = 92")}
+      <h4>Where was the click?</h4>
+      <p>After any object is clicked, <code>cv.mousex</code> and <code>cv.mousey</code> hold where the mouse was. This pad leaves a dot wherever you click it.</p>
+      ${cgcCode("local pad = canvas.rect\natt pad.size.x = 220\natt pad.size.y = 140\natt pad.round = 12\natt pad.color = \"#2a2340\"\natt pad.pos.x = 84\natt pad.pos.y = 70\natt pad.clickable = true\n\nwhen(pad.click)\n  local dot = canvas.circle\n  att dot.size = 12\n  att dot.color = pick(\"#ff5da0\", \"#ffcb3d\", \"#7cc7ff\")\n  att dot.layer = 2\n  att dot.pos.x = cv.mousex\n  att dot.pos.y = cv.mousey\nend")}
+      <p class="mio-side-note">Keep your buttons near the edges so they don't cover the clicker. Players can hide everything mods draw with the eye button.</p>` },
+
+    { id: 'sounds', title: 'Sounds &amp; music', html: () => `
+      <p>Sounds are files in your Payload folder. There are two ways to use them.</p>
+      <h4>Way 1: a sound when something is clicked</h4>
+      <p>Give a clickable object a <code>file</code> and it plays that sound on every click. No extra code needed.</p>
+      ${cgcCode("local drum = canvas.circle\natt drum.size = 90\natt drum.pos.x = 88\natt drum.pos.y = 80\natt drum.clickable = true\natt drum.file = \"beep.wav\"\natt drum.volume = 0.6")}
+      <h4>Way 2: a sound you play from code</h4>
+      <p><code>canvas.yourfile.wav</code> makes a sound object. It doesn't show on the screen. Start it with <code>play()</code> and stop it with <code>stop()</code>.</p>
+      ${cgcCode("local ding = canvas.beep.wav\natt ding.volume = 0.5\n\nwhen(c.buy)\n  play(ding)\nend")}
+      <h4>Background music with an on/off button</h4>
+      <p><code>loop</code> makes a sound repeat forever. <code>v.muted</code> is true when the player muted the game, so check it before you start music. Saving the choice in <code>storage</code> remembers it for next time.</p>
+      ${cgcCode("storage.create(\"music\", true)\n\nlocal song = canvas.beep.wav\natt song.loop = true\natt song.volume = 0.3\n\nlocal button = game.action\natt button.action = \"Music on/off\"\n\nif storage.music and not v.muted then\n  play(song)\nend\n\nwhen(button.click)\n  storage.music.set(not storage.music)\n  if storage.music then\n    play(song)\n  else\n    stop(song)\n  end\nend")}
+      <h4>Make one sound feel like many</h4>
+      <p><code>speed</code> also changes how high or low a sound is. Pick a slightly different speed each time and one sound never gets boring.</p>
+      ${cgcCode("local pop = canvas.beep.wav\n\nwhen(c.click)\n  att pop.speed = random(8, 13) / 10   -- between 0.8 and 1.3\n  play(pop)\nend")}
+      <ul>
+        <li>Short sounds can be uploaded. Songs are too big, so add them to Payload with a link to the file.</li>
+        <li>Keep <code>volume</code> low (0.2 to 0.5) for anything that plays a lot.</li>
+        <li>A negative <code>speed</code> plays the sound backwards.</li>
+      </ul>` },
+
+    { id: 'saving', title: 'Saving progress', html: () => `
+      <p>CGC has four places to keep a value. Picking the right one is how your mod remembers things.</p>
+      <table class="cgc-doc-table">
+        <tr><th>Kind</th><th>How long it lasts</th><th>Good for</th></tr>
+        <tr><td><code>local</code></td><td>Until the game closes. Inside a <code>when</code> or <code>if</code>, only until that block ends</td><td>Objects and quick math</td></tr>
+        <tr><td><code>var.</code></td><td>Until the game closes</td><td>Timers, combos, things that reset each visit</td></tr>
+        <tr><td><code>storage.</code></td><td>Forever, saved to the player's account</td><td>High scores, levels, settings</td></tr>
+        <tr><td><code>game.cur</code></td><td>Forever, saved automatically, shown in Stats &gt; Mods</td><td>Your mod's own money</td></tr>
+      </table>
+      <ul>
+        <li>Saved values stay through a prestige, and they come back if the player uninstalls your mod and installs it again.</li>
+        <li><code>storage</code> holds numbers, text (up to 500 letters) and true/false. It can't hold objects.</li>
+        <li>The start value in <code>storage.create("best", 0)</code> is only used the first time. After that the saved value wins.</li>
+        <li>Tests never save. Every test starts with fresh storage.</li>
+      </ul>
+      <h4>A high score</h4>
+      ${cgcCode("storage.create(\"best\", 0)\nvar.create(\"now\", 0)\n\nwhen(c.click)\n  var.now.add(1)\n  if var.now > storage.best then\n    storage.best.set(var.now)\n    print(\"New record: \" .. storage.best)\n  end\nend")}
+      <h4>Something that only happens once</h4>
+      <p>Save a true/false value to remember that the player already saw it.</p>
+      ${cgcCode("storage.create(\"welcomed\", false)\n\nif not storage.welcomed then\n  print(\"Welcome to my mod, \" .. v.username .. \"!\")\n  storage.welcomed.set(true)\nend")}
+      <h4>A reset button</h4>
+      <p>Players like being able to start over. An action in Stats &gt; Mods is a good spot for it.</p>
+      ${cgcCode("storage.create(\"best\", 0)\n\nlocal reset = game.action(\"Reset my record\")\natt reset.color = \"#ff6b6b\"\n\nwhen(reset.click)\n  storage.best.set(0)\n  print(\"Record cleared.\")\nend")}
+      <p class="mio-side-note">Careful when you update a published mod: if you rename a storage variable, players start over on that value, because the old name is a different box.</p>` },
+
     { id: 'payload', title: 'Payload folder', html: () => `
       <p>The Payload folder holds your mod's files: pictures and sounds. Your code and all these files are saved together with the mod.</p>
       <ul>
@@ -16204,6 +16273,54 @@
         <li>Use a file with its name: <code>canvas.cookie.png</code>, <code>att x.icon = "cookie.png"</code>, <code>att x.file = "pop.mp3"</code>.</li>
       </ul>
       <p>If code uses a name that isn't in the folder, the console tells you which one.</p>` },
+
+    { id: 'testing', title: 'Testing your mod', html: () => `
+      <p>Testing is how you find mistakes before players do. Everything you need is right under the code box.</p>
+      <table class="cgc-doc-table">
+        <tr><th>Thing</th><th>What it does</th></tr>
+        <tr><td>The check line</td><td>Reads your code as you type. It says "No problems found" or tells you the line with a mistake</td></tr>
+        <tr><td><strong>Run test</strong></td><td>Starts your mod in a small screen preview. Click it again to stop</td></tr>
+        <tr><td><strong>Game click</strong></td><td>Pretends the player clicked the clicker, so <code>c.click</code> runs</td></tr>
+        <tr><td><strong>Shop buy</strong></td><td>Pretends the player bought a Click Boost, so <code>c.buy</code> runs</td></tr>
+        <tr><td><strong>Prestige</strong></td><td>Pretends the player prestiged, so <code>c.prestige</code> runs</td></tr>
+        <tr><td>Test moneys</td><td>Pretend moneys. Your real moneys are never touched</td></tr>
+        <tr><td>Console</td><td>Shows everything you <code>print()</code>, plus errors in red</td></tr>
+      </table>
+      <p>Your currencies and action buttons show up next to the preview while a test runs, so you can click them there.</p>
+      <h4>Finding a bug with print</h4>
+      <p>When something doesn't work, print the values you are not sure about. If the message never shows up, that part of the code never ran.</p>
+      ${cgcCode("var.create(\"combo\", 0)\n\nwhen(c.click)\n  var.combo.add(1)\n  print(\"combo is now \" .. var.combo)   -- take this out when it works\n  if var.combo >= 5 then\n    print(\"Combo!\")\n    var.combo.set(0)\n  end\nend")}
+      <h4>A quick test plan</h4>
+      <ul>
+        <li>Run the test and read the console. Fix anything red first.</li>
+        <li>Click every button your mod makes, more than once.</li>
+        <li>Press Game click a lot. Does anything break at big numbers?</li>
+        <li>Stop the test and run it again. Tests start fresh, like a brand new player.</li>
+        <li>Make the window small. Positions are percent of the screen, so check nothing important ends up hidden.</li>
+      </ul>
+      <p class="mio-side-note">The preview is smaller than the real game, so objects look smaller there. After you install your mod, players can still open its console in Stats &gt; Mods.</p>` },
+
+    { id: 'recipes', title: 'Recipes', html: () => `
+      <p>Short pieces of code you can copy and change. Each one works by itself.</p>
+      <h4>A lucky click (1 in 10 chance)</h4>
+      ${cgcCode("when(c.click)\n  if random(1, 10) == 1 then\n    print(\"Lucky click!\")\n  end\nend")}
+      <h4>Every 100th click</h4>
+      ${cgcCode("when(c.click)\n  if cv.click % 100 == 0 then\n    print(\"That was click number \" .. format(cv.click))\n  end\nend")}
+      <h4>A greeting for the time of day</h4>
+      <p><code>v.hour</code> is the hour on the player's clock, from 0 (midnight) to 23.</p>
+      ${cgcCode("if v.hour < 12 then\n  print(\"Good morning, \" .. v.username)\nelseif v.hour < 18 then\n  print(\"Good afternoon, \" .. v.username)\nelse\n  print(\"Good evening, \" .. v.username)\nend")}
+      <h4>A combo meter that drains</h4>
+      <p>Clicks fill it up, time empties it. Stop clicking and the combo is gone.</p>
+      ${cgcCode("var.create(\"combo\", 0)\n\nlocal meter = canvas(\"Combo x0\")\natt meter.pos.x = 50\natt meter.pos.y = 6\natt meter.fontsize = 20\natt meter.color = \"#ffcb3d\"\n\nwhen(c.click)\n  var.combo.add(1)\n  att meter.text = \"Combo x\" .. var.combo\nend\n\nwhen(c.second)\n  var.combo.set(max(0, var.combo - 3))\n  att meter.text = \"Combo x\" .. var.combo\nend")}
+      <h4>Levels and XP</h4>
+      <p>Each level needs more XP than the last one.</p>
+      ${cgcCode("storage.create(\"level\", 1)\nstorage.create(\"xp\", 0)\n\nwhen(c.click)\n  storage.xp.add(1)\n  local needed = storage.level * 20\n  if storage.xp >= needed then\n    storage.xp.set(0)\n    storage.level.add(1)\n    print(\"Level \" .. storage.level .. \"!\")\n  end\nend")}
+      <h4>Confetti</h4>
+      <p><code>repeat</code> makes lots of objects fast. Each press adds 30 more, and a mod can only have 400 objects, so save this for special moments.</p>
+      ${cgcCode("local button = game.action(\"Confetti\")\n\nwhen(button.click)\n  repeat(30)\n    local bit = canvas.rect\n    att bit.size = 10\n    att bit.color = pick(\"#ff5da0\", \"#ffcb3d\", \"#4ade80\", \"#7cc7ff\")\n    att bit.pos.x = random(0, 100)\n    att bit.pos.y = random(0, 100)\n    att bit.rotate = random(0, 90)\n  end\nend")}
+      <h4>Selling something for moneys</h4>
+      <p>A mod can take moneys the player has. Check first, so the player gets a nice message when they can't afford it.</p>
+      ${cgcCode("storage.create(\"hats\", 0)\n\nlocal buy = game.action(\"Buy a hat (500 moneys)\")\n\nwhen(buy.click)\n  if v.moneys >= 500 then\n    v.moneys.subtract(500)\n    storage.hats.add(1)\n    print(\"Hats owned: \" .. storage.hats)\n  else\n    print(\"You need 500 moneys.\")\n  end\nend")}` },
 
     { id: 'tips', title: 'Limits & fixing mistakes', html: () => `
       <ul>
@@ -16215,6 +16332,89 @@
         <li>Limits that keep the game fast: ${400} objects, 12 actions and 8 currencies per mod, <code>repeat</code> up to 1,000, and events that keep running each other get stopped.</li>
         <li>Players can open your mod's console in Stats &gt; Mods if something goes wrong.</li>
         <li>If a player installs a mod with code, an eye button shows at the top right of the game. It hides everything mods draw on the screen (the mod keeps running). Make sure your mod still makes sense when it's hidden.</li>
+      </ul>` },
+
+    { id: 'publish', title: 'Publishing &amp; remixing', html: () => `
+      <p>When your mod works in a test, it's time to share it in the Workshop.</p>
+      <h4>Before you publish</h4>
+      <ul>
+        <li>Give it a clear name and a description that says what it does.</li>
+        <li>Add a mod icon. Mods with a picture get clicked a lot more.</li>
+        <li>Pick the right category. Turn on the mature box if it needs it.</li>
+        <li>Run one last test with a clean console.</li>
+      </ul>
+      <h4>Storage</h4>
+      <p>The <strong>Storage used</strong> bar adds up your code, your Payload files and your icons, cursors, backgrounds and music. Uploaded files are the big ones. A link to a file on the internet barely counts.</p>
+      <ul>
+        <li>Up to 100% is included in the normal price.</li>
+        <li>You can go past 100%. Every percent over costs <strong>1 extra Gem</strong> when you upload. A mod at 112% costs 12 extra Gems.</li>
+      </ul>
+      <h4>Price</h4>
+      <p>Publishing costs <strong>${MOD_EDITOR_COST} Gems</strong>, paid when you click Publish. You also choose what players pay to download your mod. 0 means free.</p>
+      <p>Not sure what to charge? The <strong>Auto</strong> button next to the price picks one for you: storage used divided by 10. A mod using 50% storage gets a price of 5 Gems.</p>
+      <h4>Updating your mod</h4>
+      <p>Open your mod's page and click <strong>Edit mod</strong>. Saving changes is free, unless the edit pushes storage further past 100% than it was before. Raise the version number (1.0 to 1.1) so players know it changed. They get the new version by clicking <strong>Update</strong>.</p>
+      <h4>Remixing</h4>
+      <p>A remix is your own version of somebody else's mod. On any mod page, click <strong>Remix</strong>:</p>
+      <ul>
+        <li>You need to have downloaded the mod first.</li>
+        <li>It costs <strong>${MOD_REMIX_COST} Gems</strong>. Publishing your remix later costs Gems too, like any new mod.</li>
+        <li>Everything in the mod (code, Payload, files, icon) is copied into your editor so you can change it.</li>
+        <li>Your remix shows "Remix of" with a link to the original mod, so the first maker gets credit.</li>
+      </ul>
+      <p class="mio-side-note">Reading the code of a mod you like is one of the best ways to learn CGC. Change one thing, run a test, and see what happens.</p>` },
+
+    { id: 'cheat', title: 'Cheat sheet', html: () => `
+      <p>All of CGC on one page, for when you just need a reminder.</p>
+      <h4>Making things</h4>
+      <table class="cgc-doc-table">
+        <tr><th>Write</th><th>Makes</th></tr>
+        <tr><td><code>var.create("score", 0)</code></td><td>A variable</td></tr>
+        <tr><td><code>storage.create("best", 0)</code></td><td>A saved variable</td></tr>
+        <tr><td><code>ev.create("levelUp")</code></td><td>Your own event</td></tr>
+        <tr><td><code>local x = 5</code></td><td>A quick name for a value or object</td></tr>
+        <tr><td><code>local g = a, b, c</code></td><td>A group of objects</td></tr>
+        <tr><td><code>canvas.circle</code> <code>canvas.rect</code> <code>canvas.tri</code></td><td>Shapes</td></tr>
+        <tr><td><code>canvas("Hi")</code></td><td>Text</td></tr>
+        <tr><td><code>canvas.name.png</code> <code>canvas.name.mp3</code></td><td>A picture or sound from Payload</td></tr>
+        <tr><td><code>game.action("Text")</code></td><td>A button in Stats &gt; Mods</td></tr>
+        <tr><td><code>game.cur("Gold")</code></td><td>Your own currency</td></tr>
+      </table>
+      <h4>Doing things</h4>
+      <table class="cgc-doc-table">
+        <tr><th>Write</th><th>Does</th></tr>
+        <tr><td><code>print("text")</code></td><td>Writes to the console</td></tr>
+        <tr><td><code>att obj.color = "red"</code></td><td>Sets an attribute</td></tr>
+        <tr><td><code>x.add(1)</code> <code>.subtract</code> <code>.multiply</code> <code>.divide</code> <code>.set</code></td><td>Changes a number</td></tr>
+        <tr><td><code>when(c.click) ... end</code></td><td>Runs code each time an event happens</td></tr>
+        <tr><td><code>do.ev.levelUp</code></td><td>Runs your event</td></tr>
+        <tr><td><code>do.c.click</code> <code>do.c.prestige</code></td><td>Clicks the clicker / asks for a prestige</td></tr>
+        <tr><td><code>if a then ... elseif b then ... else ... end</code></td><td>Chooses what to run</td></tr>
+        <tr><td><code>repeat(5) ... end</code></td><td>Runs code 5 times</td></tr>
+        <tr><td><code>play(x)</code> <code>stop(x)</code></td><td>Starts / stops a sound</td></tr>
+        <tr><td><code>show(x)</code> <code>hide(x)</code> <code>remove(x)</code></td><td>Shows, hides or deletes an object</td></tr>
+      </table>
+      <h4>Events</h4>
+      <p>Game: <code>c.load</code> <code>c.click</code> <code>c.tick</code> <code>c.second</code> <code>c.buy</code> <code>c.prestige</code></p>
+      <p>Objects: <code>.click</code> <code>.hover</code> <code>.leave</code> <code>.drop</code></p>
+      <p>Outputs: <code>cv.click</code> <code>cv.earned</code> <code>cv.tick</code> <code>cv.second</code> <code>cv.buy</code> <code>cv.prestige</code> <code>cv.mousex</code> <code>cv.mousey</code></p>
+      <h4>Game variables</h4>
+      <p><code>v.moneys</code> <code>v.prestige</code> <code>v.gems</code> <code>v.clickpower</code> <code>v.boosts</code> <code>v.autoclickers</code> <code>v.achievements</code> <code>v.username</code> <code>v.hour</code> <code>v.muted</code> <code>v.prestigecost</code></p>
+      <h4>Attributes</h4>
+      <p>Look: <code>pos.x</code> <code>pos.y</code> <code>size</code> <code>size.x</code> <code>size.y</code> <code>scale</code> <code>rotate</code> <code>color</code> <code>opacity</code> <code>layer</code> <code>round</code> <code>visible</code> <code>image</code></p>
+      <p>Text: <code>text</code> <code>fontsize</code></p>
+      <p>Touch: <code>clickable</code> <code>dragable</code> <code>event</code></p>
+      <p>Sound: <code>file</code> <code>volume</code> <code>speed</code> <code>loop</code></p>
+      <p>Actions and currencies: <code>action</code> <code>cur</code> <code>color</code> <code>icon</code></p>
+      <h4>Math and words</h4>
+      <p><code>+ - * / % ^</code> &nbsp; <code>== ~= &lt; &gt; &lt;= &gt;=</code> &nbsp; <code>and or not</code> &nbsp; <code>..</code> joins text</p>
+      <p><code>floor</code> <code>ceil</code> <code>round</code> <code>abs</code> <code>min</code> <code>max</code> <code>sqrt</code> <code>random</code> <code>pick</code> <code>format</code> <code>text</code> <code>number</code> <code>upper</code> <code>lower</code></p>
+      <h4>Rules to remember</h4>
+      <ul>
+        <li>Every <code>when</code>, <code>if</code> and <code>repeat</code> needs an <code>end</code>.</li>
+        <li>Make a thing above the lines that use it.</li>
+        <li>Moneys: only <code>v.moneys.add(1)</code>, <code>v.moneys.add(v.clickpower)</code> or <code>v.moneys.subtract(n)</code>. Gems can't be changed.</li>
+        <li>Limits: 400 objects, 12 actions, 8 currencies, <code>repeat</code> up to 1,000.</li>
       </ul>` },
 
     { id: 'vibecoding', title: 'Vibecoding', html: () => `
@@ -16230,11 +16430,11 @@
       <textarea class="cgc-vibe-text" id="cgc-vibe-text" readonly spellcheck="false" aria-label="Vibecoding prompt"></textarea>
       <p class="mio-side-note">Always read and test what the AI made before you publish. You're the one who decides if it's good.</p>` },
 
-    { id: 'example', title: 'Example: Bakery', html: () => `
-      <p>A Cookie Clicker style bakery: a big cookie to click, a Cookies currency, a store with Cursors, Grandmas, Farms and Mines that bake for you, golden cookies, a news ticker, and two actions in Stats &gt; Mods. Everything is saved with <code>storage</code>.</p>
+    { id: 'example', title: 'Example: Hungry pet', html: () => `
+      <p>A full mod that uses a bit of everything: a pet that gets hungry over time, a Treats currency you earn by clicking, a fullness bar, levels, a button in Stats &gt; Mods, and a wiggle animation. Everything is saved with <code>storage</code>, and it uses only shapes and text, so it needs no files.</p>
       <p><button class="auth-btn cgc-doc-load" id="cgc-doc-load-example">Load into the editor</button></p>
-      <p class="mio-side-note">This also puts a cookie.png in your Payload folder if you don't have one. Upload your own cookie.png with the same name to replace it.</p>
-      ${cgcCode(CGC_EXAMPLE_BAKERY)}` }
+      <p class="mio-side-note">In a test, press Game click to earn Treats, then click the pet to feed it.</p>
+      ${cgcCode(CGC_EXAMPLE_PET)}` }
   ];
 
   let cgcGuideSection = 'start';
