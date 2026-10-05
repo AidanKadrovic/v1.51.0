@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<!-- Game version: 1.33.0 | Deployment: 209 | Update both on every release, see README.md -->
-<meta name="game-version" content="1.33.0">
+<!-- Game version: 1.34.0 | Deployment: 210 | Update both on every release, see README.md -->
+<meta name="game-version" content="1.34.0">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>The Clicker Game!</title>
 <link rel="icon" type="image/x-icon" href="images/ui/maksy.ico" id="favicon-link">
@@ -7718,6 +7718,324 @@
   @media (prefers-reduced-motion: reduce){
     .hud-chip-frenzy, .hud-chip-combo.bump, .lucky-star{ animation:none; }
   }
+
+  /* ---------- ROOMS + SERVERS (1.34.0) ----------
+     Stats > Rooms (create, join, browse) and the Room Stats page shown inside a room. */
+  /* Five subtabs need a little less padding to fit on a phone. */
+  .stats-subtabs.with-rooms .stats-subtab-btn{
+    padding:8px 3px;
+    font-size:11px;
+  }
+  /* Room Stats | Player Stats: the row above the normal stats subtabs. */
+  .room-view-tabs{
+    display:flex;
+    gap:5px;
+    width:100%;
+    padding:5px;
+    background:var(--card);
+    border:2px solid var(--ink);
+    border-radius:14px;
+  }
+  .room-view-btn{
+    flex:1;
+    font-family:'Fredoka One', cursive;
+    font-size:13px;
+    color:var(--muted);
+    background:transparent;
+    border:2px solid transparent;
+    border-radius:10px;
+    padding:9px 8px;
+    cursor:pointer;
+    transition:background .15s ease, color .15s ease;
+  }
+  .room-view-btn:hover{ background:var(--card-hover); color:var(--rind); }
+  .room-view-btn.active{
+    background:var(--brand-gradient);
+    border-color:var(--ink);
+    color:var(--night);
+    box-shadow:2px 2px 0 var(--ink);
+  }
+  /* The big card at the top of Room Stats. */
+  .room-card{ gap:10px; }
+  .room-icon{
+    width:84px;
+    height:84px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:44px;
+    line-height:1;
+    background:var(--night);
+    border:3px solid var(--zap);
+    border-radius:22px;
+    box-shadow:var(--pop-sm);
+  }
+  .room-tags{
+    display:flex;
+    flex-wrap:wrap;
+    justify-content:center;
+    gap:6px;
+  }
+  .room-tag{
+    font-family:'Fredoka One', cursive;
+    font-size:10.5px;
+    color:var(--rind);
+    background:var(--night);
+    border:2px solid var(--ink);
+    border-radius:999px;
+    padding:4px 10px;
+  }
+  .room-tag.kind{ background:var(--brand-gradient); color:var(--night); }
+  .room-tag.offline{ color:var(--muted); }
+  .room-code{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    font-family:'Poppins', sans-serif;
+    font-size:12px;
+    color:var(--muted);
+  }
+  .room-code b{
+    font-family:'Fredoka One', cursive;
+    font-weight:400;
+    font-size:17px;
+    letter-spacing:3px;
+    color:var(--zap);
+  }
+  .room-mini-btn{
+    font-family:'Fredoka One', cursive;
+    font-size:10.5px;
+    color:var(--rind);
+    background:var(--night);
+    border:2px solid var(--ink);
+    border-radius:8px;
+    padding:5px 9px;
+    cursor:pointer;
+    box-shadow:2px 2px 0 var(--ink);
+    transition:transform .12s ease, box-shadow .12s ease;
+  }
+  .room-mini-btn:hover{ transform:translate(-1px,-1px); box-shadow:3px 3px 0 var(--ink); }
+  .room-mini-btn:active{ transform:translate(1px,1px); box-shadow:1px 1px 0 var(--ink); }
+  .room-global-label{
+    font-family:'Poppins', sans-serif;
+    font-size:11px;
+    color:var(--muted);
+    margin-top:-8px;
+  }
+  .room-card-actions{ display:flex; flex-wrap:wrap; justify-content:center; gap:8px; }
+  /* Leave / Close / Delete: dark buttons, so the words need the light color. */
+  .room-card-actions .buy-btn.uninstall{ background:var(--night); color:var(--rind); }
+  /* Messages box and Players list. */
+  .room-panel{
+    width:100%;
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+    padding:16px;
+    background:var(--card);
+    border:2px solid var(--ink);
+    border-radius:16px;
+    box-shadow:var(--pop-sm);
+    text-align:left;
+  }
+  .room-panel h3{
+    font-family:'Fredoka One', cursive;
+    font-weight:400;
+    font-size:14px;
+    color:var(--rind);
+    margin:0;
+  }
+  .room-messages{
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+    height:210px;
+    overflow-y:auto;
+    padding:10px;
+    background:var(--night);
+    border:2px solid var(--line);
+    border-radius:12px;
+  }
+  .room-messages .chat-message-row{ background:var(--card); }
+  .room-messages .chat-message-row.mine{ background:var(--brand-gradient); }
+  .room-system-msg{
+    align-self:center;
+    font-family:'Poppins', sans-serif;
+    font-size:10.5px;
+    font-style:italic;
+    color:var(--muted);
+    text-align:center;
+  }
+  .room-panel .chat-composer{ margin:0; max-width:none; }
+  .room-send-btn{ flex-shrink:0; }
+  .room-member-row{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:8px 10px;
+    background:var(--night);
+    border:2px solid var(--line);
+    border-radius:12px;
+  }
+  .room-member-row.offline{ opacity:0.55; }
+  .room-member-avatar{
+    width:34px;
+    height:34px;
+    flex-shrink:0;
+    border-radius:50%;
+    object-fit:cover;
+    border:2px solid var(--ink);
+    background:var(--card);
+  }
+  .room-member-info{ flex:1; min-width:0; }
+  .room-member-name{
+    display:flex;
+    align-items:center;
+    gap:6px;
+    font-family:'Fredoka One', cursive;
+    font-size:12.5px;
+    color:var(--rind);
+    cursor:pointer;
+  }
+  .room-member-label{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .room-member-sub{
+    font-family:'Poppins', sans-serif;
+    font-size:10.5px;
+    color:var(--muted);
+  }
+  .room-role{
+    flex-shrink:0;
+    font-family:'Fredoka One', cursive;
+    font-size:9px;
+    text-transform:uppercase;
+    letter-spacing:.5px;
+    color:var(--night);
+    background:var(--lavender);
+    border:2px solid var(--ink);
+    border-radius:999px;
+    padding:1px 7px;
+  }
+  .room-role.host, .room-role.owner{ background:var(--zap); }
+  .room-dot{
+    width:9px;
+    height:9px;
+    flex-shrink:0;
+    border-radius:50%;
+    border:2px solid var(--ink);
+    background:#79cf67;
+  }
+  .room-member-row.offline .room-dot{ background:var(--muted); }
+  .room-banned-row{ display:flex; align-items:center; justify-content:space-between; gap:8px; font-family:'Poppins', sans-serif; font-size:12px; color:var(--rind); }
+  /* Server browser (Stats > Rooms > Browse). */
+  .room-browser{ width:100%; display:flex; flex-direction:column; gap:10px; }
+  .room-browser .auth-input{ margin-bottom:0; }
+  .room-chips{ display:flex; flex-wrap:wrap; gap:6px; }
+  .room-chips .workshop-chip{ padding:5px 11px; font-size:10.5px; }
+  .room-server-icon{
+    width:44px;
+    height:44px;
+    flex-shrink:0;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:24px;
+    line-height:1;
+    background:var(--night);
+    border:2px solid var(--ink);
+    border-radius:12px;
+  }
+  /* Create and Join menus (inside the confirm box). */
+  .room-form{
+    max-height:min(64vh, 520px);
+    overflow-y:auto;
+    padding:2px 4px 4px;
+    margin:0 -4px 12px;
+    text-align:left;
+  }
+  .room-form .auth-input{ margin-bottom:10px; }
+  .room-form label{
+    display:block;
+    font-family:'Fredoka One', cursive;
+    font-size:11.5px;
+    color:var(--rind);
+    margin:0 0 5px;
+  }
+  .room-form label small{ font-family:'Poppins', sans-serif; font-size:10.5px; color:var(--muted); }
+  .room-kind-row{ display:flex; gap:8px; margin-bottom:12px; }
+  .room-kind-btn{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:3px;
+    font-family:'Fredoka One', cursive;
+    font-size:14px;
+    color:var(--rind);
+    background:var(--night);
+    border:2px solid var(--ink);
+    border-radius:12px;
+    padding:10px 6px;
+    cursor:pointer;
+    box-shadow:var(--pop-sm);
+    transition:transform .12s ease, box-shadow .12s ease;
+  }
+  .room-kind-btn small{
+    font-family:'Poppins', sans-serif;
+    font-size:10px;
+    line-height:1.3;
+    color:var(--muted);
+  }
+  .room-kind-btn .room-kind-emoji{ font-size:22px; line-height:1; }
+  .room-kind-btn:hover{ transform:translate(-1px,-1px); box-shadow:4px 4px 0 var(--ink); }
+  .room-kind-btn.active{ background:var(--brand-gradient); color:var(--night); }
+  .room-kind-btn.active small{ color:rgba(10,8,16,0.7); }
+  .room-icon-grid{
+    display:grid;
+    grid-template-columns:repeat(8, 1fr);
+    gap:5px;
+    margin-bottom:12px;
+  }
+  .room-icon-btn{
+    aspect-ratio:1;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:17px;
+    line-height:1;
+    background:var(--night);
+    border:2px solid var(--line);
+    border-radius:9px;
+    padding:0;
+    cursor:pointer;
+  }
+  .room-icon-btn:hover{ border-color:var(--zap); }
+  .room-icon-btn.active{ border-color:var(--ink); background:var(--zap); box-shadow:2px 2px 0 var(--ink); }
+  .room-cost{
+    font-family:'Poppins', sans-serif;
+    font-size:11.5px;
+    color:var(--muted);
+    margin:0;
+  }
+  .room-cost b{ color:var(--zap); font-weight:600; }
+  /* Small chip under the click counter while you are in a room. */
+  .room-chip{
+    display:none;
+    align-items:center;
+    gap:6px;
+    max-width:100%;
+    margin:8px auto 0;
+    font-family:'Fredoka One', cursive;
+    font-size:11.5px;
+    color:var(--night);
+    background:var(--brand-gradient);
+    border:2px solid var(--ink);
+    border-radius:999px;
+    padding:4px 12px;
+    cursor:pointer;
+    box-shadow:var(--pop-sm);
+  }
+  .room-chip.visible{ display:inline-flex; }
+  .room-chip span{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 </style>
 </head>
 <body>
@@ -8467,6 +8785,11 @@
 
   let game = defaultGame();
 
+  // ROOMS (1.34.0): null when playing alone. Inside a room or server this holds the
+  // session (see the ROOMS + SERVERS section). It is declared up here because
+  // saveGame() and buildSyncPayload() check it.
+  let roomSession = null;
+
   const PICKER_CHOSEN_KEYS = ['songChosen', 'cursorChosen', 'bgChosen', 'iconChosen', 'effectChosen', 'fontManagerChosen'];
 
   function loadGame(){
@@ -8490,7 +8813,9 @@
     function saveGame(){
     try {
       game.lastSeen = Date.now();
-      localStorage.setItem(SAVE_KEY, JSON.stringify(game));
+      // ROOMS: inside a room, `game` holds the room's shared save. The player's own
+      // save is what gets written here, so their real progress is never replaced.
+      localStorage.setItem(SAVE_KEY, JSON.stringify(roomSession ? roomPersonalView() : game));
     } catch(e) {}
   }
 
@@ -8532,6 +8857,7 @@
     // GAMEPLAY EXTRAS: fast clicking builds a combo that multiplies this click (see COMBO_TIERS).
     const comboMult = registerComboClick();
     const earnedThisClick = earnClicks(game.clickPower * comboMult);
+    if (roomSession) roomSession.taps += 1; // ROOMS: counts this player's own clicks for the Players list
     spawnClickNumber(earnedThisClick, lastEarnLucky, comboMult > 1);
     cgcFire('c.click', rt => ({ click: rt.cv.click + 1, earned: earnedThisClick })); // CGC
     updateCounter();
@@ -11559,7 +11885,7 @@
   const NOOB_REBUILD_MS = 1500;   // how long an exploded noob stays gone
   let noobInstances = [];         // every live noob: { el, bank, torso, legs, exploded, ... }
 
-  function noobStoreKey(){ return SAVE_KEY + ':noobs'; }
+  function noobStoreKey(){ return roomStorePrefix() + ':noobs'; } // ROOMS: a room keeps its own noobs
   function saveNoobStore(){
     try {
       localStorage.setItem(noobStoreKey(), JSON.stringify(noobInstances.map(n => ({
@@ -11742,7 +12068,7 @@
   /* ---------- AMOGUS TASK SAVE ----------
      Every living crewmate's task progress and position is saved in localStorage
      (per account) so tasks pick up where they left off after a reload. */
-  function crewStoreKey(){ return SAVE_KEY + ':crew'; }
+  function crewStoreKey(){ return roomStorePrefix() + ':crew'; } // ROOMS: a room keeps its own crewmates
   function saveCrewStore(){
     try {
       const list = [];
@@ -12220,12 +12546,17 @@
   const MOD_CAPABLE_AUTHS = ['owner', 'mod', 'admin', 'dev', 'dir', 'director'];
 
   function renderStats(){
+    // ROOMS: inside a room the Stats tab opens on the Room Stats page. The normal
+    // stats page (with its own subtabs) is one click away under Player Stats.
+    if (roomSession && roomStatsView === 'room') { renderRoomStats(); return; }
     list.innerHTML = `
-      <div class="stats-subtabs">
+      ${roomSession ? roomViewTabsHtml() : ''}
+      <div class="stats-subtabs${roomSession ? '' : ' with-rooms'}">
         <button class="stats-subtab-btn active" id="stats-subtab-overview" data-subtab="overview">Overview</button>
         <button class="stats-subtab-btn" id="stats-subtab-friends" data-subtab="friends">Friends</button>
         <button class="stats-subtab-btn" id="stats-subtab-mods" data-subtab="mods">Mods</button>
         <button class="stats-subtab-btn" id="stats-subtab-messages" data-subtab="messages">Messages</button>
+        ${roomSession ? '' : '<button class="stats-subtab-btn" id="stats-subtab-rooms" data-subtab="rooms">Rooms</button>'}
       </div>
 
       <div class="stats-subtab-pane" id="stats-pane-overview">
@@ -12284,8 +12615,11 @@
         </div>
         <div class="chats-list" id="chats-list"></div>
       </div>
+
+      <div class="stats-subtab-pane" id="stats-pane-rooms" style="display:none;"></div>
     `;
 
+    roomBindViewTabs(); // ROOMS: the Room Stats / Player Stats buttons (only there inside a room)
     document.getElementById('stats-avatar-click').addEventListener('click', openEditProfile);
     document.getElementById('stats-name-click').addEventListener('click', openEditProfile);
     document.getElementById('gems-plus-btn').addEventListener('click', openGemsConvertDialog);
@@ -12319,6 +12653,9 @@
     if (friendsPane) friendsPane.style.display = tab === 'friends' ? '' : 'none';
     if (modsPane) modsPane.style.display = tab === 'mods' ? '' : 'none';
     if (messagesPane) messagesPane.style.display = tab === 'messages' ? '' : 'none';
+    const roomsPane = document.getElementById('stats-pane-rooms');
+    if (roomsPane) roomsPane.style.display = tab === 'rooms' ? '' : 'none';
+    if (tab === 'rooms') renderRoomsLobby(); // ROOMS: create, join or browse
     if (tab === 'friends') loadFriendsList();
     if (tab === 'mods') renderInstalledModsList();
     if (tab === 'messages') loadChatsList();
@@ -13191,6 +13528,8 @@
      gifts up with claimGifts (polled below) and adds them locally, so a gift
      never gets overwritten by the receiver's own auto-save. */
   function openGiftDialog(toUsername){
+    // ROOMS: gifts come out of your own save, which is put away while you are in a room.
+    if (roomSession) { showBanner('Leave the ' + roomSession.info.kind + ' to send a gift.'); return; }
     confirmBox.innerHTML = `
       <h1 class="auth-heading">Send a Gift</h1>
       <p class="auth-sub">To ${escapeChatHtml(toUsername)}. You have ${game.clicks.toLocaleString()} Moneys and ${(game.gems || 0).toLocaleString()} Gems.</p>
@@ -13266,6 +13605,7 @@
   let giftClaimBusy = false;
   async function claimIncomingGifts(){
     if (giftClaimBusy || !currentUsername) return;
+    if (roomSession) return; // ROOMS: gifts wait until you are back on your own save
     giftClaimBusy = true;
     try {
       const result = await sheetRequest({ action: 'claimGifts', username: currentUsername });
@@ -13304,6 +13644,8 @@
   }
 
   function openGemsConvertDialog(){
+    // ROOMS: the Moneys in a room belong to everyone, so they can't become one player's Gems.
+    if (roomSession) { showBanner('Leave the ' + roomSession.info.kind + ' to convert Moneys to Gems.'); return; }
     confirmBox.innerHTML = `
       <h1 class="auth-heading">Convert Moneys to Gems</h1>
       <p class="auth-sub">1,000 Moneys = 1 Gem. You have ${game.clicks.toLocaleString()} Moneys.</p>
@@ -20526,7 +20868,16 @@ ${hasCode
     return localStorage.getItem(FONT_KEY) || 'Default';
   }
 
+  // ROOMS: inside a room the account save sent to the API is the player's own
+  // save (roomPersonalView), never the room's shared one.
   function buildSyncPayload(){
+    if (!roomSession) return buildAccountPayload();
+    const live = game;
+    game = roomPersonalView();
+    try { return buildAccountPayload(); } finally { game = live; }
+  }
+
+  function buildAccountPayload(){
     return {
       action: 'saveGameData',
       username: currentUsername,
@@ -22420,6 +22771,8 @@ ${hasCode
   }
 
   function doResetData(){
+    // ROOMS: Reset Data is for your own save. It must not wipe a shared one.
+    if (roomSession) { closeConfirm(); showBanner('Leave the ' + roomSession.info.kind + ' before resetting your data.'); return; }
     clearAllDvds();
     document.querySelectorAll('.crewmate, .noob').forEach(el => el.remove());
     activeCrewmates.clear();
@@ -23978,6 +24331,1092 @@ ${hasCode
     startInboxPolling();
     startSpecialDayInGame(); // SPECIAL DAYS: decorations, birthday Prestige gift, reminders
     startGameplayExtras();   // GAMEPLAY EXTRAS: moneys per second, Lucky Star, Daily Reward
+    roomTryRejoin();         // ROOMS: go back into the room you were in before a page reload
+  }
+
+  /* ---------- ROOMS + SERVERS (1.34.0) ----------
+     Multiplayer. A room or server is ONE shared save that everybody inside plays
+     together: a click by anyone adds to the same counter, and a purchase by anyone
+     spends the shared Moneys and shows up on every screen.
+
+       room    free and private. Friends join with the room code. It closes for
+               everyone when the host leaves.
+       server  costs ROOM_SERVER_COST Gems to open. Always up and listed in
+               Stats > Rooms > Browse. Can have an entrance fee, admins and owners.
+
+     The backend is its own edge function, supabase/functions/rooms/index.ts
+     (see README.md, "Rooms and servers"). Nothing here uses the "api" function.
+
+     HOW THE SHARED SAVE WORKS
+       - ROOM_SHARED_KEYS lists the parts of `game` that belong to the room.
+         Everything else (Gems, mods, achievements, picked song, cursor, background,
+         light mode...) stays the player's own, so preferences are local.
+       - Going in: the player's own save is put away in roomSession.personal and
+         the shared keys of `game` are replaced with the room's save.
+       - Every ROOM_SYNC_MS, roomTick() sends what changed on this screen since the
+         last answer (numbers as "how much it changed", on/off values as the new
+         value) and gets the room's save back. Sending changes instead of totals
+         is what lets two players click at once without losing clicks.
+       - Going out: the shared keys are put back from roomSession.personal.
+       - saveGame() and buildSyncPayload() always save the player's OWN save
+         (roomPersonalView), so an account is never overwritten by a room.
+
+     Adding a new upgrade to the game? If it is bought with Moneys and should be
+     shared in a room, add its save key to ROOM_SHARED_KEYS. */
+  const ROOMS_API_URL = SHEET_API_URL.replace(/\/api\/?$/, '/rooms');
+  const ROOM_SERVER_COST = 1000;  // Gems to open a server (same number as SERVER_COST in the function)
+  const ROOM_MAX_FEE = 10000;     // biggest entrance fee (same as MAX_FEE in the function)
+  const ROOM_SYNC_MS = 2000;      // how often a player trades changes with the room
+  const ROOM_REJOIN_KEY = 'fgd_room_'; // sessionStorage: + lowercase username = the room to go back into after a reload
+  const ROOM_ICONS = ['\u{1F3E0}','\u{1F310}','\u{1F3AE}','\u{1F451}','\u{1F525}','⭐','\u{1F48E}','\u{1F680}','\u{1F355}','\u{1F431}','\u{1F47B}','\u{1F916}','\u{1F3AF}','\u{1F9E0}','⚡','\u{1F308}','\u{1F340}','\u{1F389}','\u{1F4B0}','\u{1F3C6}','\u{1F986}','\u{1F438}','\u{1F319}','\u{1F4A5}'];
+  const ROOM_CATEGORIES = ['Chill', 'Grind', 'Speedrun', 'Friends', 'Competitive', 'Roleplay', 'Other'];
+  // The parts of the save that belong to the room. Everything not listed stays personal.
+  const ROOM_SHARED_KEYS = [
+    'clicks', 'clickPower', 'clickBoostOwned', 'autoClickerOwned', 'autoSpeedLevel',
+    'dvdOwned', 'swingMultiplier', 'swingLevel', 'amogusOwned', 'amogusAlive',
+    'musicPlayerOwned', 'cursorsOwned', 'bgOwned', 'offlineEarningsOwned', 'iconModifierOwned',
+    'autoKillOwned', 'noobOwned', 'noobLevel', 'amogusExtraTasks', 'prestige', 'boosts',
+    'effectsOwned', 'fontManagerOwned', 'megaBoostOwned', 'turboClickerOwned', 'luckyCharmOwned',
+    'headStartOwned', 'prestigeMultOwned', 'autoBuyerOwned'
+  ];
+  // Who can manage who. A bigger number can kick, ban or change the role of a smaller one.
+  const ROOM_RANK = { member: 0, admin: 1, owner: 2, host: 3 };
+
+  let roomStatsView = 'room';      // inside a room: 'room' (Room Stats) or 'player' (the normal stats page)
+  let roomBrowserOpen = false;     // is the server list showing in Stats > Rooms?
+  let roomBrowserServers = null;   // the last server list from the API, null = not loaded yet
+  let roomBrowserSearch = '';
+  let roomBrowserCategory = 'All';
+
+  // Where noobs and crewmates are saved. A room keeps its own, apart from the player's.
+  function roomStorePrefix(){
+    return roomSession ? 'fgd-room-' + roomSession.id + '-' + String(currentUsername || '').toLowerCase() : SAVE_KEY;
+  }
+
+  // A brand new room save: the shared keys of a fresh game.
+  function roomSharedDefaults(){
+    const fresh = defaultGame();
+    const out = {};
+    ROOM_SHARED_KEYS.forEach(k => { out[k] = fresh[k]; });
+    return out;
+  }
+
+  // Turns the save the API sent into a full set of shared keys. Anything missing
+  // or of the wrong type falls back to the fresh value (a new room sends {}).
+  function roomReadState(state){
+    const out = roomSharedDefaults();
+    if (!state || typeof state !== 'object') return out;
+    ROOM_SHARED_KEYS.forEach(k => {
+      if (typeof state[k] === typeof out[k]) out[k] = state[k];
+    });
+    return out;
+  }
+
+  // The player's own save while they are inside a room: their put-away progress
+  // plus everything personal from the live game (Gems, mods, picked song...).
+  function roomPersonalView(){
+    const view = Object.assign({}, game);
+    ROOM_SHARED_KEYS.forEach(k => { view[k] = roomSession.personal[k]; });
+    return view;
+  }
+
+  // One request to the rooms function. Same text/plain trick as sheetRequest().
+  async function roomRequest(payload){
+    if (offlineMode) throw new Error('offline');
+    const res = await fetch(ROOMS_API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify(Object.assign({ username: currentUsername }, payload))
+    });
+    // 404 = the "rooms" function has not been deployed to Supabase yet.
+    if (res.status === 404) return { error: 'nofunction' };
+    return await res.json();
+  }
+
+  // Turns an API error code into words a player can read.
+  function roomErrorText(code, reply){
+    const fee = reply && reply.fee ? Number(reply.fee).toLocaleString() : '';
+    const messages = {
+      invalid: 'You need to be logged in to an account.',
+      noname: 'Give it a name first.',
+      nogems: "You don't have enough Gems.",
+      toomany: 'You already own the most servers one player can have.',
+      notfound: 'No room has that code.',
+      closed: 'That room is closed.',
+      banned: 'You are banned from there.',
+      full: 'It is full right now. Try again in a bit.',
+      needpass: 'This one needs a password.',
+      badpass: 'Wrong password.',
+      needfee: 'The entrance fee is ' + fee + ' Gems.',
+      forbidden: "You can't do that here.",
+      self: "You can't do that to yourself.",
+      slow: 'Slow down a little.',
+      busy: 'The room is busy. Try again.',
+      nofunction: 'Rooms are not turned on yet. The "rooms" function has to be deployed to Supabase first (see README.md).',
+      notable: 'The rooms table is missing. Run the SQL at the top of supabase/functions/rooms/index.ts once.'
+    };
+    return messages[code] || 'Something went wrong. Try again.';
+  }
+
+  /* ----- going in and out ----- */
+
+  // Removes every DVD, crewmate and noob and builds them again from the current
+  // `game`. Used when the save under the player's feet is swapped (in or out of a room).
+  function roomRebuildWorld(){
+    clearAllDvds();
+    document.querySelectorAll('.crewmate, .noob').forEach(el => el.remove());
+    activeCrewmates.clear();
+    noobInstances = [];
+    updateOverallTaskMeter();
+    updateDvdVisibility();
+    const savedCrew = loadCrewStore();
+    const savedNoobs = loadNoobStore();
+    for (let i = 0; i < (game.amogusAlive || 0); i++) spawnCrewmate(savedCrew[i]);
+    for (let i = 0; i < (game.noobOwned || 0); i++) spawnNoob(savedNoobs[i]);
+    roomRefreshPickers();
+    updateCounter();
+    roomUpdateChip();
+    renderTabs();
+    renderActiveTab();
+  }
+
+  // Shows the pickers (music, cursor, background, icon, effect, font) the current
+  // save owns and puts the others back to their defaults. Each player still picks
+  // their own song, cursor and so on once the room owns the picker.
+  function roomRefreshPickers(){
+    updatePickerVisibility();
+    if (game.musicPlayerOwned) showMusicPlayer();
+    else { try { songAudio.pause(); } catch (e) {} }
+    if (game.cursorsOwned) showCursorPicker(); else applyCursor('default');
+    if (game.bgOwned) showBgPicker(); else applyBackground('default');
+    if (game.iconModifierOwned) showIconPicker(); else updateAvatarIconDisplay();
+    if (game.effectsOwned) showEffectPicker();
+    if (game.fontManagerOwned) showFontManager(); else applyUiFont('');
+  }
+
+  // Steps into a room. `reply` is the answer of a create or join request.
+  // quiet = true after a page reload: no banner and no jump to the Stats tab.
+  function roomEnter(reply, quiet){
+    if (roomSession || !reply || !reply.room) return;
+    // Put the player's own save away first, while `game` is still theirs.
+    saveGame();
+    saveNoobStore();
+    saveCrewStore();
+    syncToSheet();
+    const personal = JSON.parse(JSON.stringify(game));
+
+    roomSession = {
+      id: reply.room.id,
+      info: reply.room,        // name, icon, category, kind, fee, host...
+      role: reply.role || 'member',
+      members: reply.members || [],
+      banned: reply.banned || [],
+      messages: [],            // chat lines, oldest first
+      lastMsg: 0,              // id of the newest chat line we have
+      personal,                // the player's own save, put back on the way out
+      base: {},                // the room save as of the last answer
+      seq: 0,                  // counts our saves, so the API never adds one twice
+      pending: null,           // a save that was sent but not answered yet
+      taps: 0,                 // our own clicks since the last save
+      busy: false,             // true while a save is on its way
+      fails: 0,                // saves in a row that could not reach the API
+      timer: null
+    };
+    roomTakeMessages(reply.messages);
+
+    // Swap the shared part of the save for the room's.
+    const state = roomReadState(reply.state);
+    ROOM_SHARED_KEYS.forEach(k => { game[k] = state[k]; });
+    roomSession.base = state;
+
+    try { sessionStorage.setItem(ROOM_REJOIN_KEY + String(currentUsername).toLowerCase(), roomSession.id); } catch (e) {}
+    roomSession.timer = setInterval(roomTick, ROOM_SYNC_MS);
+    roomStatsView = 'room';
+    if (!quiet) activeTab = 'stats';
+    roomRebuildWorld();
+    if (!quiet) showBanner('You joined ' + roomSession.info.name + '. Everyone here shares one save!');
+  }
+
+  // Steps out of a room and puts the player's own save back. Does not talk to
+  // the API (roomLeave does that). `message` is shown as a banner.
+  function roomExit(message){
+    const s = roomSession;
+    if (!s) return;
+    clearInterval(s.timer);
+    if (s.info.kind === 'server') {
+      // A server is still there tomorrow, so remember its noobs and crewmates.
+      saveNoobStore();
+      saveCrewStore();
+    } else {
+      try { localStorage.removeItem(noobStoreKey()); localStorage.removeItem(crewStoreKey()); } catch (e) {}
+    }
+    ROOM_SHARED_KEYS.forEach(k => { game[k] = s.personal[k]; });
+    roomSession = null;
+    try { sessionStorage.removeItem(ROOM_REJOIN_KEY + String(currentUsername).toLowerCase()); } catch (e) {}
+    roomBrowserServers = null; // the list is old by now
+    closeConfirm();
+    roomRebuildWorld();
+    saveGame();
+    if (message) showBanner(message);
+  }
+
+  // The Leave button. Tells the API, then steps out.
+  async function roomLeave(){
+    const s = roomSession;
+    if (!s) return;
+    try { await roomRequest({ action: 'leave', roomId: s.id }); } catch (e) {}
+    if (roomSession !== s) return;
+    roomExit(s.info.kind === 'room' && s.role === 'host' ? 'You closed the room.' : 'You left ' + s.info.name + '.');
+  }
+
+  // After a page reload: go back into the room we were in (members get back in
+  // without the password or the fee).
+  async function roomTryRejoin(){
+    if (roomSession || !currentUsername || offlineMode) return;
+    let id = '';
+    try { id = sessionStorage.getItem(ROOM_REJOIN_KEY + String(currentUsername).toLowerCase()) || ''; } catch (e) {}
+    if (!id) return;
+    try {
+      const reply = await roomRequest({ action: 'join', roomId: id, avatar: currentProfileIcon || '' });
+      if (reply && reply.success) { roomEnter(reply, true); return; }
+    } catch (e) {}
+    try { sessionStorage.removeItem(ROOM_REJOIN_KEY + String(currentUsername).toLowerCase()); } catch (e) {}
+  }
+
+  /* ----- staying in sync ----- */
+
+  // Works out what changed on this screen since the last answer from the API.
+  function roomBuildSave(s){
+    const fresh = roomSharedDefaults();
+    const deltas = {};  // numbers: how much each one went up or down
+    const sets = {};    // on/off values: the new value
+    const sentLocal = {}; // what our screen showed when this save was made
+    ROOM_SHARED_KEYS.forEach(k => {
+      if (typeof fresh[k] === 'number') {
+        const now = Number(game[k]) || 0;
+        sentLocal[k] = now;
+        const d = now - (Number(s.base[k]) || 0);
+        if (d !== 0) deltas[k] = d;
+      } else {
+        sentLocal[k] = game[k];
+        if (game[k] !== s.base[k]) sets[k] = game[k];
+      }
+    });
+    const taps = s.taps;
+    s.taps = 0;
+    s.seq += 1;
+    return { seq: s.seq, deltas, sets, taps, sentLocal };
+  }
+
+  // Runs every ROOM_SYNC_MS: sends our changes, takes the room's save back.
+  async function roomTick(){
+    const s = roomSession;
+    if (!s || s.busy) return;
+    s.busy = true;
+    // A save that never got an answer is sent again exactly as it was. The API
+    // uses seq to make sure it only counts once.
+    const save = s.pending || (s.pending = roomBuildSave(s));
+    try {
+      const reply = await roomRequest({
+        action: 'sync', roomId: s.id, seq: save.seq,
+        deltas: save.deltas, sets: save.sets, taps: save.taps, lastMsg: s.lastMsg
+      });
+      if (roomSession !== s) return; // we left while waiting
+      if (reply && reply.success) {
+        s.pending = null;
+        s.fails = 0;
+        roomApplyReply(reply, save.sentLocal);
+      } else if (reply && (reply.error === 'kicked' || reply.error === 'banned' || reply.error === 'closed')) {
+        const words = {
+          kicked: 'You were kicked from ' + s.info.name + '.',
+          banned: 'You were banned from ' + s.info.name + '.',
+          closed: s.info.name + ' was closed.'
+        };
+        roomExit(words[reply.error]);
+      } else {
+        s.fails += 1; // busy or a server hiccup: the same save goes out again next time
+      }
+    } catch (e) {
+      if (roomSession === s) s.fails += 1;
+    } finally {
+      s.busy = false;
+      if (roomSession === s) roomUpdateChip();
+    }
+  }
+
+  // Mixes the room's save from the API with whatever happened on this screen
+  // while the request was on its way (those clicks are kept and sent next time).
+  function roomApplyReply(reply, sentLocal){
+    const s = roomSession;
+    const fresh = roomSharedDefaults();
+    const state = roomReadState(reply.state);
+    const changed = []; // keys another player changed
+    ROOM_SHARED_KEYS.forEach(k => {
+      if (typeof fresh[k] === 'number') {
+        const now = Number(game[k]) || 0;
+        const sent = Number(sentLocal[k]) || 0;
+        game[k] = Math.max(0, state[k] + (now - sent));
+        if (state[k] !== sent) changed.push(k);
+      } else if (game[k] === sentLocal[k] && state[k] !== game[k]) {
+        game[k] = state[k];
+        changed.push(k);
+      }
+    });
+    s.base = state;
+
+    roomTakeMeta(reply);
+
+    // The host collects the entrance fees players paid.
+    const payout = Math.max(0, Math.floor(Number(reply.payout) || 0));
+    if (payout > 0) {
+      game.gems = (game.gems || 0) + payout;
+      updateWorkshopGemsDisplay();
+      showBanner('Your server earned ' + payout.toLocaleString() + ' Gems from entrance fees!');
+    }
+
+    if (changed.length) roomReconcileWorld(changed);
+    updateCounter();
+    saveGame();
+    refreshShopAffordability();
+    refreshStatsMoneys();
+    roomRefreshLive();
+  }
+
+  // Takes the parts of an answer that are not the save: who is here, the chat,
+  // our role and the room's details. Every room answer has them.
+  function roomTakeMeta(reply){
+    const s = roomSession;
+    if (!s || !reply) return;
+    if (reply.room) s.info = reply.room;
+    if (reply.role) s.role = reply.role;
+    if (Array.isArray(reply.members)) s.members = reply.members;
+    s.banned = Array.isArray(reply.banned) ? reply.banned : [];
+    roomTakeMessages(reply.messages);
+  }
+
+  // Adds chat lines we do not have yet. Returns true if any were new.
+  function roomTakeMessages(messages){
+    const s = roomSession;
+    if (!s || !Array.isArray(messages)) return false;
+    let added = false;
+    messages.forEach(m => {
+      const id = Number(m.id) || 0;
+      if (id <= s.lastMsg) return;
+      s.messages.push(m);
+      s.lastMsg = id;
+      added = true;
+    });
+    if (s.messages.length > 80) s.messages = s.messages.slice(-80);
+    if (added) s.newMessages = true;
+    return added;
+  }
+
+  // Another player bought (or prestiged away) something: make this screen match.
+  function roomReconcileWorld(changed){
+    const has = k => changed.indexOf(k) !== -1;
+    if (has('dvdOwned') || has('swingLevel') || has('swingMultiplier')) updateDvdVisibility();
+
+    if (has('amogusAlive') || has('amogusOwned')) {
+      const want = game.amogusAlive || 0;
+      if (activeCrewmates.size > want) {
+        // Too many on this screen: start them over, keeping their task progress.
+        saveCrewStore();
+        const saved = loadCrewStore();
+        document.querySelectorAll('.crewmate:not(.dead)').forEach(el => el.remove());
+        activeCrewmates.clear();
+        for (let i = 0; i < want; i++) spawnCrewmate(saved[i]);
+        updateOverallTaskMeter();
+      } else {
+        while (activeCrewmates.size < want) spawnCrewmate();
+      }
+    }
+
+    if (has('noobOwned')) {
+      const want = game.noobOwned || 0;
+      while (noobInstances.length > want) {
+        const gone = noobInstances.pop();
+        if (gone && gone.el) gone.el.remove();
+      }
+      while (noobInstances.length < want) spawnNoob();
+      saveNoobStore();
+    }
+
+    const pickerKeys = ['musicPlayerOwned', 'cursorsOwned', 'bgOwned', 'iconModifierOwned', 'effectsOwned', 'fontManagerOwned'];
+    if (pickerKeys.some(has)) roomRefreshPickers();
+
+    // Anything other than the click counter changes what the Shop shows.
+    if (activeTab === 'shop' && changed.some(k => k !== 'clicks')) renderShop();
+  }
+
+  /* ----- the chip under the click counter ----- */
+  const roomChipEl = document.createElement('button');
+  roomChipEl.className = 'room-chip';
+  roomChipEl.type = 'button';
+  roomChipEl.title = 'Open Room Stats';
+  counterEl.insertAdjacentElement('afterend', roomChipEl);
+  roomChipEl.addEventListener('click', () => {
+    roomStatsView = 'room';
+    activeTab = 'stats';
+    renderTabs();
+    renderActiveTab();
+  });
+
+  function roomOnlineCount(){
+    return roomSession ? roomSession.members.filter(m => m.online).length : 0;
+  }
+
+  function roomUpdateChip(){
+    const s = roomSession;
+    roomChipEl.classList.toggle('visible', !!s);
+    if (!s) return;
+    const online = Math.max(1, roomOnlineCount());
+    // After a few missed saves in a row, say so instead of looking frozen.
+    const status = s.fails >= 3 ? 'reconnecting...' : online + ' online';
+    roomChipEl.innerHTML = '<span>' + escapeChatHtml(s.info.icon + ' ' + s.info.name) + '</span><span>· ' + status + '</span>';
+  }
+
+  /* ----- Stats tab: Room Stats | Player Stats ----- */
+
+  function roomViewTabsHtml(){
+    return `
+      <div class="room-view-tabs">
+        <button class="room-view-btn${roomStatsView === 'room' ? ' active' : ''}" data-room-view="room">Room Stats</button>
+        <button class="room-view-btn${roomStatsView === 'player' ? ' active' : ''}" data-room-view="player">Player Stats</button>
+      </div>`;
+  }
+
+  function roomBindViewTabs(){
+    document.querySelectorAll('.room-view-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        if (roomStatsView === btn.dataset.roomView) return;
+        roomStatsView = btn.dataset.roomView;
+        renderStats();
+      });
+    });
+  }
+
+  // "Server" or "Room", for labels.
+  function roomKindLabel(kind){
+    return kind === 'server' ? 'Server' : 'Room';
+  }
+
+  // The Room Stats page: name, icon, global clicks, messages box and players.
+  function renderRoomStats(){
+    const s = roomSession;
+    if (!s) return;
+    const isHost = s.role === 'host';
+    const kind = roomKindLabel(s.info.kind);
+    list.innerHTML = `
+      ${roomViewTabsHtml()}
+      <div class="stats-card room-card">
+        <div class="room-icon">${escapeChatHtml(s.info.icon)}</div>
+        <h2 class="stats-name">${escapeChatHtml(s.info.name)}</h2>
+        <div class="room-tags">
+          <span class="room-tag kind">${kind}</span>
+          <span class="room-tag">${escapeChatHtml(s.info.category)}</span>
+          <span class="room-tag" id="room-online-tag"></span>
+          ${s.info.hasPassword ? '<span class="room-tag">Password</span>' : ''}
+          ${s.info.fee > 0 ? '<span class="room-tag">Fee: ' + Number(s.info.fee).toLocaleString() + ' Gems</span>' : ''}
+        </div>
+        <div class="room-code">
+          <span>${kind} code</span><b>${escapeChatHtml(s.id)}</b>
+          <button class="room-mini-btn" id="room-copy-code">Copy</button>
+        </div>
+        <div class="stats-moneys">
+          <img src="images/ui/money.png" alt="Clicks">
+          <span id="room-global-clicks">${game.clicks.toLocaleString()}</span>
+        </div>
+        <div class="room-global-label">Global clicks, shared by everyone here</div>
+        <div class="room-card-actions">
+          <button class="buy-btn uninstall" id="room-leave-btn">${isHost && s.info.kind === 'room' ? 'Close Room' : 'Leave'}</button>
+          ${isHost && s.info.kind === 'server' ? '<button class="buy-btn uninstall" id="room-delete-btn">Delete Server</button>' : ''}
+        </div>
+      </div>
+
+      <div class="room-panel">
+        <h3>Messages</h3>
+        <div class="room-messages" id="room-messages"></div>
+        <div class="chat-composer">
+          <input type="text" class="auth-input chat-message-input" id="room-message-input" placeholder="Say something..." autocomplete="off" maxlength="200">
+          <button class="buy-btn room-send-btn" id="room-send-btn">Send</button>
+        </div>
+      </div>
+
+      <div class="room-panel">
+        <h3 id="room-members-title">Players</h3>
+        <div id="room-members" style="display:flex; flex-direction:column; gap:8px;"></div>
+      </div>
+
+      <div class="room-panel" id="room-banned-panel" style="display:none;">
+        <h3>Banned</h3>
+        <div id="room-banned" style="display:flex; flex-direction:column; gap:8px;"></div>
+      </div>
+    `;
+    roomBindViewTabs();
+
+    document.getElementById('room-copy-code').addEventListener('click', () => {
+      const done = () => showBanner('Code copied: ' + s.id);
+      if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(s.id).then(done).catch(() => showBanner('The code is ' + s.id));
+      else showBanner('The code is ' + s.id);
+    });
+    document.getElementById('room-leave-btn').addEventListener('click', openRoomLeaveConfirm);
+    const deleteBtn = document.getElementById('room-delete-btn');
+    if (deleteBtn) deleteBtn.addEventListener('click', openRoomDeleteConfirm);
+
+    document.getElementById('room-send-btn').addEventListener('click', roomSendMessage);
+    document.getElementById('room-message-input').addEventListener('keydown', e => {
+      if (e.key === 'Enter') { e.preventDefault(); roomSendMessage(); }
+    });
+
+    s.membersShown = '';
+    s.bannedShown = null;
+    roomRenderMessages(true);
+    roomRefreshLive();
+  }
+
+  // Updates the parts of Room Stats that change while it is open, without
+  // redrawing the page (so the message box keeps its text and focus).
+  function roomRefreshLive(){
+    const s = roomSession;
+    if (!s) return;
+    roomUpdateChip();
+    const clicksEl = document.getElementById('room-global-clicks');
+    if (!clicksEl) return; // Room Stats is not on screen
+    clicksEl.textContent = game.clicks.toLocaleString();
+    const onlineEl = document.getElementById('room-online-tag');
+    if (onlineEl) onlineEl.textContent = Math.max(1, roomOnlineCount()) + ' online';
+    if (s.newMessages) roomRenderMessages(false);
+    roomRenderMembers();
+    roomRenderBanned();
+  }
+
+  function roomRenderMessages(forceBottom){
+    const s = roomSession;
+    const el = document.getElementById('room-messages');
+    if (!s || !el) return;
+    s.newMessages = false;
+    const wasAtBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 40;
+    if (!s.messages.length) {
+      el.innerHTML = '<div class="empty-state">No messages yet. Say hi!</div>';
+      return;
+    }
+    el.innerHTML = s.messages.map(m => {
+      // A line with no sender is a system line: "Bob joined."
+      if (!m.u) return `<div class="room-system-msg">${escapeChatHtml(m.t)}</div>`;
+      const mine = sameUser(m.u, currentUsername);
+      return `
+        <div class="chat-message-row${mine ? ' mine' : ''}">
+          <span class="chat-message-sender">${escapeChatHtml(m.u)}</span>
+          <span class="chat-message-text">${escapeChatHtml(m.t)}</span>
+          <span class="chat-message-time">${escapeChatHtml(formatChatTime(m.at))}</span>
+        </div>`;
+    }).join('');
+    if (forceBottom || wasAtBottom) el.scrollTop = el.scrollHeight;
+  }
+
+  async function roomSendMessage(){
+    const s = roomSession;
+    const input = document.getElementById('room-message-input');
+    if (!s || !input) return;
+    const text = input.value.trim();
+    if (!text) return;
+    input.value = '';
+    try {
+      const reply = await roomRequest({ action: 'chat', roomId: s.id, text, lastMsg: s.lastMsg });
+      if (roomSession !== s) return;
+      if (reply && reply.success) {
+        roomTakeMeta(reply);
+        roomRenderMessages(true);
+        roomRefreshLive();
+        return;
+      }
+      showBanner(roomErrorText(reply && reply.error, reply));
+    } catch (e) {
+      showBanner("Couldn't send your message.");
+    }
+    // Not sent: give the words back so they are not lost.
+    const again = document.getElementById('room-message-input');
+    if (again && !again.value) again.value = text;
+  }
+
+  // Can I (my role) manage this member?
+  function roomCanManage(member){
+    const s = roomSession;
+    if (!s || sameUser(member.username, currentUsername)) return false;
+    const mine = ROOM_RANK[s.role] || 0;
+    return mine >= 1 && (ROOM_RANK[member.role] || 0) < mine;
+  }
+
+  function roomRenderMembers(){
+    const s = roomSession;
+    const el = document.getElementById('room-members');
+    if (!s || !el) return;
+    // Online first, then the highest role, then the name.
+    const members = s.members.slice().sort((a, b) =>
+      (b.online - a.online) || ((ROOM_RANK[b.role] || 0) - (ROOM_RANK[a.role] || 0)) || String(a.username).localeCompare(String(b.username)));
+    // Only redraw when something changed, so buttons do not flicker under the mouse.
+    const signature = JSON.stringify(members) + '|' + s.role;
+    if (signature === s.membersShown) return;
+    s.membersShown = signature;
+
+    const titleEl = document.getElementById('room-members-title');
+    if (titleEl) titleEl.textContent = 'Players (' + members.length + ')';
+    el.innerHTML = members.map(m => {
+      const roleChip = m.role && m.role !== 'member' ? `<span class="room-role ${escapeChatHtml(m.role)}">${escapeChatHtml(m.role)}</span>` : '';
+      const clicks = Number(m.taps || 0).toLocaleString() + (Number(m.taps) === 1 ? ' click' : ' clicks');
+      return `
+        <div class="room-member-row${m.online ? '' : ' offline'}" data-username="${escapeChatHtml(m.username)}">
+          <span class="room-dot" title="${m.online ? 'Online' : 'Offline'}"></span>
+          <img class="room-member-avatar" src="${escapeChatHtml(m.icon || 'images/ui/profile.png')}" alt="">
+          <div class="room-member-info">
+            <div class="room-member-name"><span class="room-member-label">${escapeChatHtml(m.username)}${sameUser(m.username, currentUsername) ? ' (you)' : ''}</span>${roleChip}</div>
+            <div class="room-member-sub">${clicks}</div>
+          </div>
+          ${roomCanManage(m) ? '<button class="room-mini-btn" data-manage="1">Manage</button>' : ''}
+        </div>`;
+    }).join('');
+
+    el.querySelectorAll('.room-member-row').forEach(row => {
+      const member = s.members.find(m => m.username === row.dataset.username);
+      if (!member) return;
+      row.querySelector('.room-member-name').addEventListener('click', () => openPublicProfile(member.username));
+      const manageBtn = row.querySelector('[data-manage]');
+      if (manageBtn) manageBtn.addEventListener('click', () => openRoomManageDialog(member));
+    });
+  }
+
+  // The ban list, only shown to the people who can unban.
+  function roomRenderBanned(){
+    const s = roomSession;
+    const panel = document.getElementById('room-banned-panel');
+    const el = document.getElementById('room-banned');
+    if (!s || !panel || !el) return;
+    const canSee = (ROOM_RANK[s.role] || 0) >= 1 && s.banned.length > 0;
+    const signature = canSee ? s.banned.join(',') : '';
+    if (signature === s.bannedShown) return;
+    s.bannedShown = signature;
+    panel.style.display = canSee ? '' : 'none';
+    el.innerHTML = s.banned.map(name => `
+      <div class="room-banned-row">
+        <span>${escapeChatHtml(name)}</span>
+        <button class="room-mini-btn" data-unban="${escapeChatHtml(name)}">Unban</button>
+      </div>`).join('');
+    el.querySelectorAll('[data-unban]').forEach(btn => {
+      btn.addEventListener('click', () => roomModerate('unban', btn.dataset.unban));
+    });
+  }
+
+  // Kick, ban, unban or change a role. `role` is only used with what = 'role'.
+  async function roomModerate(what, target, role){
+    const s = roomSession;
+    if (!s) return;
+    try {
+      const reply = await roomRequest({ action: 'moderate', roomId: s.id, what, target, role, lastMsg: s.lastMsg });
+      if (roomSession !== s) return;
+      if (reply && reply.success) {
+        roomTakeMeta(reply);
+        roomRefreshLive();
+      } else {
+        showBanner(roomErrorText(reply && reply.error, reply));
+      }
+    } catch (e) {
+      showBanner("Couldn't reach the room.");
+    }
+  }
+
+  // The menu behind a player's Manage button.
+  function openRoomManageDialog(member){
+    const s = roomSession;
+    if (!s || !roomCanManage(member)) return;
+    // Admins and extra owners only exist in servers, and only owners hand out roles.
+    const canSetRoles = s.info.kind === 'server' && (ROOM_RANK[s.role] || 0) >= 2;
+    const name = escapeChatHtml(member.username);
+    confirmBox.innerHTML = `
+      <h1 class="auth-heading">${name}</h1>
+      <p class="auth-sub">Kicked players can come back. Banned players can't rejoin${canSetRoles ? '. Admins and owners can kick and ban' : ''}.</p>
+      ${canSetRoles && member.role !== 'admin' ? '<button class="auth-btn" data-role="admin" style="margin-bottom:10px;">Make Admin</button>' : ''}
+      ${canSetRoles && member.role !== 'owner' ? '<button class="auth-btn" data-role="owner" style="margin-bottom:10px;">Make Owner</button>' : ''}
+      ${canSetRoles && member.role !== 'member' ? '<button class="auth-btn" data-role="member" style="margin-bottom:10px;">Remove Role</button>' : ''}
+      <button class="auth-btn" data-mod="kick" style="margin-bottom:10px;">Kick</button>
+      <button class="auth-btn" data-mod="ban">Ban</button>
+      <button class="auth-btn secondary" id="confirm-cancel">Cancel</button>
+    `;
+    confirmBox.querySelectorAll('[data-role]').forEach(btn => {
+      btn.addEventListener('click', () => { closeConfirm(); roomModerate('role', member.username, btn.dataset.role); });
+    });
+    confirmBox.querySelectorAll('[data-mod]').forEach(btn => {
+      btn.addEventListener('click', () => { closeConfirm(); roomModerate(btn.dataset.mod, member.username); });
+    });
+    document.getElementById('confirm-cancel').addEventListener('click', closeConfirm);
+    confirmOverlay.classList.add('visible');
+  }
+
+  function openRoomLeaveConfirm(){
+    const s = roomSession;
+    if (!s) return;
+    const closes = s.role === 'host' && s.info.kind === 'room';
+    confirmBox.innerHTML = `
+      <h1 class="auth-heading">${closes ? 'Close the room?' : 'Leave?'}</h1>
+      <p class="auth-sub">${closes
+        ? "You are the host. If you leave, everyone gets kicked out and this room's save is gone for good."
+        : 'You go back to your own save. ' + (s.info.kind === 'server' ? 'The server stays up and you can come back any time.' : 'You can come back with the room code while it is open.')}</p>
+      <button class="auth-btn" id="room-leave-yes">${closes ? 'Yes, close it' : 'Yes, leave'}</button>
+      <button class="auth-btn secondary" id="confirm-cancel">Cancel</button>
+    `;
+    document.getElementById('room-leave-yes').addEventListener('click', () => { closeConfirm(); roomLeave(); });
+    document.getElementById('confirm-cancel').addEventListener('click', closeConfirm);
+    confirmOverlay.classList.add('visible');
+  }
+
+  function openRoomDeleteConfirm(){
+    const s = roomSession;
+    if (!s) return;
+    confirmBox.innerHTML = `
+      <h1 class="auth-heading">Delete this server?</h1>
+      <p class="auth-sub">Everyone gets kicked out and the server's save is gone for good. The ${ROOM_SERVER_COST.toLocaleString()} Gems are not given back.</p>
+      <button class="auth-btn" id="room-delete-yes">Yes, delete it</button>
+      <button class="auth-btn secondary" id="confirm-cancel">Cancel</button>
+    `;
+    document.getElementById('room-delete-yes').addEventListener('click', async () => {
+      closeConfirm();
+      try {
+        const reply = await roomRequest({ action: 'remove', roomId: s.id });
+        if (roomSession !== s) return;
+        if (reply && reply.success) roomExit('You deleted ' + s.info.name + '.');
+        else showBanner(roomErrorText(reply && reply.error, reply));
+      } catch (e) {
+        showBanner("Couldn't reach the room.");
+      }
+    });
+    document.getElementById('confirm-cancel').addEventListener('click', closeConfirm);
+    confirmOverlay.classList.add('visible');
+  }
+
+  /* ----- Stats > Rooms: create, join, browse ----- */
+
+  function renderRoomsLobby(){
+    const pane = document.getElementById('stats-pane-rooms');
+    if (!pane) return;
+    if (!currentUsername || offlineMode) {
+      pane.innerHTML = '<div class="empty-state">Rooms need an account and an internet connection.</div>';
+      return;
+    }
+    pane.innerHTML = `
+      <div class="shop-card">
+        <div class="shop-info">
+          <h3>Create a Room</h3>
+          <p>Start a shared game from a clean slate. Rooms are free, servers cost ${ROOM_SERVER_COST.toLocaleString()} Gems.</p>
+        </div>
+        <button class="buy-btn" id="room-create-btn">Create</button>
+      </div>
+      <div class="shop-card">
+        <div class="shop-info">
+          <h3>Join a Room</h3>
+          <p>Got a room code from a friend? Type it in.</p>
+        </div>
+        <button class="buy-btn" id="room-join-btn">Join</button>
+      </div>
+      <div class="shop-card">
+        <div class="shop-info">
+          <h3>Browse Servers</h3>
+          <p>Public servers that are always up.</p>
+        </div>
+        <button class="buy-btn" id="room-browse-btn">${roomBrowserOpen ? 'Hide' : 'Browse'}</button>
+      </div>
+      <div class="room-browser" id="room-browser" style="${roomBrowserOpen ? '' : 'display:none;'}"></div>
+    `;
+    document.getElementById('room-create-btn').addEventListener('click', openRoomCreateDialog);
+    document.getElementById('room-join-btn').addEventListener('click', () => openRoomJoinDialog(null));
+    document.getElementById('room-browse-btn').addEventListener('click', () => {
+      roomBrowserOpen = !roomBrowserOpen;
+      renderRoomsLobby();
+    });
+    if (roomBrowserOpen) {
+      renderRoomBrowser();
+      loadRoomBrowser();
+    }
+  }
+
+  async function loadRoomBrowser(){
+    try {
+      const reply = await roomRequest({ action: 'browse' });
+      if (reply && reply.success) {
+        roomBrowserServers = reply.servers || [];
+      } else {
+        roomBrowserServers = { error: roomErrorText(reply && reply.error, reply) };
+      }
+    } catch (e) {
+      roomBrowserServers = { error: "Couldn't reach the server list." };
+    }
+    renderRoomBrowser();
+  }
+
+  function renderRoomBrowser(){
+    const el = document.getElementById('room-browser');
+    if (!el) return;
+    // The search box and chips are only drawn once, so typing never loses focus.
+    if (!document.getElementById('room-browser-list')) {
+      el.innerHTML = `
+        <input type="text" id="room-browser-search" class="auth-input" placeholder="Search servers..." autocomplete="off" maxlength="30">
+        <div class="room-chips" id="room-browser-chips"></div>
+        <div class="room-browser" id="room-browser-list"></div>
+      `;
+      const search = document.getElementById('room-browser-search');
+      search.value = roomBrowserSearch;
+      search.addEventListener('input', () => { roomBrowserSearch = search.value.trim(); renderRoomBrowser(); });
+    }
+    const chipsEl = document.getElementById('room-browser-chips');
+    chipsEl.innerHTML = ['All'].concat(ROOM_CATEGORIES).map(c =>
+      `<button class="workshop-chip${c === roomBrowserCategory ? ' active' : ''}" data-cat="${c}">${c}</button>`).join('');
+    chipsEl.querySelectorAll('[data-cat]').forEach(btn => {
+      btn.addEventListener('click', () => { roomBrowserCategory = btn.dataset.cat; renderRoomBrowser(); });
+    });
+
+    const listEl = document.getElementById('room-browser-list');
+    if (roomBrowserServers === null) {
+      listEl.innerHTML = '<div class="empty-state loading-state">Loading servers...</div>';
+      return;
+    }
+    if (roomBrowserServers.error) {
+      listEl.innerHTML = '<div class="empty-state">' + escapeChatHtml(roomBrowserServers.error) + '</div>';
+      return;
+    }
+    const q = roomBrowserSearch.toLowerCase();
+    const shown = roomBrowserServers.filter(sv =>
+      (roomBrowserCategory === 'All' || sv.category === roomBrowserCategory) &&
+      (!q || String(sv.name).toLowerCase().indexOf(q) !== -1));
+    if (!shown.length) {
+      listEl.innerHTML = '<div class="empty-state">' + (roomBrowserServers.length ? 'No servers match.' : 'No servers yet. Be the first to open one!') + '</div>';
+      return;
+    }
+    listEl.innerHTML = shown.map(sv => {
+      const bits = [escapeChatHtml(sv.category), sv.online + ' online', 'by ' + escapeChatHtml(sv.host)];
+      if (sv.hasPassword) bits.push('password');
+      if (sv.fee > 0) bits.push(sv.joined ? 'fee paid' : Number(sv.fee).toLocaleString() + ' Gems to enter');
+      return `
+        <div class="shop-card" data-server-id="${escapeChatHtml(sv.id)}">
+          <div class="room-server-icon">${escapeChatHtml(sv.icon)}</div>
+          <div class="shop-info">
+            <h3>${escapeChatHtml(sv.name)}${sv.mine ? ' <span class="owned">(yours)</span>' : ''}</h3>
+            <p>${bits.join(' · ')}</p>
+          </div>
+          <button class="buy-btn">${sv.joined ? 'Rejoin' : 'Join'}</button>
+        </div>`;
+    }).join('');
+    listEl.querySelectorAll('[data-server-id]').forEach(card => {
+      const sv = roomBrowserServers.find(x => x.id === card.dataset.serverId);
+      card.querySelector('.buy-btn').addEventListener('click', async e => {
+        // Members walk straight back in. So does anyone when there is no password and no fee.
+        if (sv.joined || (!sv.hasPassword && !(sv.fee > 0))) {
+          const btn = e.currentTarget;
+          btn.disabled = true;
+          const reply = await roomJoin(sv.id, '', false);
+          if (reply && reply.success) return;
+          btn.disabled = false;
+          if (reply && (reply.error === 'needpass' || reply.error === 'needfee')) { openRoomJoinDialog(sv); return; }
+          showBanner(roomErrorText(reply && reply.error, reply));
+          if (reply && reply.error === 'closed') loadRoomBrowser();
+          return;
+        }
+        openRoomJoinDialog(sv);
+      });
+    });
+  }
+
+  // Asks the API to let us in, and steps in if it says yes. Returns the answer
+  // ({ success } or { error }) so the menus can show what went wrong.
+  async function roomJoin(roomId, password, payFee){
+    try {
+      if (payFee) {
+        // Make sure the API knows our newest Gem count before it checks it.
+        saveGame();
+        await syncToSheet();
+      }
+      const reply = await roomRequest({ action: 'join', roomId, password, payFee: !!payFee, avatar: currentProfileIcon || '' });
+      if (reply && reply.success) {
+        roomSpendGems(reply.charged);
+        roomEnter(reply);
+      }
+      return reply;
+    } catch (e) {
+      return { error: 'network' };
+    }
+  }
+
+  // Takes Gems the API charged (a server or an entrance fee) off this screen too.
+  function roomSpendGems(amount){
+    const n = Math.max(0, Math.floor(Number(amount) || 0));
+    if (!n) return;
+    game.gems = Math.max(0, (game.gems || 0) - n);
+    updateWorkshopGemsDisplay();
+    saveGame();
+  }
+
+  // Join menu. server = a row from the server list, or null to type a room code.
+  function openRoomJoinDialog(server){
+    let fee = server ? Number(server.fee || 0) : 0; // 0 until the API tells us there is one
+    confirmBox.innerHTML = `
+      <h1 class="auth-heading">${server ? 'Join ' + escapeChatHtml(server.name) : 'Join a Room'}</h1>
+      <p class="auth-sub">${server ? 'You will play on the shared save of this server.' : 'Ask the host for the 6 letter room code.'}</p>
+      <div class="room-form" style="margin-bottom:0;">
+        ${server ? '' : '<input type="text" id="room-join-code" class="auth-input" placeholder="Room code" maxlength="6" autocomplete="off" style="text-transform:uppercase; letter-spacing:3px; text-align:center;">'}
+        <input type="password" id="room-join-pass" class="auth-input" placeholder="Password${server && server.hasPassword ? '' : ' (if it has one)'}" maxlength="60" autocomplete="off" style="${server && !server.hasPassword ? 'display:none;' : ''}">
+        <p class="room-cost" id="room-join-fee" style="margin-bottom:12px; display:none;"></p>
+      </div>
+      <button class="auth-btn" id="room-join-go">Join</button>
+      <button class="auth-btn secondary" id="confirm-cancel">Cancel</button>
+      <p class="auth-error" id="room-join-error" style="display:none;"></p>
+    `;
+    const codeEl = document.getElementById('room-join-code');
+    const passEl = document.getElementById('room-join-pass');
+    const feeEl = document.getElementById('room-join-fee');
+    const goBtn = document.getElementById('room-join-go');
+    const errorEl = document.getElementById('room-join-error');
+    const showError = text => { errorEl.textContent = text; errorEl.style.display = 'block'; };
+
+    function showFee(){
+      if (!(fee > 0)) return;
+      feeEl.style.display = '';
+      feeEl.innerHTML = 'Entrance fee: <b>' + fee.toLocaleString() + ' Gems</b>, paid once. You have ' + (game.gems || 0).toLocaleString() + ' Gems.';
+      goBtn.textContent = 'Pay ' + fee.toLocaleString() + ' Gems and join';
+    }
+    showFee();
+
+    async function go(){
+      const roomId = server ? server.id : codeEl.value.trim().toUpperCase();
+      if (!roomId) { showError('Type the room code first.'); return; }
+      if (fee > 0 && (game.gems || 0) < fee) { showError("You don't have enough Gems for the entrance fee."); return; }
+      errorEl.style.display = 'none';
+      goBtn.disabled = true;
+      const reply = await roomJoin(roomId, passEl.value, fee > 0);
+      if (reply && reply.success) { closeConfirm(); return; }
+      goBtn.disabled = false;
+      if (reply && reply.error === 'needfee') {
+        // First time we hear about the fee: show it and let the player decide.
+        fee = Number(reply.fee) || 0;
+        showFee();
+        showError('This server has an entrance fee. Press the button again to pay it.');
+        return;
+      }
+      if (reply && reply.error === 'needpass') passEl.style.display = '';
+      showError(reply && reply.error === 'network' ? "Couldn't reach the room." : roomErrorText(reply && reply.error, reply));
+    }
+    goBtn.addEventListener('click', go);
+    [codeEl, passEl].forEach(el => {
+      if (el) el.addEventListener('keydown', e => { if (e.key === 'Enter') go(); });
+    });
+    document.getElementById('confirm-cancel').addEventListener('click', closeConfirm);
+    confirmOverlay.classList.add('visible');
+    (codeEl || passEl).focus();
+  }
+
+  // Create menu: Room or Server, a name, an optional password, an optional
+  // entrance fee (servers only), an icon and a category.
+  function openRoomCreateDialog(){
+    let kind = 'room';
+    let icon = ROOM_ICONS[0];
+    confirmBox.innerHTML = `
+      <h1 class="auth-heading">Create</h1>
+      <div class="room-form">
+        <div class="room-kind-row">
+          <button class="room-kind-btn active" data-kind="room" type="button">
+            <span class="room-kind-emoji">\u{1F3E0}</span>Room
+            <small>Free. Private, friends join with a code. Closes when you leave.</small>
+          </button>
+          <button class="room-kind-btn" data-kind="server" type="button">
+            <span class="room-kind-emoji">\u{1F310}</span>Server
+            <small>${ROOM_SERVER_COST.toLocaleString()} Gems. Public, always up, with admins.</small>
+          </button>
+        </div>
+        <label for="room-new-name">Name</label>
+        <input type="text" id="room-new-name" class="auth-input" placeholder="My awesome room" maxlength="30" autocomplete="off">
+        <label for="room-new-pass">Password <small>(optional)</small></label>
+        <input type="text" id="room-new-pass" class="auth-input" placeholder="Leave empty for no password" maxlength="60" autocomplete="off">
+        <div id="room-new-fee-wrap" style="display:none;">
+          <label for="room-new-fee">Entrance fee in Gems <small>(optional, paid to you once per player)</small></label>
+          <input type="number" id="room-new-fee" class="auth-input" placeholder="0" min="0" max="${ROOM_MAX_FEE}" step="1">
+        </div>
+        <label>Icon</label>
+        <div class="room-icon-grid" id="room-new-icons">
+          ${ROOM_ICONS.map((ic, i) => `<button class="room-icon-btn${i === 0 ? ' active' : ''}" type="button" data-icon="${ic}">${ic}</button>`).join('')}
+        </div>
+        <label for="room-new-category">Category</label>
+        <select id="room-new-category" class="auth-input">
+          ${ROOM_CATEGORIES.map(c => `<option value="${c}">${c}</option>`).join('')}
+        </select>
+        <p class="room-cost" id="room-new-cost"></p>
+      </div>
+      <button class="auth-btn" id="room-new-go">Create Room</button>
+      <button class="auth-btn secondary" id="confirm-cancel">Cancel</button>
+      <p class="auth-error" id="room-new-error" style="display:none;"></p>
+    `;
+    const nameEl = document.getElementById('room-new-name');
+    const passEl = document.getElementById('room-new-pass');
+    const feeEl = document.getElementById('room-new-fee');
+    const feeWrap = document.getElementById('room-new-fee-wrap');
+    const costEl = document.getElementById('room-new-cost');
+    const goBtn = document.getElementById('room-new-go');
+    const errorEl = document.getElementById('room-new-error');
+    const showError = text => { errorEl.textContent = text; errorEl.style.display = 'block'; };
+
+    // Redraws the parts that depend on Room or Server.
+    function refreshKind(){
+      confirmBox.querySelectorAll('.room-kind-btn').forEach(b => b.classList.toggle('active', b.dataset.kind === kind));
+      feeWrap.style.display = kind === 'server' ? '' : 'none';
+      goBtn.textContent = kind === 'server' ? 'Create Server (' + ROOM_SERVER_COST.toLocaleString() + ' Gems)' : 'Create Room';
+      costEl.innerHTML = kind === 'server'
+        ? 'Costs <b>' + ROOM_SERVER_COST.toLocaleString() + ' Gems</b>. You have ' + (game.gems || 0).toLocaleString() + ' Gems.'
+        : 'Free. You get a room code to share with friends.';
+    }
+    confirmBox.querySelectorAll('.room-kind-btn').forEach(b => {
+      b.addEventListener('click', () => { kind = b.dataset.kind; refreshKind(); });
+    });
+    confirmBox.querySelectorAll('.room-icon-btn').forEach(b => {
+      b.addEventListener('click', () => {
+        icon = b.dataset.icon;
+        confirmBox.querySelectorAll('.room-icon-btn').forEach(x => x.classList.toggle('active', x === b));
+      });
+    });
+    refreshKind();
+
+    goBtn.addEventListener('click', async () => {
+      const name = nameEl.value.trim();
+      const fee = kind === 'server' ? Math.floor(Number(feeEl.value) || 0) : 0;
+      if (!name) { showError('Give it a name first.'); return; }
+      if (fee < 0 || fee > ROOM_MAX_FEE) { showError('The entrance fee can be 0 to ' + ROOM_MAX_FEE.toLocaleString() + ' Gems.'); return; }
+      if (kind === 'server' && (game.gems || 0) < ROOM_SERVER_COST) {
+        showError('A server costs ' + ROOM_SERVER_COST.toLocaleString() + " Gems. You don't have enough.");
+        return;
+      }
+      errorEl.style.display = 'none';
+      goBtn.disabled = true;
+      try {
+        if (kind === 'server') {
+          // Make sure the API knows our newest Gem count before it checks it.
+          saveGame();
+          await syncToSheet();
+        }
+        const reply = await roomRequest({
+          action: 'create', kind, name, password: passEl.value, fee, icon,
+          category: document.getElementById('room-new-category').value,
+          avatar: currentProfileIcon || '',
+          state: roomSharedDefaults() // the clean slate every new room starts from
+        });
+        if (reply && reply.success) {
+          roomSpendGems(reply.charged);
+          closeConfirm();
+          roomEnter(reply);
+          return;
+        }
+        showError(roomErrorText(reply && reply.error, reply));
+      } catch (e) {
+        showError("Couldn't reach the rooms server.");
+      }
+      goBtn.disabled = false;
+    });
+    document.getElementById('confirm-cancel').addEventListener('click', closeConfirm);
+    confirmOverlay.classList.add('visible');
+    nameEl.focus();
   }
 
   /* ---------- HOVER SOUND ---------- */

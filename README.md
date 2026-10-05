@@ -32,7 +32,8 @@ If you fork this project or move it to a new Sheet/Apps Script deployment, updat
 
 - **Core loop** - tap the avatar to earn moneys; buy upgrades to boost income and automate clicking.
 - **Shop** - Click Boost, Auto Clicker, DVD Logo (bouncing screensaver easter egg), Amogus, Roblox Noob, Screaming Goat, Custom Cursors, Background Switcher, Icon Modifier, Offline Earnings, and more, plus a separate **Prestige Shop**. Shop items are filterable by category (All / Visuals / Customization / Plain).
-- **Stats** - profile (avatar/username), moneys, prestige, gems, plus subtabs for Friends, Mods, and Messages.
+- **Stats** - profile (avatar/username), moneys, prestige, gems, plus subtabs for Friends, Mods, Messages, and Rooms.
+- **Rooms and servers** (1.34.0) - multiplayer. Stats > Rooms lets you create a room, join one with a code, or browse public servers. Everyone inside plays one shared save. See **Rooms and servers** below.
 - **Leaderboard** - global and friends-only rankings.
 - **Achievements** - unlockable achievement list with hint system.
 - **Workshop / Mods** - browse, install, and upload user mods; installed mods list. Mods made in the editor can run **CGC** code (see below).
@@ -108,8 +109,8 @@ Rules:
 Near the top of `index.html`:
 
 ```html
-<!-- Game version: 1.33.0 | Deployment: 209 | Update both on every release, see README.md -->
-<meta name="game-version" content="1.33.0">
+<!-- Game version: 1.34.0 | Deployment: 210 | Update both on every release, see README.md -->
+<meta name="game-version" content="1.34.0">
 ```
 
 Bump both the version comment and the `game-version` meta tag on every release. The deployment number is an internal counter for tracking Apps Script/Sheet deployments - increment it whenever the backend Web App is redeployed, even if the game version string doesn't change.
@@ -173,3 +174,31 @@ Rules for changing CGC:
 - **Block coding** (1.33.0) - the Code panel in the mod editor has a `Text | Blocks` switch. Blocks is a second view of the same code, not a second language: `draft.code` is still the only thing tested, saved and published. `cgcbFromCode()` reads the text line by line into a tree of blocks, `cgcbToCode()` writes the tree back as text after every change, and a line with no block of its own becomes a `code` block so nothing is lost. Before Blocks opens, `cgcbSameMeaning()` parses both versions with `CGC.parse()` and compares them, and the editor stays in Text mode if they differ or if a `when` / `if` / `repeat` is missing its `end`. Opening Blocks never rewrites the text, only changing a block does. The choice is saved in the draft as `codeMode`. Add a block type in four places: `CGCB_CATS`, `CGCB_PALETTE`, a pattern in `cgcbFromCode()`, and a case in both `cgcbToCode()` and `cgcbBlockHtml()`. When CGC gets a new statement, add its block too (it works as a `code` block until then).
 - Every code box in `CGC_GUIDE` is real CGC. After changing the language or a guide page, paste its code boxes into the editor and run them.
 - `MOD_EDITOR_SIZE_LIMIT` (250K) caps a mod's files, payload and code together.
+
+## Rooms and servers (1.34.0)
+
+A room or server is one shared save that many players play together. It starts from a clean slate. A click by anyone adds to the same counter, and a purchase by anyone spends the shared Moneys and shows up on every screen.
+
+| | Room | Server |
+|---|---|---|
+| Cost | Free | `ROOM_SERVER_COST` (1,000) Gems |
+| Who can join | Anyone with the room code | Anyone, it is listed in Browse Servers |
+| How long it lasts | Until the host leaves (then everyone is kicked out and the save is gone) | Always up until the host deletes it |
+| Entrance fee | No | Optional, in Gems, paid once per player, collected by the host |
+| Staff | The host can kick and ban | The host and owners can kick, ban, and make admins and owners. Admins can kick and ban |
+
+Both can have a password, an icon and a category.
+
+**Turn it on (once):** Supabase dashboard > Edge Functions > Deploy a new function > Via editor, name it exactly `rooms`, paste `supabase/functions/rooms/index.ts`, turn OFF "Verify JWT" (same as `api`), Deploy. The function makes its own `rooms` table the first time it runs. If the Rooms tab says the table is missing, run the SQL at the top of that file once.
+
+How it is built:
+
+- Server: `supabase/functions/rooms/index.ts`. Actions: `create`, `join`, `sync`, `chat`, `leave`, `moderate` (kick, ban, unban, role), `remove`, `browse`. One row per room in the `rooms` table. The shared save is the `state` column (JSON), members and their roles are in `members`, chat is in `messages`. Every save checks the row's `version`, so two players saving at the same moment never overwrite each other.
+- Game: the `ROOMS + SERVERS` section of `index.html`. The game calls the function at `ROOMS_API_URL` (the api link with `/api` swapped for `/rooms`).
+- `ROOM_SHARED_KEYS` lists the parts of `game` that belong to the room (moneys, upgrades, prestige). Everything else stays the player's own: Gems, mods, achievements, and every picked preference (song, cursor, background, icon, effect, font, light mode). **A new upgrade bought with Moneys needs its save key added to `ROOM_SHARED_KEYS`** or it will not be shared.
+- Going in, the player's own save is put away in `roomSession.personal`. `saveGame()` and `buildSyncPayload()` always write that own save (`roomPersonalView()`), so an account is never overwritten by a room. Going out puts it back.
+- Every `ROOM_SYNC_MS` (2 seconds) `roomTick()` sends what changed on this screen (numbers as "how much it changed", on/off values as the new value) and gets the room's save back. Each player's auto clickers, DVDs, crewmates and noobs run on their own screen and all pay into the shared save, so more players means more income.
+- Inside a room the Stats tab shows **Room Stats** (name, icon, global clicks, messages box, players) and **Player Stats** (the normal stats page with its own subtabs).
+- Reset Data, Moneys to Gems, and gifts are turned off inside a room, because the Moneys there belong to everyone.
+- `SERVER_COST`, `MAX_FEE` and the category list exist in both files. Change them in both.
+
