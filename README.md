@@ -108,8 +108,8 @@ Rules:
 Near the top of `index.html`:
 
 ```html
-<!-- Game version: 1.28.0 | Deployment: 208 | Update both on every release, see README.md -->
-<meta name="game-version" content="1.28.0">
+<!-- Game version: 1.29.0 | Deployment: 208 | Update both on every release, see README.md -->
+<meta name="game-version" content="1.29.0">
 ```
 
 Bump both the version comment and the `game-version` meta tag on every release. The deployment number is an internal counter for tracking Apps Script/Sheet deployments - increment it whenever the backend Web App is redeployed, even if the game version string doesn't change.
@@ -162,5 +162,9 @@ Rules for changing CGC:
 - Keep `CGC_EXAMPLE_PET` (the guide's Hungry pet example) working: load it in the editor and click Run test after any change.
 - **Vibecoding: Connect to AI** (1.27.0) - the guide's Vibecoding page is drawn by `cgcRenderVibeAi()`. `CGC_AIS` lists the AIs (ChatGPT, Copilot, Claude, Gemini), their chat links and preferred API models. Connect copies the prompt and opens the chat site. The optional direct link uses the player's own API key, saved only in `localStorage` (`fallgamedev-cgc-ai-key:<id>`), and calls the AI company from the browser (`cgcAiListModels()`, `cgcAiAsk()`). The key never goes to the game's API. Copilot has no public API, so it can't be linked.
 - **AI helper in the mod editor** (1.28.0) - above the code box there is an `Ask <AI>` button for each linked AI (`cgcRenderHelper()`). `cgcHelperRun()` builds the prompt (`cgcHelperPrompt()`), asks the AI, reads its `FILE:` blocks (`cgcHelperParse()`), then makes or finds each file: `svg` drawings become images, `sound` note lists become small .wav files, `extras` uses a song from `extras/`, and `link` is tested before use. It puts the code in the editor, runs a test, and sends errors back to the AI up to `CGC_HELPER_MAX_FIXES` times. Undo restores the old code and Payload.
+- **AI connector** (1.29.0) - lets AI apps that support connectors (MCP servers), like Claude and ChatGPT, send mods straight into the mod editor. Two parts:
+  - Server: `supabase/functions/mcp/index.ts`, a Supabase Edge Function with three tools (`get_cgc_guide`, `get_mod`, `send_mod`). **Turn it on once:** Supabase dashboard > Edge Functions > Deploy a new function > Via editor, name it exactly `mcp`, paste the file, turn OFF "Verify JWT" (same as the `api` function), Deploy. It keeps its data in a private Storage bucket called `ai-links` that it creates by itself. It never touches accounts, moneys or Gems. The connector link is the API link with `api` swapped for `mcp` (`cgcConnectorUrl()`).
+  - Game: the **AI connector** button above the code box (`cgcLinkPanelHtml()`). It shows a connect code, checks in with the server every few seconds while the panel is open (`cgcLinkTick()`), loads what the AI sent (`cgcLinkApply()`), runs a test and reports errors back so the AI can fix them.
+  - `CGC_GUIDE` inside the function is a copy of the rules in `CGC_VIBE_PROMPT`. When CGC changes, update both and deploy the function again.
 - Every code box in `CGC_GUIDE` is real CGC. After changing the language or a guide page, paste its code boxes into the editor and run them.
 - `MOD_EDITOR_SIZE_LIMIT` (250K) caps a mod's files, payload and code together.

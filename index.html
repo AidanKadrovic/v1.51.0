@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<!-- Game version: 1.28.0 | Deployment: 208 | Update both on every release, see README.md -->
-<meta name="game-version" content="1.28.0">
+<!-- Game version: 1.29.0 | Deployment: 208 | Update both on every release, see README.md -->
+<meta name="game-version" content="1.29.0">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>The Clicker Game!</title>
 <link rel="icon" type="image/x-icon" href="images/ui/maksy.ico" id="favicon-link">
@@ -7262,6 +7262,45 @@
     border-radius:10px;
   }
   body.light-mode .cgc-helper-panel textarea, body.light-mode .cgc-helper-said{ background:#fff; color:#1a1426; }
+
+  /* ---------- AI CONNECTOR (1.29.0) ---------- */
+  .cgc-link-label{ display:block; font-size:12.5px; font-weight:600; margin:12px 0 6px; }
+  .cgc-link-row{ display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
+  .cgc-link-row .workshop-icon-btn{ margin:0; }
+  .cgc-link-url{
+    flex:1;
+    min-width:180px;
+    box-sizing:border-box;
+    padding:9px 12px;
+    background:#120e22;
+    color:#e9e4f7;
+    border:2px solid var(--ink);
+    border-radius:10px;
+    font-family:ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
+    font-size:12px;
+  }
+  /* The connect code, big and chunky so it is easy to read out loud. */
+  .cgc-link-code{
+    font-family:'Fredoka One', cursive;
+    font-size:26px;
+    letter-spacing:3px;
+    padding:6px 16px;
+    color:#1a1426;
+    background:var(--zap);
+    border:3px solid var(--ink);
+    border-radius:12px;
+    box-shadow:0 4px 0 0 var(--ink);
+    user-select:all;
+  }
+  .cgc-link-live{ display:flex; align-items:center; gap:8px; font-size:12.5px; margin:12px 0 0; }
+  .cgc-link-dot{ width:10px; height:10px; border-radius:50%; background:var(--muted); border:2px solid var(--ink); flex-shrink:0; }
+  .cgc-link-dot.on{ background:var(--moneys-green); animation:cgc-link-pulse 1.4s ease-in-out infinite; }
+  .cgc-link-dot.off{ background:#ff6b6b; }
+  @keyframes cgc-link-pulse{ 0%, 100%{ opacity:1; } 50%{ opacity:0.35; } }
+  @media (prefers-reduced-motion:reduce){ .cgc-link-dot.on{ animation:none; } }
+  .cgc-helper-ask.cgc-link-btn{ background:var(--brand-gradient); }
+  .cgc-ai-box details.cgc-ai-direct > summary{ list-style-position:inside; }
+  body.light-mode .cgc-link-url{ background:#fff; color:#1a1426; }
 
   /* =====================================================================
      GAMEPLAY EXTRAS (1.24.0): floating click numbers, the HUD chips under
@@ -16154,22 +16193,51 @@
     { id: 'chatgpt', name: 'ChatGPT', color: '#4ade80', maker: 'OpenAI',
       chatUrl: 'https://chatgpt.com/',
       keyUrl: 'https://platform.openai.com/api-keys', keyHint: 'sk-...',
-      models: ['gpt-6.1-sol', 'gpt-6-luna'] },
+      models: ['gpt-6.1-sol', 'gpt-6-luna'],
+      connectorNote: '',
+      connectorSteps: [
+        'Open ChatGPT, go to Settings, then Apps & Connectors.',
+        'Open Advanced settings and turn on Developer mode.',
+        'Click Create, name it The Clicker Game and paste the connector link.',
+        'Pick No authentication and create it.',
+        'In a chat, click + and turn The Clicker Game on.'
+      ] },
     { id: 'copilot', name: 'Copilot', color: '#7cc7ff', maker: 'Microsoft',
       chatUrl: 'https://copilot.microsoft.com/',
-      keyUrl: '', keyHint: '', models: [] },
+      keyUrl: '', keyHint: '', models: [],
+      connectorNote: "The Copilot website and app can't add your own connectors. GitHub Copilot inside VS Code (a coding app) can:",
+      connectorSteps: [
+        'In VS Code, open the Command Palette and run "MCP: Add Server".',
+        'Pick HTTP and paste the connector link.',
+        'Name it clicker-game.',
+        'Open Copilot Chat and switch it to Agent mode.'
+      ] },
     { id: 'claude', name: 'Claude', color: '#ff9d5c', maker: 'Anthropic',
       chatUrl: 'https://claude.ai/new',
       keyUrl: 'https://console.anthropic.com/settings/keys', keyHint: 'sk-ant-...',
-      models: ['claude-sonnet-5-5', 'claude-haiku-4-5-20251001'] },
+      models: ['claude-sonnet-5-5', 'claude-haiku-4-5-20251001'],
+      connectorNote: '',
+      connectorSteps: [
+        'Open Claude and go to Customize, then Connectors.',
+        'Click + Add, then Add custom connector.',
+        'Name it The Clicker Game, paste the connector link and click Continue.',
+        'Pick "No sign in", then click Add.',
+        'In a chat, click +, then Connectors, and turn The Clicker Game on.'
+      ] },
     { id: 'gemini', name: 'Gemini', color: '#c1aef0', maker: 'Google',
       chatUrl: 'https://gemini.google.com/app',
       keyUrl: 'https://aistudio.google.com/apikey', keyHint: 'AIza...',
-      models: ['gemini-3.8-flash', 'gemini-flash-latest'] }
+      models: ['gemini-3.8-flash', 'gemini-flash-latest'],
+      connectorNote: "The Gemini app can't add your own connectors yet. Gemini CLI (a coding tool) can:",
+      connectorSteps: [
+        "Open Gemini CLI's settings.json file.",
+        'Under "mcpServers", add an entry named clicker-game with "httpUrl" set to the connector link.',
+        'Restart Gemini CLI.'
+      ] }
   ];
 
   // What the player typed on the Vibecoding page. Kept while the game is open.
-  const cgcVibe = { ai: 'chatgpt', idea: '', code: '', notes: '', busy: false, models: {}, status: '', statusError: false, directOpen: false };
+  const cgcVibe = { ai: 'chatgpt', idea: '', code: '', notes: '', busy: false, models: {}, status: '', statusError: false, directOpen: false, pasteOpen: false };
   try {
     const savedAi = localStorage.getItem(CGC_AI_PICK_KEY);
     if (CGC_AIS.some(a => a.id === savedAi)) cgcVibe.ai = savedAi;
@@ -16314,6 +16382,7 @@
   // CONNECT: copy the prompt, then open the picked AI in a new tab.
   // The prompt is too long to send inside the link, so the player pastes it in.
   function cgcAiConnect(){
+    cgcVibe.pasteOpen = true;
     const ai = cgcAiCurrent();
     const prompt = cgcVibePrompt();
     cgcAiCopy(prompt).then(ok => {
@@ -16414,7 +16483,7 @@
 
     let direct;
     if (!cgcAiCanLink(ai)) {
-      direct = `<p>${esc(ai.name)} can't be linked directly, because ${esc(ai.maker)} doesn't offer a way for games to talk to it. Use the <strong>Connect</strong> button above, or pick ChatGPT, Claude or Gemini to link one.</p>`;
+      direct = `<p>${esc(ai.name)} can't be linked directly, because ${esc(ai.maker)} doesn't offer a way for games to talk to it. Pick ChatGPT, Claude or Gemini to link one with a key.</p>`;
     } else if (linked) {
       direct = `
         <p><span class="cgc-ai-linked">Linked to ${esc(ai.name)}</span></p>
@@ -16441,35 +16510,60 @@
         <p class="mio-side-note">Your key is saved only in this browser. It is sent to ${esc(ai.maker)} and nowhere else, not even to the game. Never share it with anyone.</p>`;
     }
 
-    box.innerHTML = `
-      <h4>1. What should your mod do?</h4>
-      <textarea id="cgc-ai-idea" maxlength="2000" placeholder="Example: a pet on the screen that gets hungry over time, and I feed it with a currency I earn by clicking." aria-label="Your mod idea">${esc(cgcVibe.idea)}</textarea>
-      <p class="mio-side-note">The more detail, the better. You can leave this empty and type your idea in the AI chat instead.</p>
+    // CONNECTOR (1.29.0): the real connector comes first. Copy and paste is the backup.
+    const connectorSteps = `
+      ${ai.connectorNote ? `<p>${esc(ai.connectorNote)}</p>` : ''}
+      <ol class="cgc-vibe-steps">${ai.connectorSteps.map(st => `<li>${esc(st)}</li>`).join('')}</ol>`;
 
-      <h4>2. Which AI will you use?</h4>
+    box.innerHTML = `
+      <h4>1. Which AI will you use?</h4>
       <div class="cgc-ai-picker" role="radiogroup" aria-label="Which AI">
         ${CGC_AIS.map(a => `<button class="cgc-ai-pick${a.id === ai.id ? ' active' : ''}" data-ai="${a.id}" role="radio" aria-checked="${a.id === ai.id}" style="--ai-color:${a.color}"${busy}>${esc(a.name)}</button>`).join('')}
       </div>
 
-      <h4>3. Connect</h4>
-      <div class="cgc-ai-row">
-        <button class="auth-btn" id="cgc-ai-connect">Connect to ${esc(ai.name)}</button>
-        <button class="auth-btn secondary" id="cgc-vibe-copy">Copy prompt</button>
+      <h4>2. Connect ${esc(ai.name)} to the game</h4>
+      <p>A <strong>connector</strong> lets your AI app talk to The Clicker Game! by itself. It can read your mod, send new code and files straight into the editor, and see the test errors so it can fix them. You only add it once.</p>
+      <label class="cgc-link-label" for="cgc-link-url-guide">The connector link</label>
+      <div class="cgc-link-row">
+        <input class="cgc-link-url" id="cgc-link-url-guide" readonly value="${esc(cgcConnectorUrl())}" aria-label="Connector link">
+        <button class="workshop-icon-btn" id="cgc-link-url-copy-guide">Copy link</button>
       </div>
-      <p class="mio-side-note">Connect copies the prompt (with your idea in it) and opens ${esc(ai.name)} in a new tab. Paste it there with Ctrl+V. The prompt teaches the AI the whole CGC language first.</p>
+      ${connectorSteps}
+      <p class="mio-side-note">Menus in AI apps move around sometimes. Look for the words "connector" or "MCP server".</p>
 
-      <h4>4. Paste the AI's code here</h4>
-      <textarea class="cgc-ai-code" id="cgc-ai-code" spellcheck="false" placeholder="Paste the code ${esc(ai.name)} gave you..." aria-label="Code from the AI">${esc(cgcVibe.code)}</textarea>
-      ${cgcVibe.notes ? `<p class="mio-side-note">${esc(ai.name)} also said:</p><div class="cgc-ai-notes">${esc(cgcVibe.notes)}</div>` : ''}
+      <h4>3. Give it your connect code</h4>
+      <p>In the mod editor, click <strong>AI connector</strong> above the code box. It shows your connect code and waits for your AI. Then ask your AI for a mod and tell it the code.</p>
       <div class="cgc-ai-row">
-        <button class="auth-btn" id="cgc-ai-use"${inEditor ? '' : ' disabled'}>${inEditor ? 'Put it in the editor' : 'Open the mod editor to use it'}</button>
+        <button class="auth-btn" id="cgc-link-open"${inEditor ? '' : ' disabled'}>${inEditor ? 'Open AI connector' : 'Open the mod editor first'}</button>
       </div>
-      <p class="cgc-ai-status${cgcVibe.statusError ? ' error' : ''}" id="cgc-ai-status" role="status">${esc(cgcVibe.status)}</p>
 
-      <details class="cgc-ai-direct"${linked || cgcVibe.busy || cgcVibe.directOpen ? ' open' : ''}>
-        <summary>Optional: link ${esc(ai.name)} straight to the game</summary>
+      <details class="cgc-ai-direct" id="cgc-ai-paste"${cgcVibe.pasteOpen ? ' open' : ''}>
+        <summary>No connector? Copy and paste instead</summary>
+        <label class="cgc-link-label" for="cgc-ai-idea">What should your mod do?</label>
+        <textarea id="cgc-ai-idea" maxlength="2000" placeholder="Example: a pet on the screen that gets hungry over time, and I feed it with a currency I earn by clicking." aria-label="Your mod idea">${esc(cgcVibe.idea)}</textarea>
+        <div class="cgc-ai-row">
+          <button class="auth-btn" id="cgc-ai-connect">Open ${esc(ai.name)}</button>
+          <button class="auth-btn secondary" id="cgc-vibe-copy">Copy prompt</button>
+        </div>
+        <p class="mio-side-note">This copies a prompt that teaches the AI the CGC language (with your idea in it) and opens ${esc(ai.name)} in a new tab. Paste it there with Ctrl+V.</p>
+        <label class="cgc-link-label" for="cgc-ai-code">Paste the AI's code here</label>
+        <textarea class="cgc-ai-code" id="cgc-ai-code" spellcheck="false" placeholder="Paste the code ${esc(ai.name)} gave you..." aria-label="Code from the AI">${esc(cgcVibe.code)}</textarea>
+        ${cgcVibe.notes ? `<p class="mio-side-note">${esc(ai.name)} also said:</p><div class="cgc-ai-notes">${esc(cgcVibe.notes)}</div>` : ''}
+        <div class="cgc-ai-row">
+          <button class="auth-btn" id="cgc-ai-use"${inEditor ? '' : ' disabled'}>${inEditor ? 'Put it in the editor' : 'Open the mod editor to use it'}</button>
+        </div>
+      </details>
+
+      <details class="cgc-ai-direct" id="cgc-ai-keybox"${linked || cgcVibe.busy || cgcVibe.directOpen ? ' open' : ''}>
+        <summary>Or link ${esc(ai.name)} with an API key</summary>
         ${direct}
-      </details>`;
+      </details>
+      <p class="cgc-ai-status${cgcVibe.statusError ? ' error' : ''}" id="cgc-ai-status" role="status">${esc(cgcVibe.status)}</p>`;
+
+    const urlCopy = document.getElementById('cgc-link-url-copy-guide');
+    urlCopy.addEventListener('click', () => cgcLinkCopy(cgcConnectorUrl(), urlCopy, 'Copy link'));
+    document.getElementById('cgc-link-open').addEventListener('click', () => { closeCgcGuide(); cgcLinkOpen(); });
+    document.getElementById('cgc-ai-paste').addEventListener('toggle', (e) => { cgcVibe.pasteOpen = e.target.open; });
 
     // Typing just updates what we remember. Nothing is redrawn, so the cursor stays put.
     document.getElementById('cgc-ai-idea').addEventListener('input', (e) => { cgcVibe.idea = e.target.value; });
@@ -16489,7 +16583,7 @@
       });
     });
     document.getElementById('cgc-ai-use').addEventListener('click', cgcAiUseCode);
-    box.querySelector('.cgc-ai-direct').addEventListener('toggle', (e) => { cgcVibe.directOpen = e.target.open; });
+    document.getElementById('cgc-ai-keybox').addEventListener('toggle', (e) => { cgcVibe.directOpen = e.target.open; });
     const linkBtn = document.getElementById('cgc-ai-link');
     if (linkBtn) linkBtn.addEventListener('click', cgcAiLink);
     const keyInput = document.getElementById('cgc-ai-key');
@@ -16844,6 +16938,256 @@ ${hasCode
     renderModEditor();
   }
 
+  /* ---------- AI CONNECTOR: the game's side (1.29.0) ----------
+     A connector lets an AI app (Claude, ChatGPT and others that support MCP connectors)
+     talk to the game. The server part is the Supabase Edge Function in
+     supabase/functions/mcp/index.ts. This is the part inside the mod editor:
+       - it makes a connect code and shows it,
+       - it tells the server what is in the editor (code, file names, test errors),
+       - it checks every few seconds for a mod the AI sent,
+       - it puts that mod in the editor, makes the files, runs a test and reports the errors.
+     The AI can only write into an editor whose code it was told, and Undo brings the old mod back. */
+  const CGC_LINK_CODE_KEY = 'fallgamedev-cgc-link-code';   // this browser's connect code
+  const CGC_LINK_SEEN_KEY = 'fallgamedev-cgc-link-seen';   // id of the last mod that was loaded, so it isn't loaded twice
+  const CGC_LINK_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // no 0, 1, I or O (easy to mix up)
+  const CGC_LINK_POLL_MS = 4000;                            // how often the game asks "anything for me?"
+  const CGC_LINK_LISTEN_MS = 15 * 60 * 1000;                // listening stops by itself after this long
+
+  const cgcLink = { open: false, listening: false, timer: null, startedAt: 0, busy: false, online: null, sentCode: null, steps: [], said: '', undo: null };
+
+  // The connector link: the game's API link with "api" swapped for "mcp".
+  function cgcConnectorUrl(){ return SHEET_API_URL.replace(/\/api\/?$/, '/mcp'); }
+
+  function cgcLinkNewCode(){
+    const nums = new Uint32Array(8);
+    crypto.getRandomValues(nums);
+    let code = '';
+    nums.forEach(n => { code += CGC_LINK_ALPHABET[n % CGC_LINK_ALPHABET.length]; });
+    cgcAiStoreSet(CGC_LINK_CODE_KEY, code);
+    return code;
+  }
+  function cgcLinkCode(){
+    const saved = cgcAiStoreGet(CGC_LINK_CODE_KEY);
+    return /^[A-HJ-NP-Z2-9]{8}$/.test(saved) ? saved : cgcLinkNewCode();
+  }
+  // ABCD2345 -> ABCD-2345, easier to read out loud.
+  function cgcLinkPretty(code){ return code.slice(0, 4) + '-' + code.slice(4); }
+
+  // Copies text and flashes "Copied!" on the button that was clicked.
+  function cgcLinkCopy(text, btn, label){
+    cgcAiCopy(text).then(ok => {
+      btn.textContent = ok ? 'Copied!' : "Couldn't copy";
+      setTimeout(() => { btn.textContent = label; }, 1600);
+    });
+  }
+
+  function cgcLinkStep(text, kind){
+    cgcLink.steps.forEach(st => { if (st.kind === 'now') st.kind = 'ok'; });
+    cgcLink.steps.push({ text, kind: kind || 'now' });
+    if (cgcLink.steps.length > 14) cgcLink.steps.splice(0, cgcLink.steps.length - 14);
+    cgcRenderHelper();
+  }
+
+  // Tells the server what is in the editor. The AI reads this with its get_mod tool.
+  // Returns the mod that is waiting for us, if there is one.
+  async function cgcLinkCheckIn(errors, testedDraft){
+    const d = modEditorDraft;
+    const res = await fetch(cgcConnectorUrl() + '/link', {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain' }, // plain text skips the browser's extra "may I?" request
+      body: JSON.stringify({
+        code: cgcLinkCode(),
+        state: {
+          name: d.name || '',
+          code: d.code || '',
+          files: (d.payload || []).map(f => f.name),
+          extras: extrasFilesCache || [],
+          errors: errors || [],
+          testedDraft: testedDraft || cgcAiStoreGet(CGC_LINK_SEEN_KEY)
+        }
+      })
+    });
+    if (!res.ok) throw new Error('connector');
+    const data = await res.json();
+    cgcLink.sentCode = d.code;
+    return data.draft || null;
+  }
+
+  // Loads a mod the AI sent: files first, then the code, then a test. Errors go back to the AI.
+  async function cgcLinkApply(draft){
+    const d = modEditorDraft;
+    cgcLink.busy = true;
+    cgcLink.steps = [];
+    cgcLink.said = String(draft.message || '');
+    cgcLink.undo = { code: d.code, payload: JSON.parse(JSON.stringify(d.payload || [])) };
+    const problems = [];
+    try {
+      cgcLinkStep('Your AI sent a mod!', 'ok');
+      let extras = [];
+      try { extras = await loadExtrasAudioFiles(); } catch (e) {}
+      for (const f of (Array.isArray(draft.files) ? draft.files : [])) {
+        const file = { name: cgcCleanFileName(f.name), kind: String(f.kind || '').toLowerCase(), body: String(f.content || '').trim() };
+        cgcLinkStep(`${file.kind === 'link' || file.kind === 'extras' ? 'Finding' : 'Making'} ${file.name}...`);
+        try {
+          const made = await cgcHelperBuildFile(file, extras);
+          const at = d.payload.findIndex(x => x.name === made.name);
+          if (at === -1) d.payload.push(made); else d.payload[at] = made;
+        } catch (e) {
+          cgcLinkStep(`Couldn't get ${file.name}: ${e.message}.`, 'bad');
+          problems.push(`File ${file.name} (${file.kind}) failed: ${e.message}. Send it a different way, like an svg drawing or a sound.`);
+        }
+      }
+      if (modEditorDraft !== d) return; // the player left the editor
+      cgcLinkStep('Putting the code in the editor and testing it...');
+      d.code = String(draft.code || '').replace(/\s+$/, '') + '\n';
+      saveModEditorDraft();
+      renderModEditor();
+      let parseError = '';
+      try { CGC.parse(d.code); } catch (e) { parseError = e.line ? `Line ${e.line}: ${e.message}` : e.message; }
+      if (parseError) problems.push(parseError);
+      else (await cgcHelperTestErrors()).forEach(t => problems.push(t));
+      if (modEditorDraft !== d) return;
+      cgcAiStoreSet(CGC_LINK_SEEN_KEY, draft.id);
+      await cgcLinkCheckIn(problems, draft.id);
+      if (problems.length) cgcLinkStep(`The test found ${problems.length} problem${problems.length === 1 ? '' : 's'}. Your AI can see ${problems.length === 1 ? 'it' : 'them'}, so ask it to fix ${problems.length === 1 ? 'it' : 'them'}. First one: ${problems[0]}`, 'bad');
+      else cgcLinkStep('All done! The test is running below. Click Undo if you liked the old version better.', 'ok');
+    } catch (e) {
+      cgcLinkStep("Something went wrong loading the AI's mod. Ask your AI to send it again.", 'bad');
+    } finally {
+      cgcLink.busy = false;
+      cgcLink.steps.forEach(st => { if (st.kind === 'now') st.kind = 'ok'; });
+      cgcRenderHelper();
+    }
+  }
+
+  // Runs every few seconds while listening.
+  async function cgcLinkTick(){
+    if (!cgcLink.listening || cgcLink.busy) return;
+    // Stop when the player leaves the editor, or after a long quiet time.
+    if (!(workshopView === 'create' && modEditorDraft && document.getElementById('cgc-helper'))) { cgcLinkStop(); return; }
+    if (Date.now() - cgcLink.startedAt > CGC_LINK_LISTEN_MS) {
+      cgcLinkStop();
+      cgcLinkStep('Stopped listening after 15 minutes. Click Listen to carry on.', 'bad');
+      return;
+    }
+    try {
+      let draft;
+      if (cgcLink.sentCode !== modEditorDraft.code) {
+        // The player changed the code, so tell the server. This also returns any waiting mod.
+        draft = await cgcLinkCheckIn();
+      } else {
+        const res = await fetch(cgcConnectorUrl() + '/link?code=' + cgcLinkCode());
+        if (!res.ok) throw new Error('connector');
+        draft = (await res.json()).draft || null;
+      }
+      const wasOnline = cgcLink.online;
+      cgcLink.online = true;
+      if (wasOnline !== true) cgcRenderHelper();
+      if (draft && draft.id && draft.id !== cgcAiStoreGet(CGC_LINK_SEEN_KEY) && cgcLink.listening) await cgcLinkApply(draft);
+    } catch (e) {
+      const wasOnline = cgcLink.online;
+      cgcLink.online = false;
+      if (wasOnline !== false) cgcRenderHelper();
+    }
+  }
+
+  function cgcLinkStart(){
+    cgcLinkStop();
+    cgcLink.listening = true;
+    cgcLink.startedAt = Date.now();
+    cgcLink.sentCode = null; // forces a check in on the first tick
+    cgcLink.timer = setInterval(cgcLinkTick, CGC_LINK_POLL_MS);
+    cgcLinkTick();
+    cgcRenderHelper();
+  }
+  function cgcLinkStop(){
+    if (cgcLink.timer) clearInterval(cgcLink.timer);
+    cgcLink.timer = null;
+    cgcLink.listening = false;
+  }
+
+  // Opens the connector panel above the code box and starts listening.
+  function cgcLinkOpen(){
+    if (!(workshopView === 'create' && modEditorDraft)) return;
+    cgcLink.open = true;
+    cgcHelper.ai = ''; // only one panel at a time
+    cgcLinkStart();
+    const el = document.getElementById('cgc-helper');
+    if (el) el.scrollIntoView({ block: 'center', behavior: 'smooth' });
+  }
+  function cgcLinkClose(){
+    cgcLink.open = false;
+    cgcLinkStop();
+    cgcRenderHelper();
+  }
+
+  // Undo for a mod the AI sent through the connector.
+  function cgcLinkUndo(){
+    if (!cgcLink.undo || !modEditorDraft || cgcLink.busy) return;
+    modEditorDraft.code = cgcLink.undo.code;
+    modEditorDraft.payload = cgcLink.undo.payload;
+    cgcLink.undo = null;
+    cgcLink.steps = [{ text: 'Your old code and files are back.', kind: 'ok' }];
+    cgcLink.said = '';
+    saveModEditorDraft();
+    renderModEditor();
+  }
+
+  // The connector panel's HTML. Drawn by cgcRenderHelper().
+  function cgcLinkPanelHtml(){
+    const esc = escapeChatHtml;
+    const code = cgcLinkPretty(cgcLinkCode());
+    const say = `Use The Clicker Game connector. My connect code is ${code}. Make a mod that `;
+    const steps = cgcLink.steps.length
+      ? `<ul class="cgc-helper-steps" role="status">${cgcLink.steps.map(st => `<li class="${st.kind}">${esc(st.text)}</li>`).join('')}</ul>` : '';
+    let live;
+    if (cgcLink.online === false) live = '<span class="cgc-link-dot off"></span><span>The connector isn\'t switched on yet. The owner of the game has to turn on the "mcp" function first (see the README).</span>';
+    else if (cgcLink.listening) live = `<span class="cgc-link-dot on"></span><span>${cgcLink.busy ? 'Loading a mod from your AI...' : 'Listening for your AI. Keep this editor open.'}</span>`;
+    else live = '<span class="cgc-link-dot"></span><span>Not listening. Click Listen so your AI can send mods.</span>';
+    return `
+      <div class="cgc-helper-panel">
+        <h4>AI connector</h4>
+        <p class="mio-side-note" style="margin:0;">Lets an AI app like Claude or ChatGPT send mods straight into this editor. <button class="mod-editor-text-btn" id="cgc-link-howto">How do I add the connector?</button></p>
+        <label class="cgc-link-label" for="cgc-link-url">1. Add this connector link to your AI app (only once)</label>
+        <div class="cgc-link-row">
+          <input class="cgc-link-url" id="cgc-link-url" readonly value="${esc(cgcConnectorUrl())}">
+          <button class="workshop-icon-btn" id="cgc-link-url-copy">Copy link</button>
+        </div>
+        <span class="cgc-link-label">2. Tell your AI this connect code</span>
+        <div class="cgc-link-row">
+          <span class="cgc-link-code" id="cgc-link-code">${esc(code)}</span>
+          <button class="workshop-icon-btn" id="cgc-link-code-copy">Copy code</button>
+          <button class="workshop-icon-btn cgc-secondary-btn" id="cgc-link-code-new"${cgcLink.busy ? ' disabled' : ''}>New code</button>
+        </div>
+        <span class="cgc-link-label">3. Ask it for a mod. You can say:</span>
+        <div class="cgc-link-row">
+          <div class="cgc-helper-said" style="margin:0; flex:1;">${esc(say)}<em>(your idea)</em></div>
+          <button class="workshop-icon-btn" id="cgc-link-say-copy">Copy</button>
+        </div>
+        <p class="cgc-link-live" role="status">${live}</p>
+        ${steps}
+        ${cgcLink.said ? `<div class="cgc-helper-said"><strong>Your AI says:</strong> ${esc(cgcLink.said)}</div>` : ''}
+        <div class="cgc-ai-row">
+          <button class="auth-btn" id="cgc-link-listen"${cgcLink.busy ? ' disabled' : ''}>${cgcLink.listening ? 'Stop listening' : 'Listen'}</button>
+          ${cgcLink.undo && !cgcLink.busy ? '<button class="auth-btn secondary" id="cgc-link-undo">Undo</button>' : ''}
+          <button class="auth-btn secondary" id="cgc-link-close"${cgcLink.busy ? ' disabled' : ''}>Close</button>
+        </div>
+        <p class="mio-side-note" style="margin:10px 0 0;">Only share your connect code with your own AI. Anyone who has it can send code to this editor while it is listening. Click New code to get a fresh one.</p>
+      </div>`;
+  }
+  function cgcLinkBindPanel(){
+    const code = cgcLinkPretty(cgcLinkCode());
+    const on = (id, fn) => { const el = document.getElementById(id); if (el) el.addEventListener('click', () => fn(el)); };
+    on('cgc-link-howto', () => openCgcGuide('vibecoding'));
+    on('cgc-link-url-copy', (el) => cgcLinkCopy(cgcConnectorUrl(), el, 'Copy link'));
+    on('cgc-link-code-copy', (el) => cgcLinkCopy(code, el, 'Copy code'));
+    on('cgc-link-say-copy', (el) => cgcLinkCopy(`Use The Clicker Game connector. My connect code is ${code}. Make a mod that `, el, 'Copy'));
+    on('cgc-link-code-new', () => { cgcLinkNewCode(); cgcLink.steps = []; cgcLinkStart(); });
+    on('cgc-link-listen', () => { if (cgcLink.listening) { cgcLinkStop(); cgcRenderHelper(); } else cgcLinkStart(); });
+    on('cgc-link-undo', cgcLinkUndo);
+    on('cgc-link-close', cgcLinkClose);
+  }
+
   // Draws the helper above the code box: the Ask buttons, and the panel for the AI that was picked.
   function cgcRenderHelper(){
     const el = document.getElementById('cgc-helper');
@@ -16854,10 +17198,12 @@ ${hasCode
     const ai = linked.find(a => a.id === cgcHelper.ai);
     const busy = cgcHelper.busy ? ' disabled' : '';
 
-    const buttons = linked.length
+    // CONNECTOR (1.29.0): the AI connector button is always there. Ask buttons show for AIs linked with a key.
+    const linkBtn = `<button class="cgc-helper-ask cgc-link-btn${cgcLink.open ? ' active' : ''}" id="cgc-link-toggle"${busy}>AI connector</button>`;
+    const buttons = linkBtn + (linked.length
       ? linked.map(a => `<button class="cgc-helper-ask${ai && a.id === ai.id ? ' active' : ''}" data-ai="${a.id}" style="--ai-color:${a.color}"${busy}>Ask ${esc(a.name)}</button>`).join('')
-        + '<span class="mio-side-note" style="margin:0;">Tell an AI what to build. It writes the code and makes the files.</span>'
-      : '<button class="workshop-icon-btn cgc-secondary-btn" id="cgc-helper-connect">Connect an AI</button><span class="mio-side-note" style="margin:0;">Link ChatGPT, Claude or Gemini and it can write your mod for you.</span>';
+        + '<span class="mio-side-note" style="margin:0;">Let an AI build your mod. It writes the code and makes the files.</span>'
+      : '<button class="workshop-icon-btn cgc-secondary-btn" id="cgc-helper-connect">Link with a key</button><span class="mio-side-note" style="margin:0;">Connect an AI app like Claude or ChatGPT and it can build your mod for you.</span>');
 
     const steps = cgcHelper.steps.length
       ? `<ul class="cgc-helper-steps" role="status">${cgcHelper.steps.map(st => `<li class="${st.kind}">${esc(st.text)}</li>`).join('')}</ul>` : '';
@@ -16876,11 +17222,14 @@ ${hasCode
         <p class="mio-side-note" style="margin:10px 0 0;">${esc(ai.name)} sees your code and your Payload file names. Always read and test what it made before you publish.</p>
       </div>` : '';
 
-    el.innerHTML = `<div class="cgc-helper-btns">${buttons}</div>${panel}`;
+    el.innerHTML = `<div class="cgc-helper-btns">${buttons}</div>${cgcLink.open && !ai ? cgcLinkPanelHtml() : panel}`;
+    if (cgcLink.open && !ai) cgcLinkBindPanel();
+    document.getElementById('cgc-link-toggle').addEventListener('click', () => { if (cgcLink.open) cgcLinkClose(); else cgcLinkOpen(); });
 
-    el.querySelectorAll('.cgc-helper-ask').forEach(btn => btn.addEventListener('click', () => {
+    el.querySelectorAll('.cgc-helper-ask[data-ai]').forEach(btn => btn.addEventListener('click', () => {
       // Clicking the open AI again closes its panel.
       cgcHelper.ai = cgcHelper.ai === btn.dataset.ai ? '' : btn.dataset.ai;
+      if (cgcHelper.ai && cgcLink.open) { cgcLink.open = false; cgcLinkStop(); } // only one panel at a time
       cgcRenderHelper();
       const box = document.getElementById('cgc-helper-request');
       if (box) box.focus();
@@ -17308,7 +17657,7 @@ ${hasCode
       </ul>` },
 
     { id: 'vibecoding', title: 'Vibecoding', html: () => `
-      <p><strong>Vibecoding</strong> means describing what you want and letting an AI write the code. AIs don't know CGC yet, so the game gives them a prompt that teaches the whole language first.</p>
+      <p><strong>Vibecoding</strong> means describing what you want and letting an AI write the code. AIs don't know CGC yet, so the game teaches them the whole language first.</p>
       <div class="cgc-ai-box" id="cgc-ai-box"></div>
       <h4>After you get the code</h4>
       <ul>
@@ -17557,6 +17906,8 @@ ${hasCode
 
   // Leaves the editor. Edit mode goes back to that mod's page, new mods go back to the list.
   function leaveModEditor(){
+    cgcLinkStop(); // AI CONNECTOR: stop asking the server for mods
+    cgcLink.open = false;
     cgcStopTest();
     closeCgcGuide();
     if (modEditorEditingId) {
