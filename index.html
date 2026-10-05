@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<!-- Game version: 1.27.0 | Deployment: 208 | Update both on every release, see README.md -->
-<meta name="game-version" content="1.27.0">
+<!-- Game version: 1.28.0 | Deployment: 208 | Update both on every release, see README.md -->
+<meta name="game-version" content="1.28.0">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>The Clicker Game!</title>
 <link rel="icon" type="image/x-icon" href="images/ui/maksy.ico" id="favicon-link">
@@ -7200,6 +7200,68 @@
   @media (max-width:480px){
     .cgc-ai-picker{ grid-template-columns:repeat(2, minmax(0, 1fr)); }
   }
+
+  /* ---------- AI HELPER in the mod editor (1.28.0) ---------- */
+  .cgc-helper{ margin:4px 0 12px; }
+  .cgc-helper-btns{ display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
+  /* One chunky button per linked AI, in that AI's color. */
+  .cgc-helper-ask{
+    font-family:'Fredoka One', cursive;
+    font-size:13px;
+    padding:9px 14px;
+    color:#1a1426;
+    background:var(--ai-color, var(--zap));
+    border:3px solid var(--ink);
+    border-radius:12px;
+    box-shadow:0 4px 0 0 var(--ink);
+    cursor:pointer;
+    transition:transform .08s ease, box-shadow .08s ease;
+  }
+  .cgc-helper-ask:hover{ transform:translateY(-1px); }
+  .cgc-helper-ask:active{ transform:translateY(3px); box-shadow:0 1px 0 0 var(--ink); }
+  .cgc-helper-ask:disabled{ opacity:0.5; cursor:default; transform:none; }
+  .cgc-helper-ask.active{ outline:3px solid var(--rind); outline-offset:2px; }
+  .cgc-helper-panel{
+    margin-top:12px;
+    padding:12px 14px;
+    background:var(--night);
+    border:3px solid var(--ink);
+    border-radius:14px;
+    box-shadow:0 5px 0 0 var(--ink);
+  }
+  .cgc-helper-panel h4{ margin:0 0 8px; font-family:'Fredoka One', cursive; font-size:15px; color:var(--ai-color, var(--zap)); }
+  .cgc-helper-panel textarea{
+    width:100%;
+    box-sizing:border-box;
+    min-height:76px;
+    padding:10px 12px;
+    resize:vertical;
+    background:#120e22;
+    color:#e9e4f7;
+    border:2px solid var(--ink);
+    border-radius:10px;
+    font-family:'Poppins', sans-serif;
+    font-size:13px;
+    line-height:1.5;
+  }
+  .cgc-helper-panel textarea:focus{ outline:3px solid var(--zap); outline-offset:1px; }
+  .cgc-helper-check{ display:flex; gap:8px; align-items:center; font-size:12px; margin:8px 0 0; cursor:pointer; }
+  .cgc-helper-steps{ list-style:none; margin:10px 0 0; padding:0; font-size:12.5px; }
+  .cgc-helper-steps li{ padding:3px 0 3px 22px; position:relative; }
+  .cgc-helper-steps li::before{ content:'\2713'; position:absolute; left:2px; color:var(--moneys-green); font-weight:700; }
+  .cgc-helper-steps li.bad::before{ content:'!'; color:#ff6b6b; }
+  .cgc-helper-steps li.now::before{ content:'\2026'; color:var(--zap); }
+  .cgc-helper-steps li.now{ color:var(--zap); }
+  .cgc-helper-said{
+    white-space:pre-wrap;
+    font-size:12.5px;
+    margin:10px 0 0;
+    padding:10px 12px;
+    background:#120e22;
+    border:2px dashed var(--line);
+    border-radius:10px;
+  }
+  body.light-mode .cgc-helper-panel textarea, body.light-mode .cgc-helper-said{ background:#fff; color:#1a1426; }
 
   /* =====================================================================
      GAMEPLAY EXTRAS (1.24.0): floating click numbers, the HUD chips under
@@ -15556,6 +15618,7 @@
           </div>
         </div>
         <p class="mio-side-note">Runs when the mod loads and keeps running while it's installed. Files you use go in the Payload folder below.</p>
+        <div class="cgc-helper" id="cgc-helper"></div>
         <div class="cgc-code-wrap">
           <pre class="cgc-gutter" id="cgc-gutter" aria-hidden="true"></pre>
           <div class="cgc-code-area">
@@ -15601,6 +15664,7 @@
   }
 
   function cgcBindEditor(d){
+    cgcRenderHelper(); // AI HELPER (1.28.0): the "Ask <AI>" buttons above the code box
     const input = document.getElementById('cgc-code');
     const hl = document.getElementById('cgc-code-hl');
     const gutter = document.getElementById('cgc-gutter');
@@ -16168,6 +16232,7 @@
     else msg = `${ai.name} had a problem (error ${response.status}). Try again in a minute.`;
     const err = new Error(msg);
     err.friendly = true;
+    err.status = response.status; // AI HELPER uses this to retry without web search
     throw err;
   }
 
@@ -16208,25 +16273,31 @@
   }
 
   // Sends the prompt to the AI and returns its answer as text.
-  async function cgcAiAsk(ai, key, model, prompt){
+  // search: true also lets the AI look things up on the internet (each company has its own
+  // name for that tool). The AI HELPER uses it so the AI can find real links to files.
+  async function cgcAiAsk(ai, key, model, prompt, search){
     const headers = cgcAiHeaders(ai, key);
     if (ai.id === 'chatgpt') {
+      const body = { model, input: prompt };
+      if (search) body.tools = [{ type: 'web_search' }];
       const data = await cgcAiCheck(await fetch('https://api.openai.com/v1/responses', {
-        method: 'POST', headers, body: JSON.stringify({ model, input: prompt })
+        method: 'POST', headers, body: JSON.stringify(body)
       }), ai);
       if (typeof data.output_text === 'string' && data.output_text) return data.output_text;
       return (data.output || []).filter(o => o.type === 'message')
         .map(o => (o.content || []).map(c => c.text || '').join('')).join('\n');
     }
     if (ai.id === 'claude') {
+      const body = { model, max_tokens: 8000, messages: [{ role: 'user', content: prompt }] };
+      if (search) body.tools = [{ type: 'web_search_20250305', name: 'web_search', max_uses: 3 }];
       const data = await cgcAiCheck(await fetch('https://api.anthropic.com/v1/messages', {
-        method: 'POST', headers,
-        body: JSON.stringify({ model, max_tokens: 8000, messages: [{ role: 'user', content: prompt }] })
+        method: 'POST', headers, body: JSON.stringify(body)
       }), ai);
       return (data.content || []).filter(c => c.type === 'text').map(c => c.text).join('');
     }
     const data = await cgcAiCheck(await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`, {
-      method: 'POST', headers, body: JSON.stringify({ contents: [{ role: 'user', parts: [{ text: prompt }] }] })
+      method: 'POST', headers,
+      body: JSON.stringify(Object.assign({ contents: [{ role: 'user', parts: [{ text: prompt }] }] }, search ? { tools: [{ google_search: {} }] } : {}))
     }), ai);
     const cand = (data.candidates || [])[0];
     return cand && cand.content ? (cand.content.parts || []).map(p => p.text || '').join('') : '';
@@ -16289,6 +16360,7 @@
     } finally {
       cgcVibe.busy = false;
       cgcRenderVibeAi();
+      cgcRenderHelper(); // the editor gets an "Ask" button for the newly linked AI
     }
   }
 
@@ -16299,6 +16371,7 @@
     delete cgcVibe.models[ai.id];
     cgcAiStatus(`${ai.name} is unlinked. Your key was removed from this browser.`);
     cgcRenderVibeAi();
+    cgcRenderHelper();
   }
 
   // DIRECT LINK: send the idea to the linked AI and put its code in the box.
@@ -16351,7 +16424,8 @@
           <button class="auth-btn" id="cgc-ai-make"${busy}>${cgcVibe.busy ? 'Working...' : 'Make my mod'}</button>
           <button class="auth-btn secondary" id="cgc-ai-unlink"${busy}>Unlink</button>
         </div>
-        <p class="mio-side-note">Make my mod sends your idea from step 1 to ${esc(ai.name)} and puts the code it writes in the box in step 4.</p>`;
+        <p class="mio-side-note">Make my mod sends your idea from step 1 to ${esc(ai.name)} and puts the code it writes in the box in step 4.</p>
+        <p class="mio-side-note">Even easier: close this guide and click <strong>Ask ${esc(ai.name)}</strong> above the code box. It writes the code, makes the pictures and sounds, puts it all in your mod and tests it.</p>`;
     } else {
       direct = `
         <p>Linking lets the game talk to ${esc(ai.name)} by itself, so you don't have to copy and paste. You need an <strong>API key</strong>, which is like a password for ${esc(ai.name)}.</p>
@@ -16426,6 +16500,403 @@
     if (makeBtn) makeBtn.addEventListener('click', cgcAiMakeMod);
     const modelSel = document.getElementById('cgc-ai-model');
     if (modelSel) modelSel.addEventListener('change', () => cgcAiStoreSet(CGC_AI_MODEL_PREFIX + ai.id, modelSel.value));
+  }
+
+  /* ---------- AI HELPER in the mod editor (1.28.0) ----------
+     Above the code box there is one "Ask <AI>" button for every AI the player linked
+     on the guide's Vibecoding page. The player types what they want and the game does
+     the rest by itself:
+       1. builds the prompt (the CGC rules, the code in the editor, the files in Payload),
+       2. sends it to the AI,
+       3. reads the answer: the code, plus FILE blocks for every file the mod needs,
+       4. makes or finds those files and puts them in Payload:
+            svg    -> the AI draws a picture, the game turns it into an image file
+            sound  -> the AI writes notes, the game builds a .wav sound
+            extras -> a song from the game's own extras/ folder
+            link   -> a file on the internet (tested first, skipped if it doesn't load)
+       5. puts the code in the editor and runs a test,
+       6. if the test shows errors, sends them back to the AI to fix (up to CGC_HELPER_MAX_FIXES times).
+     Undo puts the old code and files back. */
+  const CGC_HELPER_MAX_FIXES = 2;        // how many times the AI may try to fix its own mistakes
+  const CGC_HELPER_IMAGE_SIZE = 256;     // drawn pictures are saved at most this many pixels wide/tall
+  const CGC_HELPER_SOUND_MAX_MS = 5000;  // longest sound the game will build
+  const CGC_HELPER_SOUND_RATE = 11025;   // samples per second (low on purpose, it keeps files small)
+  const CGC_HELPER_TEST_WAIT_MS = 1500;  // how long the test runs before errors are collected
+  const CGC_HELPER_LINK_WAIT_MS = 8000;  // how long a link gets to load before it is skipped
+
+  // What the helper is doing right now. Kept outside the page so redrawing the editor doesn't lose it.
+  const cgcHelper = { ai: '', request: '', search: true, busy: false, steps: [], said: '', undo: null };
+
+  // AIs the player has linked with a key.
+  function cgcHelperLinkedAis(){
+    return CGC_AIS.filter(a => cgcAiCanLink(a) && !!cgcAiKey(a));
+  }
+
+  // Adds a line to the progress list. kind: 'ok' (done), 'bad' (problem) or 'now' (working on it).
+  function cgcHelperStep(text, kind){
+    // A new step means the one before it is finished.
+    cgcHelper.steps.forEach(st => { if (st.kind === 'now') st.kind = 'ok'; });
+    cgcHelper.steps.push({ text, kind: kind || 'now' });
+    cgcRenderHelper();
+  }
+
+  // The extra rules added to the normal Vibecoding prompt so the answer can be read by the game.
+  function cgcHelperPrompt(request, draft, extras, problems){
+    const base = CGC_VIBE_PROMPT.replace(/\[Describe your mod here[^\]]*\]/, () => request);
+    const code = String(draft.code || '').trim();
+    const hasCode = code && code !== String(CGC_DEFAULT_CODE).trim();
+    const payloadNames = (draft.payload || []).map(f => f.name);
+    const fence = '```';
+    return base + `
+
+=====================================================================
+IMPORTANT: ANSWER FORMAT (this replaces "WHAT TO GIVE ME" above)
+You are connected straight to the game's mod editor. A program reads your answer, so follow this format exactly.
+
+PART 1. The full CGC code, in one code block that starts with ${fence}cgc
+
+PART 2. One FILE block for every NEW file the code uses. There are four kinds:
+
+FILE: star.png
+${fence}svg
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128"> ... </svg>
+${fence}
+(svg: you draw the picture and the game turns it into an image. The name must end in .png. Always set viewBox, width and height. Keep it simple and cartoony, with a transparent background. No scripts, no links to other images.)
+
+FILE: pop.wav
+${fence}sound
+wave square
+520 80
+780 120
+0 60
+1040 200
+${fence}
+(sound: the game builds the sound from your notes. Each line is a frequency in Hz, then how long in milliseconds. 0 Hz is silence. The optional first line picks the wave: sine, square, saw or noise. At most ${CGC_HELPER_SOUND_MAX_MS / 1000} seconds in total. The name must end in .wav.)
+
+FILE: music.mp3
+${fence}extras
+exact-name-from-the-list.mp3
+${fence}
+(extras: a song that already comes with the game. These are the only ones: ${extras.length ? extras.join(', ') : 'none right now, do not use this kind'}.)
+
+FILE: photo.jpg
+${fence}link
+https://example.com/a-real-file.jpg
+${fence}
+(link: a direct link to a picture (.png .jpg .gif .webp) or sound (.mp3 .wav .ogg) on the internet. Only use a link you found and are sure exists, and that is free to use. The game tests it and skips it if it doesn't load. When you are not sure, draw an svg or build a sound instead.)
+
+PART 3. One or two short, friendly sentences for the player (a kid) saying what you made.
+
+RULES FOR FILES
+- File names use only lowercase letters, numbers, - and _ and end with the right ending.
+- Every file name used in the code must be in Payload already or have a FILE block.
+- Files already in Payload (do not send these again unless you want to replace one): ${payloadNames.length ? payloadNames.join(', ') : 'none'}.
+- Use shapes and text instead of files when that looks just as good.
+
+${hasCode
+  ? `CURRENT CODE IN THE EDITOR\nChange this code so it does what MY MOD IDEA asks. Keep the parts that still make sense, and send the complete new code.\n${fence}cgc\n${code}\n${fence}`
+  : 'The editor is empty, so write a brand new mod.'}${problems && problems.length
+  ? `\n\nPROBLEMS WITH YOUR LAST ANSWER\nThe game tried your last answer (it is the current code above) and reported:\n${problems.map(p => '- ' + p).join('\n')}\nFix every problem and send the complete answer again in the same format.`
+  : ''}`;
+  }
+
+  // Splits the AI's answer into code, FILE blocks and the message for the player.
+  function cgcHelperParse(reply){
+    let text = String(reply || '');
+    const files = [];
+    text = text.replace(/FILE:[ \t]*([^\n`]+?)[ \t]*\r?\n+```[ \t]*([a-zA-Z]+)[^\n]*\r?\n([\s\S]*?)```/g, (all, name, kind, body) => {
+      files.push({ name: cgcCleanFileName(name), kind: kind.toLowerCase(), body: body.trim() });
+      return '';
+    });
+    let code = '';
+    text = text.replace(/```[a-zA-Z]*[ \t]*\r?\n([\s\S]*?)```/, (all, body) => { code = body.replace(/\s+$/, ''); return ''; });
+    // Whatever text is left over is the message for the player.
+    const said = text.replace(/```[\s\S]*?```/g, '').trim().slice(0, 600);
+    return { code, files, said };
+  }
+
+  // FILE kind "svg": draws the AI's SVG onto a canvas and returns it as an image data URL.
+  function cgcHelperSvgToImage(svg){
+    return new Promise((resolve, reject) => {
+      if (!/<svg[\s>]/i.test(svg)) return reject(new Error('it was not an svg drawing'));
+      const img = new Image();
+      const timer = setTimeout(() => reject(new Error('the drawing took too long to load')), 6000);
+      img.onerror = () => { clearTimeout(timer); reject(new Error('the svg drawing was broken')); };
+      img.onload = () => {
+        clearTimeout(timer);
+        const w0 = img.naturalWidth || CGC_HELPER_IMAGE_SIZE, h0 = img.naturalHeight || CGC_HELPER_IMAGE_SIZE;
+        const scale = CGC_HELPER_IMAGE_SIZE / Math.max(w0, h0);
+        const c = document.createElement('canvas');
+        c.width = Math.max(1, Math.round(w0 * scale));
+        c.height = Math.max(1, Math.round(h0 * scale));
+        c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+        try {
+          const webp = c.toDataURL('image/webp', 0.85); // smallest, keeps see-through parts
+          resolve(webp.indexOf('data:image/webp') === 0 ? webp : c.toDataURL('image/png'));
+        } catch (e) { reject(new Error('the drawing used something that is not allowed')); }
+      };
+      // An SVG shown as an image can't run scripts, so this is safe.
+      img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+    });
+  }
+
+  // FILE kind "sound": builds a small .wav from lines like "520 80" (Hz, then milliseconds).
+  function cgcHelperMakeSound(recipe){
+    let wave = 'sine';
+    const notes = [];
+    String(recipe).split(/\r?\n/).forEach(line => {
+      const parts = line.trim().toLowerCase().split(/[\s,]+/);
+      if (parts[0] === 'wave' && parts[1]) { wave = parts[1]; return; }
+      const hz = Number(parts[0]), ms = Number(parts[1]);
+      if (isFinite(hz) && isFinite(ms) && ms > 0) notes.push({ hz: Math.max(0, Math.min(5000, hz)), ms });
+    });
+    if (!notes.length) throw new Error('the sound had no notes');
+    // Cut the sound off at the longest length allowed.
+    let total = 0;
+    const kept = [];
+    notes.forEach(nt => {
+      const ms = Math.min(nt.ms, CGC_HELPER_SOUND_MAX_MS - total);
+      if (ms > 0) { kept.push({ hz: nt.hz, ms }); total += ms; }
+    });
+    const rate = CGC_HELPER_SOUND_RATE;
+    const n = Math.floor(rate * total / 1000);
+    // 8-bit mono WAV: 44 bytes of header, then one byte per sample.
+    const buf = new ArrayBuffer(44 + n);
+    const v = new DataView(buf);
+    const str = (o, t) => { for (let i = 0; i < t.length; i++) v.setUint8(o + i, t.charCodeAt(i)); };
+    str(0, 'RIFF'); v.setUint32(4, 36 + n, true); str(8, 'WAVE'); str(12, 'fmt ');
+    v.setUint32(16, 16, true); v.setUint16(20, 1, true); v.setUint16(22, 1, true);
+    v.setUint32(24, rate, true); v.setUint32(28, rate, true); v.setUint16(32, 1, true); v.setUint16(34, 8, true);
+    str(36, 'data'); v.setUint32(40, n, true);
+    let pos = 0, phase = 0;
+    kept.forEach(nt => {
+      const len = Math.min(n - pos, Math.floor(rate * nt.ms / 1000));
+      const fade = Math.min(len / 2, rate * 0.008); // a tiny fade in and out stops clicks
+      for (let i = 0; i < len; i++) {
+        phase += nt.hz / rate;
+        const t = phase % 1;
+        let y = 0;
+        if (nt.hz > 0) {
+          if (wave === 'square') y = t < 0.5 ? 0.6 : -0.6;
+          else if (wave === 'saw' || wave === 'sawtooth') y = (t * 2 - 1) * 0.7;
+          else if (wave === 'noise') y = (Math.random() * 2 - 1) * 0.7;
+          else y = Math.sin(2 * Math.PI * t);
+        }
+        const env = Math.min(1, i / fade, (len - i) / fade);
+        v.setUint8(44 + pos + i, Math.round(128 + y * env * 100));
+      }
+      pos += len;
+    });
+    let bin = '';
+    const bytes = new Uint8Array(buf);
+    for (let i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
+    return 'data:audio/wav;base64,' + btoa(bin);
+  }
+
+  // FILE kind "link": makes sure a link really loads as a picture or sound before it is used.
+  function cgcHelperTestLink(url, isAudio){
+    return new Promise((resolve, reject) => {
+      if (!/^https:\/\/\S+$/i.test(url)) return reject(new Error('the link has to start with https://'));
+      const timer = setTimeout(() => reject(new Error('the link did not load')), CGC_HELPER_LINK_WAIT_MS);
+      const good = () => { clearTimeout(timer); resolve(url); };
+      const bad = () => { clearTimeout(timer); reject(new Error('the link did not load')); };
+      if (isAudio) {
+        const a = new Audio();
+        a.preload = 'metadata';
+        a.addEventListener('loadedmetadata', good);
+        a.addEventListener('error', bad);
+        a.src = url;
+      } else {
+        const img = new Image();
+        img.onload = good;
+        img.onerror = bad;
+        img.src = url;
+      }
+    });
+  }
+
+  // Turns one FILE block into a { name, url } payload file. Throws with a kid-friendly reason if it can't.
+  async function cgcHelperBuildFile(file, extras){
+    const isAudio = /\.(mp3|wav|ogg|m4a|aac|opus)$/i.test(file.name);
+    if (file.kind === 'svg') return { name: file.name, url: await cgcHelperSvgToImage(file.body) };
+    if (file.kind === 'sound') return { name: file.name, url: cgcHelperMakeSound(file.body) };
+    if (file.kind === 'extras') {
+      const wanted = file.body.split(/\r?\n/)[0].trim();
+      const match = extras.find(n => n.toLowerCase() === wanted.toLowerCase());
+      if (!match) throw new Error(`"${wanted}" is not in the game's extras folder`);
+      return { name: file.name, url: extrasFileUrl(match) };
+    }
+    if (file.kind === 'link') {
+      const url = file.body.split(/\s+/)[0];
+      return { name: file.name, url: await cgcHelperTestLink(url, isAudio) };
+    }
+    throw new Error(`"${file.kind}" is not a kind of file the game knows`);
+  }
+
+  // Runs the mod in the editor's test preview for a moment and returns the errors it printed.
+  async function cgcHelperTestErrors(){
+    cgcStartTest();
+    await new Promise(r => setTimeout(r, CGC_HELPER_TEST_WAIT_MS));
+    const seen = new Set();
+    return cgcTestLogs.filter(l => l.level === 'error').map(l => String(l.text))
+      .filter(t => !seen.has(t) && seen.add(t)).slice(0, 8);
+  }
+
+  // The whole job: prompt -> AI -> files -> editor -> test -> fix. Runs when the player clicks Go.
+  async function cgcHelperRun(){
+    const ai = CGC_AIS.find(a => a.id === cgcHelper.ai);
+    const draft = modEditorDraft;
+    const request = String(cgcHelper.request || '').trim();
+    if (!ai || !draft || cgcHelper.busy) return;
+    if (!request) { cgcHelper.steps = [{ text: 'Type what you want first.', kind: 'bad' }]; cgcRenderHelper(); return; }
+    const key = cgcAiKey(ai);
+    const model = cgcAiModel(ai) || ai.models[0];
+    // True while the player is still in the same editor. If they leave, the helper stops quietly.
+    const stillHere = () => modEditorDraft === draft && workshopView === 'create';
+
+    cgcHelper.busy = true;
+    cgcHelper.steps = [];
+    cgcHelper.said = '';
+    // Remember everything so Undo can put it back.
+    cgcHelper.undo = { code: draft.code, payload: JSON.parse(JSON.stringify(draft.payload || [])) };
+    let useSearch = cgcHelper.search;
+    let problems = [];
+
+    try {
+      cgcHelperStep('Writing the prompt...');
+      let extras = [];
+      try { extras = await loadExtrasAudioFiles(); } catch (e) {}
+
+      for (let round = 0; round <= CGC_HELPER_MAX_FIXES; round++) {
+        if (!stillHere()) return;
+        cgcHelperStep(round === 0 ? `${ai.name} is thinking. This can take a minute...` : `Asking ${ai.name} to fix ${problems.length} problem${problems.length === 1 ? '' : 's'}...`);
+        const prompt = cgcHelperPrompt(request, draft, extras, problems);
+        let reply;
+        try {
+          reply = await cgcAiAsk(ai, key, model, prompt, useSearch);
+        } catch (e) {
+          // Some keys or models can't search the internet. Try once more without it.
+          if (!(useSearch && e.status === 400)) throw e;
+          useSearch = false;
+          cgcHelperStep("This AI can't search the internet with your key, carrying on without it.", 'bad');
+          reply = await cgcAiAsk(ai, key, model, prompt, false);
+        }
+        if (!stillHere()) return;
+        const answer = cgcHelperParse(reply);
+        if (!answer.code) throw Object.assign(new Error(`${ai.name} didn't send any code. Try asking in a different way.`), { friendly: true });
+        cgcHelper.said = answer.said;
+        problems = [];
+
+        // Make or find every file it asked for.
+        for (const file of answer.files) {
+          cgcHelperStep(`${file.kind === 'link' || file.kind === 'extras' ? 'Finding' : 'Making'} ${file.name}...`);
+          try {
+            const made = await cgcHelperBuildFile(file, extras);
+            const at = draft.payload.findIndex(f => f.name === made.name);
+            if (at === -1) draft.payload.push(made); else draft.payload[at] = made;
+          } catch (e) {
+            cgcHelperStep(`Couldn't get ${file.name}: ${e.message}.`, 'bad');
+            problems.push(`FILE ${file.name} (${file.kind}) failed: ${e.message}. Send it a different way, like an svg drawing or a sound.`);
+          }
+        }
+        if (!stillHere()) return;
+
+        // Put the code in the editor and try it.
+        cgcHelperStep('Putting the code in the editor and testing it...');
+        draft.code = answer.code + '\n';
+        saveModEditorDraft();
+        renderModEditor();
+        let parseError = '';
+        try { CGC.parse(draft.code); } catch (e) { parseError = e.line ? `Line ${e.line}: ${e.message}` : e.message; }
+        if (parseError) problems.push(parseError);
+        else problems = problems.concat(await cgcHelperTestErrors());
+        if (!stillHere()) return;
+
+        if (!problems.length) {
+          cgcHelperStep('All done! The test is running below. Click Undo if you liked the old version better.', 'ok');
+          return;
+        }
+        if (round === CGC_HELPER_MAX_FIXES) {
+          cgcHelperStep(`${ai.name} couldn't fix everything: ${problems[0]}`, 'bad');
+          cgcHelperStep('The code is in the editor so you can fix it, ask again, or click Undo.', 'bad');
+          return;
+        }
+        cgcHelperStep(`Found ${problems.length} problem${problems.length === 1 ? '' : 's'} to fix. First one: ${problems[0]}`, 'bad');
+      }
+    } catch (e) {
+      cgcHelperStep(e.friendly ? e.message : `Couldn't reach ${ai.name}. Check your internet and try again.`, 'bad');
+    } finally {
+      cgcHelper.busy = false;
+      cgcHelper.steps.forEach(st => { if (st.kind === 'now') st.kind = 'ok'; });
+      cgcRenderHelper();
+    }
+  }
+
+  // Undo: puts back the code and files from before the AI changed them.
+  function cgcHelperUndo(){
+    if (!cgcHelper.undo || !modEditorDraft || cgcHelper.busy) return;
+    modEditorDraft.code = cgcHelper.undo.code;
+    modEditorDraft.payload = cgcHelper.undo.payload;
+    cgcHelper.undo = null;
+    cgcHelper.steps = [{ text: 'Your old code and files are back.', kind: 'ok' }];
+    cgcHelper.said = '';
+    saveModEditorDraft();
+    renderModEditor();
+  }
+
+  // Draws the helper above the code box: the Ask buttons, and the panel for the AI that was picked.
+  function cgcRenderHelper(){
+    const el = document.getElementById('cgc-helper');
+    if (!el) return;
+    const esc = escapeChatHtml;
+    const linked = cgcHelperLinkedAis();
+    if (!linked.some(a => a.id === cgcHelper.ai)) cgcHelper.ai = '';
+    const ai = linked.find(a => a.id === cgcHelper.ai);
+    const busy = cgcHelper.busy ? ' disabled' : '';
+
+    const buttons = linked.length
+      ? linked.map(a => `<button class="cgc-helper-ask${ai && a.id === ai.id ? ' active' : ''}" data-ai="${a.id}" style="--ai-color:${a.color}"${busy}>Ask ${esc(a.name)}</button>`).join('')
+        + '<span class="mio-side-note" style="margin:0;">Tell an AI what to build. It writes the code and makes the files.</span>'
+      : '<button class="workshop-icon-btn cgc-secondary-btn" id="cgc-helper-connect">Connect an AI</button><span class="mio-side-note" style="margin:0;">Link ChatGPT, Claude or Gemini and it can write your mod for you.</span>';
+
+    const steps = cgcHelper.steps.length
+      ? `<ul class="cgc-helper-steps" role="status">${cgcHelper.steps.map(st => `<li class="${st.kind}">${esc(st.text)}</li>`).join('')}</ul>` : '';
+    const panel = ai ? `
+      <div class="cgc-helper-panel" style="--ai-color:${ai.color}">
+        <h4>What should ${esc(ai.name)} make or change?</h4>
+        <textarea id="cgc-helper-request" maxlength="2000" placeholder="Example: add a dragon you can click that breathes fire, with a roar sound and a Scales currency."${busy}>${esc(cgcHelper.request)}</textarea>
+        <label class="cgc-helper-check"><input type="checkbox" id="cgc-helper-search"${cgcHelper.search ? ' checked' : ''}${busy}> Let it search the internet for files (can use more of your key)</label>
+        <div class="cgc-ai-row">
+          <button class="auth-btn" id="cgc-helper-go"${busy}>${cgcHelper.busy ? 'Working...' : 'Go'}</button>
+          ${cgcHelper.undo && !cgcHelper.busy ? '<button class="auth-btn secondary" id="cgc-helper-undo">Undo</button>' : ''}
+          <button class="auth-btn secondary" id="cgc-helper-close"${busy}>Close</button>
+        </div>
+        ${steps}
+        ${cgcHelper.said ? `<div class="cgc-helper-said"><strong>${esc(ai.name)} says:</strong> ${esc(cgcHelper.said)}</div>` : ''}
+        <p class="mio-side-note" style="margin:10px 0 0;">${esc(ai.name)} sees your code and your Payload file names. Always read and test what it made before you publish.</p>
+      </div>` : '';
+
+    el.innerHTML = `<div class="cgc-helper-btns">${buttons}</div>${panel}`;
+
+    el.querySelectorAll('.cgc-helper-ask').forEach(btn => btn.addEventListener('click', () => {
+      // Clicking the open AI again closes its panel.
+      cgcHelper.ai = cgcHelper.ai === btn.dataset.ai ? '' : btn.dataset.ai;
+      cgcRenderHelper();
+      const box = document.getElementById('cgc-helper-request');
+      if (box) box.focus();
+    }));
+    const connect = document.getElementById('cgc-helper-connect');
+    if (connect) connect.addEventListener('click', () => { cgcVibe.directOpen = true; openCgcGuide('vibecoding'); });
+    const request = document.getElementById('cgc-helper-request');
+    if (request) request.addEventListener('input', () => { cgcHelper.request = request.value; });
+    const search = document.getElementById('cgc-helper-search');
+    if (search) search.addEventListener('change', () => { cgcHelper.search = search.checked; });
+    const go = document.getElementById('cgc-helper-go');
+    if (go) go.addEventListener('click', cgcHelperRun);
+    const undo = document.getElementById('cgc-helper-undo');
+    if (undo) undo.addEventListener('click', cgcHelperUndo);
+    const close = document.getElementById('cgc-helper-close');
+    if (close) close.addEventListener('click', () => { cgcHelper.ai = ''; cgcRenderHelper(); });
   }
 
   /* ---------- CGC GUIDE (the open book) ---------- */
