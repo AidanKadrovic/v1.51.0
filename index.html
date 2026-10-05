@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<!-- Game version: 1.26.0 | Deployment: 208 | Update both on every release, see README.md -->
-<meta name="game-version" content="1.26.0">
+<!-- Game version: 1.27.0 | Deployment: 208 | Update both on every release, see README.md -->
+<meta name="game-version" content="1.27.0">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>The Clicker Game!</title>
 <link rel="icon" type="image/x-icon" href="images/ui/maksy.ico" id="favicon-link">
@@ -7123,6 +7123,83 @@
     line-height:1.5;
   }
   .cgc-vibe-steps li{ margin-bottom:6px; }
+
+  /* ---------- VIBECODING: CONNECT TO AI (1.27.0) ---------- */
+  .cgc-ai-box textarea, .cgc-ai-box .cgc-ai-key, .cgc-ai-box select{
+    width:100%;
+    box-sizing:border-box;
+    padding:10px 12px;
+    background:#120e22;
+    color:#e9e4f7;
+    border:2px solid var(--ink);
+    border-radius:10px;
+    font-family:'Poppins', sans-serif;
+    font-size:13px;
+  }
+  .cgc-ai-box textarea{ resize:vertical; min-height:70px; line-height:1.5; }
+  .cgc-ai-box textarea.cgc-ai-code{
+    min-height:150px;
+    font-family:ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
+    font-size:12px;
+  }
+  .cgc-ai-box textarea:focus, .cgc-ai-box .cgc-ai-key:focus, .cgc-ai-box select:focus{ outline:3px solid var(--zap); outline-offset:1px; }
+  /* The four "which AI" buttons. The picked one gets its own bright color. */
+  .cgc-ai-picker{ display:grid; grid-template-columns:repeat(4, minmax(0, 1fr)); gap:8px; }
+  .cgc-ai-pick{
+    font-family:'Fredoka One', cursive;
+    font-size:14px;
+    padding:12px 6px;
+    color:var(--rind);
+    background:var(--night);
+    border:3px solid var(--ink);
+    border-radius:14px;
+    box-shadow:0 5px 0 0 var(--ink);
+    cursor:pointer;
+    transition:transform .08s ease, box-shadow .08s ease;
+  }
+  .cgc-ai-pick:hover{ transform:translateY(-1px); }
+  .cgc-ai-pick:active{ transform:translateY(3px); box-shadow:0 2px 0 0 var(--ink); }
+  .cgc-ai-pick.active{ background:var(--ai-color, var(--zap)); color:#1a1426; }
+  .cgc-ai-row{ display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin:8px 0; }
+  .cgc-ai-row .auth-btn{ width:auto; margin:0; padding:10px 18px; }
+  .cgc-ai-status{ font-size:12px; margin:6px 0 0; min-height:1em; color:var(--moneys-green); }
+  .cgc-ai-status.error{ color:#ff6b6b; }
+  /* The optional "link the AI to the game" card. */
+  .cgc-ai-direct{
+    margin:18px 0 10px;
+    padding:12px 14px;
+    background:var(--night);
+    border:3px solid var(--ink);
+    border-radius:14px;
+    box-shadow:0 5px 0 0 var(--ink);
+  }
+  .cgc-ai-direct summary{ font-family:'Fredoka One', cursive; font-size:15px; color:var(--zap); cursor:pointer; }
+  .cgc-ai-direct[open] summary{ margin-bottom:10px; }
+  .cgc-ai-linked{
+    display:inline-block;
+    padding:3px 10px;
+    border-radius:999px;
+    border:2px solid var(--ink);
+    background:var(--moneys-green);
+    color:#1a1426;
+    font-size:12px;
+    font-weight:600;
+  }
+  .cgc-ai-notes{
+    white-space:pre-wrap;
+    font-size:12px;
+    padding:10px 12px;
+    margin:8px 0 0;
+    background:#120e22;
+    border:2px dashed var(--line);
+    border-radius:10px;
+    max-height:160px;
+    overflow:auto;
+  }
+  body.light-mode .cgc-ai-box textarea, body.light-mode .cgc-ai-box .cgc-ai-key, body.light-mode .cgc-ai-box select, body.light-mode .cgc-ai-notes{ background:#fff; color:#1a1426; }
+  @media (max-width:480px){
+    .cgc-ai-picker{ grid-template-columns:repeat(2, minmax(0, 1fr)); }
+  }
 
   /* =====================================================================
      GAMEPLAY EXTRAS (1.24.0): floating click numbers, the HUD chips under
@@ -15993,20 +16070,362 @@
     btn.classList.toggle('is-hidden', hidden);
   }
 
-  function cgcCopyVibePrompt(btn){
-    const done = () => { btn.textContent = 'Copied!'; setTimeout(() => { btn.textContent = 'Copy prompt'; }, 1600); };
+  /* ---------- VIBECODING: CONNECT TO AI (1.27.0) ----------
+     The Vibecoding page of the guide lets players:
+       1. type their mod idea,
+       2. pick an AI (ChatGPT, Copilot, Claude or Gemini),
+       3. click Connect, which copies the prompt and opens that AI in a new tab,
+       4. paste the AI's code into a box and send it to the editor.
+     OPTIONAL DIRECT LINK: with their own API key the game talks to the AI by itself
+     and fills in the code box. The key is saved only in this browser (localStorage)
+     and is only ever sent to that AI company, never to the game's database.
+     Copilot has no public API, so it can only be used with the Connect button. */
+  const CGC_AI_PICK_KEY = 'fallgamedev-cgc-ai';             // which AI was picked last
+  const CGC_AI_KEY_PREFIX = 'fallgamedev-cgc-ai-key:';      // + ai id -> the API key
+  const CGC_AI_MODEL_PREFIX = 'fallgamedev-cgc-ai-model:';  // + ai id -> the model picked
+
+  // models: the ones we would like to use, best first. If none of them exist any more,
+  // the first model the key can use is picked instead, so old names never break the link.
+  const CGC_AIS = [
+    { id: 'chatgpt', name: 'ChatGPT', color: '#4ade80', maker: 'OpenAI',
+      chatUrl: 'https://chatgpt.com/',
+      keyUrl: 'https://platform.openai.com/api-keys', keyHint: 'sk-...',
+      models: ['gpt-6.1-sol', 'gpt-6-luna'] },
+    { id: 'copilot', name: 'Copilot', color: '#7cc7ff', maker: 'Microsoft',
+      chatUrl: 'https://copilot.microsoft.com/',
+      keyUrl: '', keyHint: '', models: [] },
+    { id: 'claude', name: 'Claude', color: '#ff9d5c', maker: 'Anthropic',
+      chatUrl: 'https://claude.ai/new',
+      keyUrl: 'https://console.anthropic.com/settings/keys', keyHint: 'sk-ant-...',
+      models: ['claude-sonnet-5-5', 'claude-haiku-4-5-20251001'] },
+    { id: 'gemini', name: 'Gemini', color: '#c1aef0', maker: 'Google',
+      chatUrl: 'https://gemini.google.com/app',
+      keyUrl: 'https://aistudio.google.com/apikey', keyHint: 'AIza...',
+      models: ['gemini-3.8-flash', 'gemini-flash-latest'] }
+  ];
+
+  // What the player typed on the Vibecoding page. Kept while the game is open.
+  const cgcVibe = { ai: 'chatgpt', idea: '', code: '', notes: '', busy: false, models: {}, status: '', statusError: false, directOpen: false };
+  try {
+    const savedAi = localStorage.getItem(CGC_AI_PICK_KEY);
+    if (CGC_AIS.some(a => a.id === savedAi)) cgcVibe.ai = savedAi;
+  } catch (e) {}
+
+  function cgcAiCurrent(){ return CGC_AIS.find(a => a.id === cgcVibe.ai) || CGC_AIS[0]; }
+  function cgcAiCanLink(ai){ return !!ai.keyUrl; }
+  function cgcAiStoreGet(key){ try { return localStorage.getItem(key) || ''; } catch (e) { return ''; } }
+  function cgcAiStoreSet(key, value){
+    try { if (value) localStorage.setItem(key, value); else localStorage.removeItem(key); } catch (e) {}
+  }
+  function cgcAiKey(ai){ return cgcAiStoreGet(CGC_AI_KEY_PREFIX + ai.id); }
+  function cgcAiModel(ai){ return cgcAiStoreGet(CGC_AI_MODEL_PREFIX + ai.id); }
+
+  // The full prompt, with the player's idea swapped in for the [brackets] part.
+  function cgcVibePrompt(){
+    const idea = String(cgcVibe.idea || '').trim();
+    if (!idea) return CGC_VIBE_PROMPT;
+    return CGC_VIBE_PROMPT.replace(/\[Describe your mod here[^\]]*\]/, () => idea);
+  }
+
+  // Copies text to the clipboard. Returns a promise that is true if it worked.
+  function cgcAiCopy(text){
+    const fallback = () => {
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      ta.style.position = 'fixed';
+      ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.select();
+      let ok = false;
+      try { ok = document.execCommand('copy'); } catch (e) {}
+      ta.remove();
+      return ok;
+    };
     if (navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard.writeText(CGC_VIBE_PROMPT).then(done).catch(() => cgcCopyFallback(done));
+      return navigator.clipboard.writeText(text).then(() => true).catch(() => fallback());
+    }
+    return Promise.resolve(fallback());
+  }
+
+  // AIs usually wrap code in ``` fences. This returns just the code,
+  // plus whatever else the AI said (like the list of files it needs).
+  function cgcAiSplitReply(reply){
+    const text = String(reply || '');
+    const match = text.match(/```[a-zA-Z]*[ \t]*\r?\n([\s\S]*?)```/);
+    if (!match) return { code: text.trim(), notes: '' };
+    return { code: match[1].replace(/\s+$/, ''), notes: text.replace(match[0], '').trim() };
+  }
+
+  // Turns a failed API answer into a message a player can understand.
+  async function cgcAiCheck(response, ai){
+    if (response.ok) return response.json();
+    let detail = '';
+    try { const body = await response.json(); detail = (body.error && (body.error.message || body.error)) || ''; } catch (e) {}
+    let msg;
+    if (response.status === 401 || response.status === 403 || (response.status === 400 && /api key/i.test(String(detail)))) msg = `That key didn't work for ${ai.name}. Check that you copied all of it.`;
+    else if (response.status === 429) msg = `${ai.name} says you hit a limit, or the key is out of credits. Try again later.`;
+    else if (response.status === 404) msg = `${ai.name} couldn't find that model. Pick a different model and try again.`;
+    else msg = `${ai.name} had a problem (error ${response.status}). Try again in a minute.`;
+    const err = new Error(msg);
+    err.friendly = true;
+    throw err;
+  }
+
+  // Headers each AI company wants on every request.
+  function cgcAiHeaders(ai, key){
+    if (ai.id === 'chatgpt') return { 'Authorization': 'Bearer ' + key, 'Content-Type': 'application/json' };
+    if (ai.id === 'claude') return {
+      'x-api-key': key,
+      'anthropic-version': '2023-06-01',
+      'anthropic-dangerous-direct-browser-access': 'true', // Anthropic needs this to allow calls from a web page
+      'Content-Type': 'application/json'
+    };
+    return { 'x-goog-api-key': key, 'Content-Type': 'application/json' };
+  }
+
+  // Asks the AI company which models this key can use. This is also how a key is checked.
+  async function cgcAiListModels(ai, key){
+    const skip = /audio|realtime|image|tts|transcribe|embed|search|live|vision|moderation|whisper|dall|sora|veo|imagen/i;
+    let ids = [];
+    if (ai.id === 'chatgpt') {
+      const data = await cgcAiCheck(await fetch('https://api.openai.com/v1/models', { headers: cgcAiHeaders(ai, key) }), ai);
+      ids = (data.data || []).map(m => String(m.id)).filter(id => /^(gpt|o\d)/i.test(id));
+    } else if (ai.id === 'claude') {
+      const data = await cgcAiCheck(await fetch('https://api.anthropic.com/v1/models?limit=100', { headers: cgcAiHeaders(ai, key) }), ai);
+      ids = (data.data || []).map(m => String(m.id));
     } else {
-      cgcCopyFallback(done);
+      const data = await cgcAiCheck(await fetch('https://generativelanguage.googleapis.com/v1beta/models?pageSize=200', { headers: cgcAiHeaders(ai, key) }), ai);
+      ids = (data.models || [])
+        .filter(m => (m.supportedGenerationMethods || []).indexOf('generateContent') !== -1)
+        .map(m => String(m.name).replace(/^models\//, ''))
+        .filter(id => /^gemini/i.test(id));
+    }
+    ids = ids.filter(id => !skip.test(id));
+    // Put the models we like first, then the rest by name.
+    const liked = ai.models.filter(id => ids.indexOf(id) !== -1);
+    const rest = ids.filter(id => liked.indexOf(id) === -1).sort().reverse();
+    return liked.concat(rest);
+  }
+
+  // Sends the prompt to the AI and returns its answer as text.
+  async function cgcAiAsk(ai, key, model, prompt){
+    const headers = cgcAiHeaders(ai, key);
+    if (ai.id === 'chatgpt') {
+      const data = await cgcAiCheck(await fetch('https://api.openai.com/v1/responses', {
+        method: 'POST', headers, body: JSON.stringify({ model, input: prompt })
+      }), ai);
+      if (typeof data.output_text === 'string' && data.output_text) return data.output_text;
+      return (data.output || []).filter(o => o.type === 'message')
+        .map(o => (o.content || []).map(c => c.text || '').join('')).join('\n');
+    }
+    if (ai.id === 'claude') {
+      const data = await cgcAiCheck(await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST', headers,
+        body: JSON.stringify({ model, max_tokens: 8000, messages: [{ role: 'user', content: prompt }] })
+      }), ai);
+      return (data.content || []).filter(c => c.type === 'text').map(c => c.text).join('');
+    }
+    const data = await cgcAiCheck(await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`, {
+      method: 'POST', headers, body: JSON.stringify({ contents: [{ role: 'user', parts: [{ text: prompt }] }] })
+    }), ai);
+    const cand = (data.candidates || [])[0];
+    return cand && cand.content ? (cand.content.parts || []).map(p => p.text || '').join('') : '';
+  }
+
+  // Shows a message under the buttons. It survives the box being redrawn.
+  function cgcAiStatus(text, isError){
+    cgcVibe.status = text || '';
+    cgcVibe.statusError = !!isError;
+    const el = document.getElementById('cgc-ai-status');
+    if (el) { el.textContent = cgcVibe.status; el.classList.toggle('error', cgcVibe.statusError); }
+  }
+
+  // CONNECT: copy the prompt, then open the picked AI in a new tab.
+  // The prompt is too long to send inside the link, so the player pastes it in.
+  function cgcAiConnect(){
+    const ai = cgcAiCurrent();
+    const prompt = cgcVibePrompt();
+    cgcAiCopy(prompt).then(ok => {
+      cgcAiStatus(ok
+        ? `Prompt copied and ${ai.name} opened in a new tab. Paste it into the chat box (Ctrl+V) and send it.`
+        : `${ai.name} opened in a new tab. Click "Copy prompt" and paste it there.`, !ok);
+    });
+    window.open(ai.chatUrl, '_blank', 'noopener');
+  }
+
+  // PUT IT IN THE EDITOR: moves the code from the box into the mod's code.
+  function cgcAiUseCode(){
+    const code = cgcAiSplitReply(cgcVibe.code).code;
+    if (!code.trim()) { cgcAiStatus("Paste the AI's code in the box first.", true); return; }
+    if (!(workshopView === 'create' && modEditorDraft)) { cgcAiStatus('Open the mod editor first, then come back here.', true); return; }
+    const current = String(modEditorDraft.code || '').trim();
+    if (current && current !== String(CGC_DEFAULT_CODE).trim() && !confirm('Replace the code in your editor with the AI code?')) return;
+    modEditorDraft.code = code + '\n';
+    saveModEditorDraft();
+    cgcAiStatus('');
+    closeCgcGuide();
+    renderModEditor();
+    modEditorStatus('AI code loaded. Add any files it listed to Payload, then click Run test.');
+  }
+
+  // DIRECT LINK: check the key by asking for the model list, then remember both.
+  async function cgcAiLink(){
+    const ai = cgcAiCurrent();
+    const input = document.getElementById('cgc-ai-key');
+    const key = String(input ? input.value : '').trim();
+    if (!key) { cgcAiStatus('Paste your API key first.', true); return; }
+    cgcVibe.busy = true;
+    cgcAiStatus(`Checking your key with ${ai.name}...`);
+    cgcRenderVibeAi();
+    try {
+      const models = await cgcAiListModels(ai, key);
+      if (!models.length) throw Object.assign(new Error(`That key works, but ${ai.name} didn't list any models it can use.`), { friendly: true });
+      cgcVibe.models[ai.id] = models;
+      cgcAiStoreSet(CGC_AI_KEY_PREFIX + ai.id, key);
+      if (models.indexOf(cgcAiModel(ai)) === -1) cgcAiStoreSet(CGC_AI_MODEL_PREFIX + ai.id, models[0]);
+      cgcAiStatus(`${ai.name} is linked to the game!`);
+    } catch (e) {
+      cgcAiStatus(e.friendly ? e.message : `Couldn't reach ${ai.name}. Check your internet and try again.`, true);
+    } finally {
+      cgcVibe.busy = false;
+      cgcRenderVibeAi();
     }
   }
-  function cgcCopyFallback(done){
-    const ta = document.getElementById('cgc-vibe-text');
-    if (!ta) return;
-    ta.focus();
-    ta.select();
-    try { document.execCommand('copy'); done(); } catch (e) {}
+
+  function cgcAiUnlink(){
+    const ai = cgcAiCurrent();
+    cgcAiStoreSet(CGC_AI_KEY_PREFIX + ai.id, '');
+    cgcAiStoreSet(CGC_AI_MODEL_PREFIX + ai.id, '');
+    delete cgcVibe.models[ai.id];
+    cgcAiStatus(`${ai.name} is unlinked. Your key was removed from this browser.`);
+    cgcRenderVibeAi();
+  }
+
+  // DIRECT LINK: send the idea to the linked AI and put its code in the box.
+  async function cgcAiMakeMod(){
+    const ai = cgcAiCurrent();
+    const key = cgcAiKey(ai);
+    if (!key) return;
+    if (!String(cgcVibe.idea || '').trim()) { cgcAiStatus('Type what your mod should do in step 1 first.', true); return; }
+    const model = cgcAiModel(ai) || ai.models[0];
+    cgcVibe.busy = true;
+    cgcAiStatus(`${ai.name} is writing your mod. This can take a minute...`);
+    cgcRenderVibeAi();
+    try {
+      const reply = await cgcAiAsk(ai, key, model, cgcVibePrompt());
+      const parts = cgcAiSplitReply(reply);
+      if (!parts.code) throw Object.assign(new Error(`${ai.name} answered with nothing. Try again.`), { friendly: true });
+      cgcVibe.code = parts.code;
+      cgcVibe.notes = parts.notes;
+      cgcAiStatus('Done! Read the code, then click "Put it in the editor".');
+    } catch (e) {
+      cgcAiStatus(e.friendly ? e.message : `Couldn't reach ${ai.name}. Check your internet and try again.`, true);
+    } finally {
+      cgcVibe.busy = false;
+      cgcRenderVibeAi();
+    }
+  }
+
+  // Draws everything inside #cgc-ai-box on the Vibecoding page and hooks up its buttons.
+  function cgcRenderVibeAi(){
+    const box = document.getElementById('cgc-ai-box');
+    if (!box) return;
+    const esc = escapeChatHtml;
+    const ai = cgcAiCurrent();
+    const linked = cgcAiCanLink(ai) && !!cgcAiKey(ai);
+    const inEditor = workshopView === 'create' && !!modEditorDraft;
+    const busy = cgcVibe.busy ? ' disabled' : '';
+    // The model list is only known after linking in this visit, so fall back to the saved one.
+    const savedModel = cgcAiModel(ai);
+    const models = cgcVibe.models[ai.id] || (savedModel ? [savedModel] : ai.models);
+
+    let direct;
+    if (!cgcAiCanLink(ai)) {
+      direct = `<p>${esc(ai.name)} can't be linked directly, because ${esc(ai.maker)} doesn't offer a way for games to talk to it. Use the <strong>Connect</strong> button above, or pick ChatGPT, Claude or Gemini to link one.</p>`;
+    } else if (linked) {
+      direct = `
+        <p><span class="cgc-ai-linked">Linked to ${esc(ai.name)}</span></p>
+        <label class="workshop-upload-label" for="cgc-ai-model">Model</label>
+        <select id="cgc-ai-model"${busy}>${models.map(id => `<option value="${esc(id)}"${id === savedModel ? ' selected' : ''}>${esc(id)}</option>`).join('')}</select>
+        <div class="cgc-ai-row">
+          <button class="auth-btn" id="cgc-ai-make"${busy}>${cgcVibe.busy ? 'Working...' : 'Make my mod'}</button>
+          <button class="auth-btn secondary" id="cgc-ai-unlink"${busy}>Unlink</button>
+        </div>
+        <p class="mio-side-note">Make my mod sends your idea from step 1 to ${esc(ai.name)} and puts the code it writes in the box in step 4.</p>`;
+    } else {
+      direct = `
+        <p>Linking lets the game talk to ${esc(ai.name)} by itself, so you don't have to copy and paste. You need an <strong>API key</strong>, which is like a password for ${esc(ai.name)}.</p>
+        <ol class="cgc-vibe-steps">
+          <li>Ask a parent first. Using a key can cost real money${ai.id === 'gemini' ? ' (Gemini has a free amount each day)' : ''}.</li>
+          <li><a href="${esc(ai.keyUrl)}" target="_blank" rel="noopener">Get a key from ${esc(ai.maker)}</a> and copy it.</li>
+          <li>Paste it here and click Link.</li>
+        </ol>
+        <input type="password" class="cgc-ai-key" id="cgc-ai-key" placeholder="${esc(ai.keyHint)}" autocomplete="off" spellcheck="false" aria-label="${esc(ai.name)} API key"${busy}>
+        <div class="cgc-ai-row">
+          <button class="auth-btn" id="cgc-ai-link"${busy}>${cgcVibe.busy ? 'Checking...' : `Link ${esc(ai.name)}`}</button>
+        </div>
+        <p class="mio-side-note">Your key is saved only in this browser. It is sent to ${esc(ai.maker)} and nowhere else, not even to the game. Never share it with anyone.</p>`;
+    }
+
+    box.innerHTML = `
+      <h4>1. What should your mod do?</h4>
+      <textarea id="cgc-ai-idea" maxlength="2000" placeholder="Example: a pet on the screen that gets hungry over time, and I feed it with a currency I earn by clicking." aria-label="Your mod idea">${esc(cgcVibe.idea)}</textarea>
+      <p class="mio-side-note">The more detail, the better. You can leave this empty and type your idea in the AI chat instead.</p>
+
+      <h4>2. Which AI will you use?</h4>
+      <div class="cgc-ai-picker" role="radiogroup" aria-label="Which AI">
+        ${CGC_AIS.map(a => `<button class="cgc-ai-pick${a.id === ai.id ? ' active' : ''}" data-ai="${a.id}" role="radio" aria-checked="${a.id === ai.id}" style="--ai-color:${a.color}"${busy}>${esc(a.name)}</button>`).join('')}
+      </div>
+
+      <h4>3. Connect</h4>
+      <div class="cgc-ai-row">
+        <button class="auth-btn" id="cgc-ai-connect">Connect to ${esc(ai.name)}</button>
+        <button class="auth-btn secondary" id="cgc-vibe-copy">Copy prompt</button>
+      </div>
+      <p class="mio-side-note">Connect copies the prompt (with your idea in it) and opens ${esc(ai.name)} in a new tab. Paste it there with Ctrl+V. The prompt teaches the AI the whole CGC language first.</p>
+
+      <h4>4. Paste the AI's code here</h4>
+      <textarea class="cgc-ai-code" id="cgc-ai-code" spellcheck="false" placeholder="Paste the code ${esc(ai.name)} gave you..." aria-label="Code from the AI">${esc(cgcVibe.code)}</textarea>
+      ${cgcVibe.notes ? `<p class="mio-side-note">${esc(ai.name)} also said:</p><div class="cgc-ai-notes">${esc(cgcVibe.notes)}</div>` : ''}
+      <div class="cgc-ai-row">
+        <button class="auth-btn" id="cgc-ai-use"${inEditor ? '' : ' disabled'}>${inEditor ? 'Put it in the editor' : 'Open the mod editor to use it'}</button>
+      </div>
+      <p class="cgc-ai-status${cgcVibe.statusError ? ' error' : ''}" id="cgc-ai-status" role="status">${esc(cgcVibe.status)}</p>
+
+      <details class="cgc-ai-direct"${linked || cgcVibe.busy || cgcVibe.directOpen ? ' open' : ''}>
+        <summary>Optional: link ${esc(ai.name)} straight to the game</summary>
+        ${direct}
+      </details>`;
+
+    // Typing just updates what we remember. Nothing is redrawn, so the cursor stays put.
+    document.getElementById('cgc-ai-idea').addEventListener('input', (e) => { cgcVibe.idea = e.target.value; });
+    document.getElementById('cgc-ai-code').addEventListener('input', (e) => { cgcVibe.code = e.target.value; });
+    box.querySelectorAll('.cgc-ai-pick').forEach(btn => btn.addEventListener('click', () => {
+      cgcVibe.ai = btn.dataset.ai;
+      cgcAiStoreSet(CGC_AI_PICK_KEY, cgcVibe.ai);
+      cgcVibe.status = '';
+      cgcRenderVibeAi();
+    }));
+    document.getElementById('cgc-ai-connect').addEventListener('click', cgcAiConnect);
+    const copyBtn = document.getElementById('cgc-vibe-copy');
+    copyBtn.addEventListener('click', () => {
+      cgcAiCopy(cgcVibePrompt()).then(ok => {
+        copyBtn.textContent = ok ? 'Copied!' : "Couldn't copy";
+        setTimeout(() => { copyBtn.textContent = 'Copy prompt'; }, 1600);
+      });
+    });
+    document.getElementById('cgc-ai-use').addEventListener('click', cgcAiUseCode);
+    box.querySelector('.cgc-ai-direct').addEventListener('toggle', (e) => { cgcVibe.directOpen = e.target.open; });
+    const linkBtn = document.getElementById('cgc-ai-link');
+    if (linkBtn) linkBtn.addEventListener('click', cgcAiLink);
+    const keyInput = document.getElementById('cgc-ai-key');
+    if (keyInput) keyInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') cgcAiLink(); });
+    const unlinkBtn = document.getElementById('cgc-ai-unlink');
+    if (unlinkBtn) unlinkBtn.addEventListener('click', cgcAiUnlink);
+    const makeBtn = document.getElementById('cgc-ai-make');
+    if (makeBtn) makeBtn.addEventListener('click', cgcAiMakeMod);
+    const modelSel = document.getElementById('cgc-ai-model');
+    if (modelSel) modelSel.addEventListener('change', () => cgcAiStoreSet(CGC_AI_MODEL_PREFIX + ai.id, modelSel.value));
   }
 
   /* ---------- CGC GUIDE (the open book) ---------- */
@@ -16418,17 +16837,18 @@
       </ul>` },
 
     { id: 'vibecoding', title: 'Vibecoding', html: () => `
-      <p><strong>Vibecoding</strong> means describing what you want and letting an AI write the code. AI coding agents (like Claude, ChatGPT or Copilot) don't know CGC yet, so this prompt teaches them the whole language first.</p>
-      <ol class="cgc-vibe-steps">
-        <li>Click <strong>Copy prompt</strong>.</li>
-        <li>Paste it into your AI chat or code agent.</li>
-        <li>Replace the part in [brackets] under <strong>MY MOD IDEA</strong> with what you want your mod to do. The more detail, the better.</li>
-        <li>Paste the code it gives you into the code box, add the files it lists to Payload, and click <strong>Run test</strong>.</li>
-        <li>If the console shows an error, copy the error back to the AI and ask it to fix it.</li>
-      </ol>
-      <p><button class="auth-btn cgc-doc-load" id="cgc-vibe-copy">Copy prompt</button></p>
-      <textarea class="cgc-vibe-text" id="cgc-vibe-text" readonly spellcheck="false" aria-label="Vibecoding prompt"></textarea>
-      <p class="mio-side-note">Always read and test what the AI made before you publish. You're the one who decides if it's good.</p>` },
+      <p><strong>Vibecoding</strong> means describing what you want and letting an AI write the code. AIs don't know CGC yet, so the game gives them a prompt that teaches the whole language first.</p>
+      <div class="cgc-ai-box" id="cgc-ai-box"></div>
+      <h4>After you get the code</h4>
+      <ul>
+        <li>Add the files the AI listed to your Payload folder, with the same names.</li>
+        <li>Click <strong>Run test</strong>. If the console shows an error, copy the error back to the AI and ask it to fix it.</li>
+        <li>Always read and test what the AI made before you publish. You're the one who decides if it's good.</li>
+      </ul>
+      <details>
+        <summary>See the full prompt</summary>
+        <textarea class="cgc-vibe-text" id="cgc-vibe-text" readonly spellcheck="false" aria-label="Vibecoding prompt"></textarea>
+      </details>` },
 
     { id: 'example', title: 'Example: Hungry pet', html: () => `
       <p>A full mod that uses a bit of everything: a pet that gets hungry over time, a Treats currency you earn by clicking, a fullness bar, levels, a button in Stats &gt; Mods, and a wiggle animation. Everything is saved with <code>storage</code>, and it uses only shapes and text, so it needs no files.</p>
@@ -16475,8 +16895,7 @@
     nav.querySelectorAll('.cgc-guide-tab').forEach(b => b.addEventListener('click', () => { cgcGuideSection = b.dataset.section; renderCgcGuide(); }));
     const vibeText = document.getElementById('cgc-vibe-text');
     if (vibeText) vibeText.value = CGC_VIBE_PROMPT;
-    const vibeCopy = document.getElementById('cgc-vibe-copy');
-    if (vibeCopy) vibeCopy.addEventListener('click', () => cgcCopyVibePrompt(vibeCopy));
+    cgcRenderVibeAi(); // VIBECODING (1.27.0): fills in the Connect to AI box if this is that page
     const load = document.getElementById('cgc-doc-load-example');
     if (load) {
       const inEditor = workshopView === 'create' && !!modEditorDraft;
