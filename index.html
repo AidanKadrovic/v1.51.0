@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<!-- Game version: 1.32.0 | Deployment: 209 | Update both on every release, see README.md -->
-<meta name="game-version" content="1.32.0">
+<!-- Game version: 1.33.0 | Deployment: 209 | Update both on every release, see README.md -->
+<meta name="game-version" content="1.33.0">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>The Clicker Game!</title>
 <link rel="icon" type="image/x-icon" href="images/ui/maksy.ico" id="favicon-link">
@@ -7199,6 +7199,279 @@
   body.light-mode .cgc-ai-box textarea, body.light-mode .cgc-ai-box .cgc-ai-key, body.light-mode .cgc-ai-box select, body.light-mode .cgc-ai-notes{ background:#fff; color:#1a1426; }
   @media (max-width:480px){
     .cgc-ai-picker{ grid-template-columns:repeat(2, minmax(0, 1fr)); }
+  }
+
+  /* ---------- BLOCK CODING in the mod editor (1.33.0) ----------
+     Chunky pop blocks on a night sky. Each group of blocks has its own bright color,
+     set with --b (the fill) and --b-edge (the darker bottom edge). */
+  .cgc-code-wrap[hidden]{ display:none; }
+  /* The Text / Blocks switch */
+  .cgc-mode{
+    display:inline-flex;
+    border:2px solid var(--ink);
+    border-radius:9px;
+    box-shadow:var(--pop-sm);
+    overflow:hidden;
+    margin-bottom:4px;
+  }
+  .cgc-mode-btn{
+    font-family:'Fredoka One', cursive;
+    font-size:11.5px;
+    padding:8px 12px;
+    border:0;
+    background:var(--card-hover);
+    color:var(--rind);
+    cursor:pointer;
+  }
+  .cgc-mode-btn + .cgc-mode-btn{ border-left:2px solid var(--ink); }
+  .cgc-mode-btn.is-on{ background:#ff79c6; color:#100c1f; }
+
+  .cgcb-wrap{
+    display:flex;
+    height:440px;
+    min-height:220px;
+    border:2px solid var(--ink);
+    border-radius:10px;
+    background:#120e22;
+    overflow:hidden;
+    resize:vertical;
+  }
+  .cgcb-wrap[hidden]{ display:none; }
+  /* The list of blocks to pick from */
+  .cgcb-palette{
+    flex:0 0 178px;
+    overflow:auto;
+    padding:8px;
+    background:#1b1533;
+    border-right:2px solid var(--ink);
+  }
+  .cgcb-pal-group + .cgcb-pal-group{ margin-top:10px; }
+  .cgcb-pal-title{
+    font-family:'Fredoka One', cursive;
+    font-size:11px;
+    letter-spacing:0.04em;
+    text-transform:uppercase;
+    color:rgba(233,228,247,0.6);
+    margin:0 0 6px 2px;
+  }
+  .cgcb-pal-item{
+    display:block;
+    width:100%;
+    margin:0 0 7px;
+    padding:7px 9px;
+    text-align:left;
+    font-family:'Fredoka One', cursive;
+    font-size:11.5px;
+    line-height:1.25;
+    color:#100c1f;
+    background:var(--b);
+    border:2px solid #100c1f;
+    border-radius:9px;
+    box-shadow:0 3px 0 var(--b-edge), 0 3px 0 2px #100c1f;
+    cursor:grab;
+    transition:transform .08s ease, filter .15s ease;
+  }
+  .cgcb-pal-item:hover{ filter:brightness(1.08); transform:translateY(-1px); }
+  .cgcb-pal-item:active{ transform:translateY(2px); cursor:grabbing; }
+
+  .cgcb-main{ flex:1; min-width:0; display:flex; flex-direction:column; }
+  .cgcb-bar{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:6px 10px;
+    background:rgba(0,0,0,0.3);
+    border-bottom:2px solid var(--ink);
+  }
+  .cgcb-tip{ flex:1; min-width:0; font-size:11px; line-height:1.35; color:rgba(233,228,247,0.6); }
+  .cgcb-bar .mod-editor-text-btn{ color:#e9e4f7; flex-shrink:0; }
+  .cgcb-bar .mod-editor-text-btn:disabled{ opacity:0.35; cursor:default; text-decoration:none; }
+  /* Where your blocks live: a night sky with a few stars */
+  .cgcb-canvas{
+    flex:1;
+    min-height:0;
+    overflow:auto;
+    padding:10px 12px 12px;
+    background-color:#120e22;
+    background-image:
+      radial-gradient(1.5px 1.5px at 22px 30px, rgba(255,255,255,0.55), transparent 60%),
+      radial-gradient(1px 1px at 96px 82px, rgba(255,255,255,0.4), transparent 60%),
+      radial-gradient(1.5px 1.5px at 150px 20px, rgba(255,203,61,0.5), transparent 60%),
+      radial-gradient(1px 1px at 60px 140px, rgba(124,199,255,0.5), transparent 60%);
+    background-size:190px 170px;
+  }
+  .cgcb-list{ display:flex; flex-direction:column; align-items:flex-start; }
+  .cgcb-list.is-top{ min-height:100%; }
+
+  /* Group colors */
+  .cgcb-c-events{ --b:#ffcb3d; --b-edge:#c9930e; }
+  .cgcb-c-control{ --b:#ff9d5c; --b-edge:#cc6a2b; }
+  .cgcb-c-vars{ --b:#ff79c6; --b-edge:#c94391; }
+  .cgcb-c-objects{ --b:#7cc7ff; --b-edge:#3f8fcb; }
+  .cgcb-c-output{ --b:#4ade80; --b-edge:#1f9c50; }
+  .cgcb-c-note{ --b:#cfc8e6; --b-edge:#8f86ad; }
+  .cgcb-c-raw{ --b:#c1aef0; --b-edge:#8a72c9; }
+
+  .cgcb-block{
+    max-width:100%;
+    color:#100c1f;
+    background:var(--b);
+    border:2px solid #100c1f;
+    border-radius:11px;
+    box-shadow:0 3px 0 var(--b-edge), 0 3px 0 2px #100c1f, 3px 6px 0 rgba(0,0,0,0.35);
+    margin-bottom:3px;
+  }
+  .cgcb-block.is-holder{ min-width:230px; }
+  .cgcb-block.has-error{ outline:3px solid #ff4d4d; outline-offset:2px; }
+  .cgcb-row{
+    display:flex;
+    flex-wrap:wrap;
+    align-items:center;
+    gap:6px;
+    padding:6px 8px;
+    font-family:'Fredoka One', cursive;
+    font-size:12.5px;
+  }
+  .cgcb-mid{ padding-left:14px; }
+  .cgcb-foot{ padding:2px 8px 9px 14px; }
+  .cgcb-word{ white-space:nowrap; }
+  /* The dots you drag a block by */
+  .cgcb-grip{
+    flex:0 0 12px;
+    align-self:stretch;
+    min-height:20px;
+    border-radius:4px;
+    cursor:grab;
+    background-image:radial-gradient(#100c1f 1.4px, transparent 1.6px);
+    background-size:6px 6px;
+    background-position:center;
+    opacity:0.55;
+  }
+  .cgcb-grip:hover{ opacity:1; }
+  .cgcb-in{
+    font-family:ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
+    font-size:12px;
+    line-height:18px;
+    max-width:100%;
+    padding:2px 8px;
+    color:#100c1f;
+    background:#fffdf5;
+    border:2px solid #100c1f;
+    border-radius:999px;
+    outline:none;
+    box-sizing:border-box;
+  }
+  .cgcb-in:focus{ box-shadow:0 0 0 3px rgba(255,255,255,0.75); }
+  .cgcb-in.is-wide{ flex:1 1 150px; min-width:110px; border-radius:8px; }
+  .cgcb-pick{ font-family:'Fredoka One', cursive; cursor:pointer; padding-right:4px; }
+  /* Up, down, copy and delete */
+  .cgcb-acts{ display:inline-flex; gap:3px; margin-left:auto; padding-left:8px; }
+  .cgcb-act{
+    width:22px;
+    height:22px;
+    padding:0;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    font-size:11px;
+    font-weight:700;
+    line-height:1;
+    color:#100c1f;
+    background:rgba(255,255,255,0.45);
+    border:2px solid #100c1f;
+    border-radius:7px;
+    cursor:pointer;
+  }
+  .cgcb-act:hover{ background:#fff; }
+  .cgcb-act[data-act="del"]:hover, .cgcb-act[data-act="delelif"]:hover, .cgcb-act[data-act="delelse"]:hover{ background:#ff6b6b; }
+  .cgcb-more{
+    font-family:'Fredoka One', cursive;
+    font-size:11px;
+    padding:3px 9px;
+    color:#100c1f;
+    background:rgba(255,255,255,0.45);
+    border:2px dashed #100c1f;
+    border-radius:999px;
+    cursor:pointer;
+  }
+  .cgcb-more:hover{ background:#fff; }
+  /* The inside of a when / if / repeat block */
+  .cgcb-body{
+    margin:0 6px 0 14px;
+    padding:3px 8px 3px;
+    background:#120e22;
+    border:2px solid #100c1f;
+    border-radius:9px;
+  }
+  .cgcb-block.is-holder > .cgcb-body:last-child{ margin-bottom:8px; }
+  /* Gaps between blocks. The pink one is where the next new block goes. */
+  .cgcb-slot{
+    align-self:stretch;
+    min-height:9px;
+    min-width:120px;
+    border-radius:6px;
+    cursor:pointer;
+    position:relative;
+  }
+  .cgcb-slot::after{
+    content:'';
+    position:absolute;
+    left:0;
+    right:0;
+    top:50%;
+    height:4px;
+    margin-top:-2px;
+    border-radius:4px;
+    background:transparent;
+  }
+  .cgcb-slot:hover::after{ background:rgba(255,255,255,0.25); }
+  .cgcb-slot.is-cursor::after{ background:#ff5da0; box-shadow:0 0 8px rgba(255,93,160,0.8); }
+  .cgcb-slot.is-empty{
+    min-height:34px;
+    display:flex;
+    align-items:center;
+    padding:0 10px;
+    font-size:11.5px;
+    color:rgba(233,228,247,0.55);
+    border:2px dashed rgba(233,228,247,0.3);
+  }
+  .cgcb-slot.is-empty::after{ display:none; }
+  .cgcb-slot.is-empty.is-cursor{ border-color:#ff5da0; color:#ffb3d4; }
+  .cgcb-slot.is-last{ flex:1 0 34px; }
+  .cgcb-slot.is-last::after{ top:6px; margin-top:0; }
+  /* While dragging, each gap gets a taller invisible catch area. It sits on top of the
+     block edges instead of pushing them apart, so nothing jumps under the mouse. */
+  .cgcb-wrap.is-dragging .cgcb-slot::before{
+    content:'';
+    position:absolute;
+    left:0;
+    right:0;
+    top:-9px;
+    bottom:-9px;
+    z-index:2;
+  }
+  .cgcb-wrap.is-dragging .cgcb-slot.is-empty::before{ top:0; bottom:0; }
+  .cgcb-wrap.is-dragging .cgcb-slot::after{ background:rgba(255,255,255,0.14); }
+  .cgcb-wrap.is-dragging .cgcb-slot.is-hot::after{ background:#4ade80; box-shadow:0 0 8px rgba(74,222,128,0.8); height:6px; margin-top:-3px; }
+  .cgcb-wrap.is-dragging .cgcb-slot.is-empty.is-hot{ border-color:#4ade80; color:#4ade80; }
+  /* Phones: the block list goes on top and scrolls sideways */
+  @media (max-width:640px){
+    .cgcb-wrap{ flex-direction:column; height:520px; }
+    .cgcb-palette{
+      flex:0 0 auto;
+      display:flex;
+      gap:10px;
+      overflow-x:auto;
+      overflow-y:hidden;
+      border-right:0;
+      border-bottom:2px solid var(--ink);
+    }
+    .cgcb-pal-group{ flex:0 0 auto; display:flex; align-items:center; gap:6px; }
+    .cgcb-pal-group + .cgcb-pal-group{ margin-top:0; }
+    .cgcb-pal-title{ margin:0; }
+    .cgcb-pal-item{ width:auto; margin:0 0 5px; white-space:nowrap; }
+    .cgcb-tip{ font-size:10.5px; }
+    .cgcb-act{ width:26px; height:26px; }
   }
 
   /* ---------- AI HELPER in the mod editor (1.28.0) ---------- */
@@ -15657,6 +15930,11 @@
         <div class="mod-editor-section-head">
           <h3 class="mio-panel-heading">Code <span class="mod-editor-count">CGC</span></h3>
           <div class="cgc-code-tools">
+            <!-- BLOCK CODING (1.33.0): pick typing code or snapping blocks together -->
+            <div class="cgc-mode" role="group" aria-label="How to write your code">
+              <button type="button" class="cgc-mode-btn is-on" data-mode="text" aria-pressed="true" title="Type the code yourself">Text</button>
+              <button type="button" class="cgc-mode-btn" data-mode="blocks" aria-pressed="false" title="Build the code out of blocks">Blocks</button>
+            </div>
             <button class="workshop-icon-btn cgc-book-btn" id="cgc-book-btn-2" title="Open the CGC guide" aria-label="Open the CGC guide">${CGC_BOOK_SVG}<span>Guide</span></button>
             <button class="workshop-icon-btn cgc-secondary-btn cgc-tpl-btn" id="cgc-tpl-btn" aria-haspopup="true" aria-expanded="false">Templates <svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2 4l4 4 4-4" fill="none" stroke="currentColor" stroke-width="2"/></svg></button>
             ${cgcTemplateMenuHtml()}
@@ -15664,13 +15942,14 @@
         </div>
         <p class="mio-side-note">Runs when the mod loads and keeps running while it's installed. Files you use go in the Payload folder below.</p>
         <div class="cgc-helper" id="cgc-helper"></div>
-        <div class="cgc-code-wrap">
+        <div class="cgc-code-wrap" id="cgc-code-wrap">
           <pre class="cgc-gutter" id="cgc-gutter" aria-hidden="true"></pre>
           <div class="cgc-code-area">
             <pre class="cgc-code-hl" id="cgc-code-hl" aria-hidden="true"></pre>
             <textarea id="cgc-code" class="cgc-code-input" spellcheck="false" autocomplete="off" autocapitalize="off" wrap="off" aria-label="Mod code">${esc(d.code)}</textarea>
           </div>
         </div>
+        ${cgcbAreaHtml()}
         <div class="cgc-check" id="cgc-check" role="status"></div>
         <div class="cgc-test-bar">
           <button class="auth-btn cgc-run-btn" id="cgc-run-btn">Run test</button>
@@ -15755,6 +16034,9 @@
         }
       }
     });
+
+    // BLOCK CODING (1.33.0): the Text / Blocks switch and the block area.
+    cgcbBind(d, { input, paint });
 
     cgcBindTemplateMenu();
     document.getElementById('cgc-book-btn-2').addEventListener('click', () => openCgcGuide());
@@ -15842,6 +16124,698 @@
         renderModEditor();
       });
     });
+  }
+
+  /* ---------- BLOCK CODING (1.33.0) ----------
+     A second way to write CGC in the mod editor: snap blocks together instead of typing.
+     The Text / Blocks switch sits in the Code panel's top bar.
+
+     How it works:
+     - The code TEXT (draft.code) is always the real thing. It is what gets tested,
+       saved, published and sent to the AI. Blocks are only another view of it.
+     - cgcbFromCode() reads the text one line at a time and builds a tree of blocks.
+     - cgcbToCode() turns the tree back into text. It runs after every block change.
+     - A line that has no block of its own becomes a "code" block, so nothing is ever lost.
+     - Opening Blocks never rewrites your text. The text is only rewritten once you
+       change a block (it then gets tidy 2-space indents).
+     - Before Blocks opens, cgcbSameMeaning() checks that the blocks would make code that
+       means exactly the same thing. If not, the editor stays in Text mode.
+
+     A block looks like { id, type, gap, ...fields }. "gap" means a blank line goes above it.
+     Blocks that hold other blocks have a "body" list. An "if" also has "elifs"
+     ([{ cond, body }]) and "other" (the else list, or null when there is no else). */
+
+  // Attribute names offered in the "set ... to" block.
+  const CGCB_ATTRS = ['pos.x', 'pos.y', 'size', 'size.x', 'size.y', 'color', 'text', 'fontsize', 'clickable', 'dragable', 'visible', 'scale', 'rotate', 'opacity', 'layer', 'round', 'image', 'event', 'file', 'volume', 'speed', 'loop', 'action', 'cur', 'icon'];
+  // [word used in the code, words shown on the block]
+  const CGCB_MATH = [['add', 'add'], ['subtract', 'subtract'], ['multiply', 'multiply by'], ['divide', 'divide by'], ['set', 'set to']];
+  const CGCB_CMDS = ['play', 'stop', 'show', 'hide', 'remove'];
+  // Which color group each block type belongs to.
+  const CGCB_CATS = { when: 'events', event: 'events', do: 'events', if: 'control', repeat: 'control', create: 'vars', math: 'vars', assign: 'vars', local: 'objects', att: 'objects', cmd: 'objects', print: 'output', note: 'note', raw: 'raw' };
+  // The block list on the left. "make" builds a fresh block each time.
+  const CGCB_PALETTE = [
+    { cat: 'events', title: 'Events', items: [
+      { label: 'when the clicker is clicked', make: () => ({ type: 'when', ev: 'c.click', body: [] }) },
+      { label: 'when the mod loads', make: () => ({ type: 'when', ev: 'c.load', body: [] }) },
+      { label: 'every second', make: () => ({ type: 'when', ev: 'c.second', body: [] }) },
+      { label: 'when an object is clicked', make: () => ({ type: 'when', ev: 'button.click', body: [] }) },
+      { label: 'make my own event', make: () => ({ type: 'event', name: 'levelUp' }) },
+      { label: 'run an event', make: () => ({ type: 'do', ev: 'ev.levelUp' }) }
+    ] },
+    { cat: 'control', title: 'Control', items: [
+      { label: 'if ... then', make: () => ({ type: 'if', cond: 'var.score >= 10', body: [], elifs: [], other: null }) },
+      { label: 'if ... then ... else', make: () => ({ type: 'if', cond: 'var.score >= 10', body: [], elifs: [], other: [] }) },
+      { label: 'repeat', make: () => ({ type: 'repeat', count: '5', body: [] }) }
+    ] },
+    { cat: 'vars', title: 'Variables', items: [
+      { label: 'make a variable', make: () => ({ type: 'create', kind: 'var', name: 'score', value: '0' }) },
+      { label: 'make a saved variable', make: () => ({ type: 'create', kind: 'storage', name: 'best', value: '0' }) },
+      { label: 'change a variable', make: () => ({ type: 'math', target: 'var.score', method: 'add', value: '1' }) },
+      { label: 'give 1 moneys', make: () => ({ type: 'math', target: 'v.moneys', method: 'add', value: '1' }) },
+      { label: 'make a currency', make: () => ({ type: 'local', name: 'gold', value: 'game.cur' }) }
+    ] },
+    { cat: 'objects', title: 'Objects', items: [
+      { label: 'make a shape', make: () => ({ type: 'local', name: 'button', value: 'canvas.circle' }) },
+      { label: 'make some text', make: () => ({ type: 'local', name: 'label', value: 'canvas("Hello")' }) },
+      { label: 'make a Mods button', make: () => ({ type: 'local', name: 'btn', value: 'game.action' }) },
+      { label: 'set an attribute', make: () => ({ type: 'att', obj: 'button', attr: 'color', value: '"#ff5da0"' }) },
+      { label: 'play / show / hide', make: () => ({ type: 'cmd', cmd: 'show', obj: 'button' }) }
+    ] },
+    { cat: 'output', title: 'More', items: [
+      { label: 'print', make: () => ({ type: 'print', value: '"Hello World!"' }) },
+      { label: 'note', cat: 'note', make: () => ({ type: 'note', text: 'What this part does' }) },
+      { label: 'code line', cat: 'raw', make: () => ({ type: 'raw', text: '' }) }
+    ] }
+  ];
+
+  // Everything the block editor remembers while it is open.
+  let cgcBlocks = {
+    draft: null,   // the mod draft these blocks belong to
+    code: null,    // the code text the tree below matches
+    model: null,   // the tree: a list of top-level blocks
+    cursor: null,  // { list, index }: where the next new block goes (the pink line)
+    undo: [],      // older code texts, newest last
+    owner: [],     // owner[lineNumber] = id of the block that wrote that line
+    lists: [],     // every block list on screen, so a slot can say "list 3, spot 2"
+    drag: null,    // what is being dragged: { id } for a block, { pal } for a palette block
+    nextId: 1
+  };
+
+  // Splits one line into its code and its "-- note". Dashes inside "quotes" don't count.
+  function cgcbSplitComment(line){
+    let quote = null;
+    for (let i = 0; i < line.length; i++) {
+      const ch = line[i];
+      if (quote) {
+        if (ch === '\\') i++;
+        else if (ch === quote) quote = null;
+        continue;
+      }
+      if (ch === '"' || ch === "'") { quote = ch; continue; }
+      if ((ch === '-' && line[i + 1] === '-') || (ch === '/' && line[i + 1] === '/')) return [line.slice(0, i), line.slice(i + 2)];
+    }
+    return [line, null];
+  }
+
+  // True when a single line opens and closes the same number of when / if / repeat blocks,
+  // so it is safe to keep as one "code" block.
+  function cgcbLineBalanced(text){
+    let toks;
+    try { toks = CGC.tokenize(text); } catch (e) { return true; } // a broken line can't hide a block opener we could trust anyway
+    let depth = 0;
+    for (const t of toks) {
+      if (t.type !== 'kw') continue;
+      if (t.value === 'when' || t.value === 'if' || t.value === 'repeat') depth++;
+      else if (t.value === 'end') { depth--; if (depth < 0) return false; }
+      else if ((t.value === 'elseif' || t.value === 'else') && depth === 0) return false;
+    }
+    return depth === 0;
+  }
+
+  // CODE TEXT -> BLOCK TREE. Returns { model } or { error: 'why blocks can\'t show this' }.
+  function cgcbFromCode(src){
+    // Same clean up the CGC lexer does, so pasted curly quotes still work.
+    src = String(src || '').replace(/[“”„]/g, '"').replace(/[‘’]/g, "'").replace(/\r\n?/g, '\n');
+    const root = [];
+    // The stack is "which block are we inside right now". part: body, elif or else.
+    const stack = [{ list: root, block: null, part: 'body', line: 0 }];
+    const top = () => stack[stack.length - 1];
+    let gap = false; // was there a blank line just above?
+    const add = (b) => {
+      b.id = cgcBlocks.nextId++;
+      b.gap = gap && top().list.length > 0;
+      gap = false;
+      top().list.push(b);
+      return b;
+    };
+    const open = (b, n) => { add(b); stack.push({ list: b.body, block: b, part: 'body', line: n }); };
+    const NAME = '[A-Za-z_]\\w*';
+    const lines = src.split('\n');
+
+    for (let i = 0; i < lines.length; i++) {
+      const n = i + 1;
+      const [codePart, note] = cgcbSplitComment(lines[i]);
+      const s = codePart.trim();
+      if (!s && note === null) { gap = true; continue; }
+      // A note at the end of a line moves to its own block just above that line.
+      if (note !== null) add({ type: 'note', text: note.replace(/^ /, '').replace(/\s+$/, '') });
+      if (!s) continue;
+      let m;
+
+      /* ----- lines that open, split or close a block ----- */
+      if (s === 'end') {
+        if (stack.length < 2) return { error: `line ${n} has an "end" with nothing to close` };
+        stack.pop();
+        gap = false;
+        continue;
+      }
+      if ((m = new RegExp(`^when\\s*\\(\\s*(${NAME}\\.${NAME})\\s*\\)\\s*(?:then)?$`).exec(s)) || (m = new RegExp(`^when\\s+(${NAME}\\.${NAME})\\s*(?:then)?$`).exec(s))) {
+        open({ type: 'when', ev: m[1], body: [] }, n);
+        continue;
+      }
+      if ((m = /^if\b\s*(.+?)\s*\bthen$/.exec(s))) {
+        open({ type: 'if', cond: m[1], body: [], elifs: [], other: null }, n);
+        continue;
+      }
+      if ((m = /^elseif\b\s*(.+?)\s*\bthen$/.exec(s))) {
+        const t = top();
+        if (!t.block || t.block.type !== 'if' || t.part === 'else') return { error: `the "elseif" on line ${n} has no "if" above it` };
+        const branch = { cond: m[1], body: [] };
+        t.block.elifs.push(branch);
+        stack.pop();
+        stack.push({ list: branch.body, block: t.block, part: 'elif', line: t.line });
+        gap = false;
+        continue;
+      }
+      if (s === 'else') {
+        const t = top();
+        if (!t.block || t.block.type !== 'if' || t.part === 'else') return { error: `the "else" on line ${n} has no "if" above it` };
+        t.block.other = [];
+        stack.pop();
+        stack.push({ list: t.block.other, block: t.block, part: 'else', line: t.line });
+        gap = false;
+        continue;
+      }
+      if ((m = /^repeat\s*\(\s*(.*?)\s*\)\s*(?:then)?$/.exec(s)) || (m = /^repeat\s+(.+?)\s*(?:\bthen)?$/.exec(s))) {
+        open({ type: 'repeat', count: m[1], body: [] }, n);
+        continue;
+      }
+
+      /* ----- one-line blocks ----- */
+      if ((m = /^print\s*\((.*)\)$/.exec(s))) { add({ type: 'print', value: m[1].trim() }); continue; }
+      if ((m = new RegExp(`^(var|storage)\\.create\\s*\\(\\s*"(${NAME})"\\s*(?:,\\s*(.+?))?\\s*\\)$`).exec(s))) { add({ type: 'create', kind: m[1], name: m[2], value: m[3] || '' }); continue; }
+      if ((m = new RegExp(`^ev\\.create\\s*\\(\\s*"(${NAME})"\\s*\\)$`).exec(s))) { add({ type: 'event', name: m[1] }); continue; }
+      if ((m = new RegExp(`^local\\s+(${NAME})\\s*=(?!=)\\s*(.+)$`).exec(s))) { add({ type: 'local', name: m[1], value: m[2] }); continue; }
+      if ((m = new RegExp(`^att\\s+(${NAME})\\.(${NAME}(?:\\.${NAME})*)\\s*=(?!=)\\s*(.+)$`).exec(s))) { add({ type: 'att', obj: m[1], attr: m[2], value: m[3] }); continue; }
+      if ((m = new RegExp(`^do\\.((?:c|ev)\\.${NAME})\\s*(?:\\(\\s*\\))?$`).exec(s))) { add({ type: 'do', ev: m[1] }); continue; }
+      if ((m = /^(play|stop|show|hide|remove)\s*\(\s*(.*?)\s*\)$/.exec(s))) { add({ type: 'cmd', cmd: m[1], obj: m[2] }); continue; }
+      if ((m = new RegExp(`^(${NAME}(?:\\.${NAME})*)\\.(add|subtract|multiply|divide|set)\\s*\\((.*)\\)$`).exec(s))) { add({ type: 'math', target: m[1], method: m[2], value: m[3].trim() }); continue; }
+      if ((m = new RegExp(`^(${NAME})\\s*=(?!=)\\s*(.+)$`).exec(s)) && !/^(when|if|elseif|else|end|repeat|local|att|then|and|or|not|true|false|nil)$/.test(m[1])) { add({ type: 'assign', name: m[1], value: m[2] }); continue; }
+
+      /* ----- anything else stays as typed, in a "code" block ----- */
+      if (!cgcbLineBalanced(s)) return { error: `line ${n} starts or ends a block in the middle of a line. Put when, if, repeat and end on their own lines` };
+      add({ type: 'raw', text: s });
+    }
+    if (stack.length > 1) {
+      const t = top();
+      return { error: `the "${t.block.type}" on line ${t.line} needs an "end"` };
+    }
+    return { model: root };
+  }
+
+  // BLOCK TREE -> CODE TEXT. Also returns owner[], which block wrote each line (for error outlines).
+  function cgcbToCode(model){
+    const lines = [];
+    const owner = [];
+    const emit = (text, depth, b) => {
+      lines.push('  '.repeat(depth) + text);
+      owner[lines.length] = b ? b.id : 0; // line numbers start at 1
+    };
+    const walk = (list, depth) => list.forEach((b) => {
+      if (b.gap && lines.length) emit('', 0, null);
+      switch (b.type) {
+        case 'note': emit(b.text ? '-- ' + b.text : '--', depth, b); break;
+        case 'when':
+          emit(`when(${b.ev})`, depth, b);
+          walk(b.body, depth + 1);
+          emit('end', depth, b);
+          break;
+        case 'if':
+          emit(`if ${b.cond} then`, depth, b);
+          walk(b.body, depth + 1);
+          b.elifs.forEach((e) => { emit(`elseif ${e.cond} then`, depth, b); walk(e.body, depth + 1); });
+          if (b.other) { emit('else', depth, b); walk(b.other, depth + 1); }
+          emit('end', depth, b);
+          break;
+        case 'repeat':
+          emit(`repeat(${b.count})`, depth, b);
+          walk(b.body, depth + 1);
+          emit('end', depth, b);
+          break;
+        case 'print': emit(`print(${b.value})`, depth, b); break;
+        case 'create': emit(`${b.kind}.create("${b.name}"${b.value ? ', ' + b.value : ''})`, depth, b); break;
+        case 'event': emit(`ev.create("${b.name}")`, depth, b); break;
+        case 'local': emit(`local ${b.name} = ${b.value}`, depth, b); break;
+        case 'assign': emit(`${b.name} = ${b.value}`, depth, b); break;
+        case 'att': emit(`att ${b.obj}.${b.attr} = ${b.value}`, depth, b); break;
+        case 'math': emit(`${b.target}.${b.method}(${b.value})`, depth, b); break;
+        case 'do': emit(`do.${b.ev}`, depth, b); break;
+        case 'cmd': emit(`${b.cmd}(${b.obj})`, depth, b); break;
+        default: emit(b.text || '', depth, b);
+      }
+    });
+    walk(model, 0);
+    return { code: lines.join('\n'), owner };
+  }
+
+  // True when two code texts do the same thing (same parsed program, line numbers ignored).
+  // If the first one has a mistake in it there is nothing to compare, so that counts as fine.
+  function cgcbSameMeaning(a, b){
+    const shape = (code) => JSON.stringify(CGC.parse(code), (k, v) => (k === 'line' ? undefined : v));
+    let first;
+    try { first = shape(a); } catch (e) { return true; }
+    try { return shape(b) === first; } catch (e) { return false; }
+  }
+
+  /* ----- finding things in the tree ----- */
+  // The lists of blocks that live inside one block.
+  function cgcbChildLists(b){
+    if (b.type === 'if') return [b.body].concat(b.elifs.map(e => e.body), b.other ? [b.other] : []);
+    return b.body ? [b.body] : [];
+  }
+  // Finds a block by id. Returns { list, index, block } or null.
+  function cgcbFind(id, list){
+    list = list || cgcBlocks.model;
+    for (let i = 0; i < list.length; i++) {
+      const b = list[i];
+      if (b.id === id) return { list, index: i, block: b };
+      for (const child of cgcbChildLists(b)) {
+        const hit = cgcbFind(id, child);
+        if (hit) return hit;
+      }
+    }
+    return null;
+  }
+  // Is this list somewhere inside this block? Stops a block being dropped into itself.
+  function cgcbHolds(block, list){
+    return cgcbChildLists(block).some(l => l === list || l.some(c => cgcbHolds(c, list)));
+  }
+  // Is this list still part of the tree?
+  function cgcbListAlive(list){
+    return list === cgcBlocks.model || cgcBlocks.model.some(b => cgcbHolds(b, list));
+  }
+  // Gives a copied block (and every block inside it) fresh ids.
+  function cgcbFreshIds(b){
+    b.id = cgcBlocks.nextId++;
+    cgcbChildLists(b).forEach(l => l.forEach(cgcbFreshIds));
+    return b;
+  }
+
+  // Loads the draft's code into the block tree. Returns '' when it worked, or the reason it didn't.
+  function cgcbOpen(d){
+    if (cgcBlocks.draft === d && cgcBlocks.code === d.code && cgcBlocks.model) return ''; // already loaded
+    const res = cgcbFromCode(d.code);
+    if (res.error) return res.error;
+    if (!cgcbSameMeaning(d.code, cgcbToCode(res.model).code)) return 'this code is written in a way blocks can\'t show yet';
+    if (cgcBlocks.draft !== d) cgcBlocks.undo = [];
+    cgcBlocks.draft = d;
+    cgcBlocks.model = res.model;
+    cgcBlocks.code = d.code;
+    cgcBlocks.cursor = null;
+    cgcBlocks.owner = [];
+    return '';
+  }
+
+  // Call BEFORE changing the tree: remembers the code so Undo can bring it back.
+  function cgcbSnap(){
+    const d = cgcBlocks.draft;
+    if (!d) return;
+    const u = cgcBlocks.undo;
+    if (u[u.length - 1] === d.code) return;
+    u.push(d.code);
+    if (u.length > 60) u.shift();
+    const btn = document.getElementById('cgcb-undo');
+    if (btn) btn.disabled = false;
+  }
+
+  // Call AFTER changing the tree: writes the new code text and saves the draft.
+  function cgcbCommit(){
+    const d = cgcBlocks.draft;
+    if (!d || !cgcBlocks.model) return;
+    const out = cgcbToCode(cgcBlocks.model);
+    d.code = out.code;
+    cgcBlocks.code = out.code;
+    cgcBlocks.owner = out.owner;
+    const input = document.getElementById('cgc-code'); // the hidden Text box stays in step
+    if (input) input.value = out.code;
+    saveModEditorDraft();
+    updateModEditorPreview();
+    clearTimeout(cgcCheckTimer);
+    cgcCheckTimer = setTimeout(cgcbCheck, 350);
+  }
+
+  // Looks for mistakes, and puts a red outline on the block that has one.
+  function cgcbCheck(){
+    const el = document.getElementById('cgc-check');
+    const canvas = document.getElementById('cgcb-canvas');
+    const d = cgcBlocks.draft;
+    if (!el || !canvas || !d || d.codeMode !== 'blocks') return;
+    canvas.querySelectorAll('.cgcb-block.has-error').forEach(b => b.classList.remove('has-error'));
+    if (!cgcBlocks.owner.length) cgcBlocks.owner = cgcbToCode(cgcBlocks.model).owner;
+    let found = null;
+    try {
+      // Check the same tidy text the blocks make, so line numbers match the blocks.
+      CGC.parse(cgcbToCode(cgcBlocks.model).code);
+      el.className = 'cgc-check ok';
+      el.textContent = 'No problems found.';
+    } catch (e) {
+      const id = cgcBlocks.owner[e.line];
+      found = id ? canvas.querySelector(`.cgcb-block[data-id="${id}"]`) : null;
+      if (found) found.classList.add('has-error');
+      el.className = 'cgc-check error';
+      el.textContent = e.message + (found ? ' (look at the block with the red outline)' : '');
+    }
+    cgcbFillLists();
+  }
+
+  // Fills the pick lists that pop up under a box: your objects, variables and events.
+  function cgcbFillLists(){
+    const holder = document.getElementById('cgcb-lists');
+    if (!holder || !cgcBlocks.model) return;
+    const locals = new Set(), vars = new Set(), events = new Set();
+    const scan = (list) => list.forEach((b) => {
+      if (b.type === 'local' && b.name) locals.add(b.name);
+      if (b.type === 'create' && b.name) vars.add(b.kind + '.' + b.name);
+      if (b.type === 'event' && b.name) events.add('ev.' + b.name);
+      cgcbChildLists(b).forEach(scan);
+    });
+    scan(cgcBlocks.model);
+    const files = ((cgcBlocks.draft && cgcBlocks.draft.payload) || []).map(f => f.name);
+    const pictures = files.filter(n => !/\.(mp3|wav|ogg|m4a|aac|opus|webm)$/i.test(n));
+    const lists = {
+      event: CGC.GAME_EVENTS.map(e => 'c.' + e).concat([...events], [...locals].flatMap(n => CGC.OBJECT_EVENTS.map(e => n + '.' + e))),
+      do: ['c.click', 'c.prestige'].concat([...events]),
+      obj: [...locals],
+      attr: CGCB_ATTRS,
+      make: ['canvas.circle', 'canvas.rect', 'canvas.tri', 'canvas("Hello")', 'game.cur', 'game.action'].concat(files.map(n => 'canvas.' + n)),
+      target: [...vars].concat(['v.moneys'], [...locals]),
+      value: ['true', 'false', 'v.clickpower', 'v.moneys', 'cv.click', 'random(1, 10)'].concat([...vars], pictures.map(n => `"${n}"`))
+    };
+    holder.innerHTML = Object.keys(lists).map(k =>
+      `<datalist id="cgcb-dl-${k}">${lists[k].map(v => `<option value="${escapeChatHtml(v)}"></option>`).join('')}</datalist>`
+    ).join('');
+  }
+
+  /* ----- drawing ----- */
+  // The palette on the left. It never changes, so it is drawn once with the editor.
+  function cgcbPaletteHtml(){
+    return CGCB_PALETTE.map((group, g) => `
+      <div class="cgcb-pal-group">
+        <div class="cgcb-pal-title">${group.title}</div>
+        ${group.items.map((it, i) => `<button type="button" class="cgcb-pal-item cgcb-c-${it.cat || group.cat}" draggable="true" data-p="${g}.${i}" title="Tap to add, or drag into your code">${escapeChatHtml(it.label)}</button>`).join('')}
+      </div>`).join('');
+  }
+
+  // The whole block area. It sits next to the Text box, and only one of the two shows.
+  function cgcbAreaHtml(){
+    return `
+      <div class="cgcb-wrap" id="cgcb-root" hidden>
+        <div class="cgcb-palette" id="cgcb-palette">${cgcbPaletteHtml()}</div>
+        <div class="cgcb-main">
+          <div class="cgcb-bar">
+            <span class="cgcb-tip">Tap a block in the list to add it at the pink line. Tap a gap to move the pink line. Drag the dots to move a block.</span>
+            <button type="button" class="mod-editor-text-btn" id="cgcb-undo" disabled>Undo</button>
+          </div>
+          <div class="cgcb-canvas" id="cgcb-canvas"></div>
+        </div>
+        <div id="cgcb-lists" hidden></div>
+      </div>`;
+  }
+
+  // One list of blocks, with a gap ("slot") before, between and after them.
+  function cgcbListHtml(list, isTop){
+    const li = cgcBlocks.lists.push(list) - 1;
+    const cur = cgcBlocks.cursor;
+    const slot = (i) => {
+      const active = cur && cur.list === list && cur.index === i;
+      const empty = list.length === 0;
+      const words = empty ? (isTop ? 'Pick a block from the left to start your mod' : 'Blocks go in here') : '';
+      return `<div class="cgcb-slot${active ? ' is-cursor' : ''}${empty ? ' is-empty' : ''}${isTop && i === list.length ? ' is-last' : ''}" data-l="${li}" data-i="${i}" title="New blocks go here">${words}</div>`;
+    };
+    let html = slot(0);
+    list.forEach((b, i) => { html += cgcbBlockHtml(b) + slot(i + 1); });
+    return `<div class="cgcb-list${isTop ? ' is-top' : ''}">${html}</div>`;
+  }
+
+  // One block. Boxes are plain CGC: text needs "quotes", numbers and names don't.
+  function cgcbBlockHtml(b){
+    const esc = escapeChatHtml;
+    const id = b.id;
+    // A typing box. o: { list: pick list name, wide: long box, ph: grey hint text, label: for screen readers }
+    const box = (field, value, o) => {
+      o = o || {};
+      const v = String(value == null ? '' : value);
+      return `<input type="text" class="cgcb-in${o.wide ? ' is-wide' : ''}" data-id="${id}" data-f="${field}" value="${esc(v)}" size="${Math.max(o.wide ? 14 : 3, Math.min(48, v.length + 1))}"${o.list ? ` list="cgcb-dl-${o.list}"` : ''} placeholder="${esc(o.ph || '')}" aria-label="${esc(o.label || field)}" spellcheck="false" autocomplete="off" autocapitalize="off">`;
+    };
+    // A drop-down. options: [[value, words shown], ...]
+    const pick = (field, value, options, label) =>
+      `<select class="cgcb-in cgcb-pick" data-id="${id}" data-f="${field}" aria-label="${esc(label)}">${options.map(([v, t]) => `<option value="${v}"${v === value ? ' selected' : ''}>${t}</option>`).join('')}</select>`;
+    const word = (t) => `<span class="cgcb-word">${t}</span>`;
+    const act = (name, title, glyph, extra) =>
+      `<button type="button" class="cgcb-act" data-act="${name}" data-id="${id}"${extra || ''} title="${title}" aria-label="${title}">${glyph}</button>`;
+    const tools = `<span class="cgcb-acts">${act('up', 'Move up', '&#9650;')}${act('down', 'Move down', '&#9660;')}${act('dup', 'Copy this block', '+')}${act('del', 'Delete this block', '&times;')}</span>`;
+    const grip = `<span class="cgcb-grip" draggable="true" data-id="${id}" title="Drag to move" aria-hidden="true"></span>`;
+    const row = (parts) => `<div class="cgcb-row">${grip}${parts}${tools}</div>`;
+    const body = (list) => `<div class="cgcb-body">${cgcbListHtml(list, false)}</div>`;
+
+    let inner = '';
+    switch (b.type) {
+      case 'note': inner = row(word('note') + box('text', b.text, { wide: true, ph: 'What this part does', label: 'Note' })); break;
+      case 'when': inner = row(word('when') + box('ev', b.ev, { list: 'event', ph: 'c.click', label: 'Event' }) + word('happens')) + body(b.body); break;
+      case 'repeat': inner = row(word('repeat') + box('count', b.count, { ph: '5', label: 'How many times' }) + word('times')) + body(b.body); break;
+      case 'if':
+        inner = row(word('if') + box('cond', b.cond, { list: 'value', ph: 'var.score >= 10', label: 'Condition' }) + word('then')) + body(b.body);
+        b.elifs.forEach((e, i) => {
+          inner += `<div class="cgcb-row cgcb-mid">${word('else if')}${box('elif:' + i, e.cond, { list: 'value', ph: 'var.score >= 5', label: 'Condition' })}${word('then')}<span class="cgcb-acts">${act('delelif', 'Remove this else if', '&times;', ` data-n="${i}"`)}</span></div>` + body(e.body);
+        });
+        if (b.other) inner += `<div class="cgcb-row cgcb-mid">${word('else')}<span class="cgcb-acts">${act('delelse', 'Remove the else', '&times;')}</span></div>` + body(b.other);
+        inner += `<div class="cgcb-row cgcb-foot"><button type="button" class="cgcb-more" data-act="addelif" data-id="${id}">+ else if</button>${b.other ? '' : `<button type="button" class="cgcb-more" data-act="addelse" data-id="${id}">+ else</button>`}</div>`;
+        break;
+      case 'print': inner = row(word('print') + box('value', b.value, { list: 'value', wide: true, ph: '"Hello"', label: 'What to print' })); break;
+      case 'create': inner = row(word('make') + pick('kind', b.kind, [['var', 'variable'], ['storage', 'saved variable']], 'Kind of variable') + box('name', b.name, { ph: 'score', label: 'Name' }) + word('starting at') + box('value', b.value, { ph: '0', label: 'Starting value' })); break;
+      case 'event': inner = row(word('make event') + box('name', b.name, { ph: 'levelUp', label: 'Event name' })); break;
+      case 'local': inner = row(word('make') + box('name', b.name, { ph: 'button', label: 'Name' }) + word('=') + box('value', b.value, { list: 'make', ph: 'canvas.circle', label: 'What it is' })); break;
+      case 'assign': inner = row(word('change') + box('name', b.name, { list: 'obj', ph: 'name', label: 'Name' }) + word('to') + box('value', b.value, { list: 'value', ph: '5', label: 'New value' })); break;
+      case 'att': inner = row(word('set') + box('obj', b.obj, { list: 'obj', ph: 'button', label: 'Object' }) + word('.') + box('attr', b.attr, { list: 'attr', ph: 'color', label: 'Attribute' }) + word('to') + box('value', b.value, { list: 'value', ph: '"red"', label: 'Value' })); break;
+      case 'math': inner = row(box('target', b.target, { list: 'target', ph: 'var.score', label: 'What to change' }) + pick('method', b.method, CGCB_MATH, 'How to change it') + box('value', b.value, { list: 'value', ph: '1', label: 'Number' })); break;
+      case 'do': inner = row(word('run event') + box('ev', b.ev, { list: 'do', ph: 'ev.levelUp', label: 'Event' })); break;
+      case 'cmd': inner = row(pick('cmd', b.cmd, CGCB_CMDS.map(c => [c, c]), 'What to do') + box('obj', b.obj, { list: 'obj', ph: 'button', label: 'Object' })); break;
+      default: inner = row(word('code') + box('text', b.text, { wide: true, ph: 'type any line of CGC', label: 'Code line' }));
+    }
+    return `<div class="cgcb-block cgcb-c-${CGCB_CATS[b.type] || 'raw'}${cgcbChildLists(b).length ? ' is-holder' : ''}" data-id="${id}">${inner}</div>`;
+  }
+
+  // Redraws the blocks. focusId: scroll this block into view afterwards.
+  function cgcbRender(focusId){
+    const canvas = document.getElementById('cgcb-canvas');
+    if (!canvas || !cgcBlocks.model) return;
+    // Keep the pink line somewhere real. It starts at the bottom of the code.
+    const cur = cgcBlocks.cursor;
+    if (!cur || !cgcbListAlive(cur.list)) cgcBlocks.cursor = { list: cgcBlocks.model, index: cgcBlocks.model.length };
+    cgcBlocks.cursor.index = Math.max(0, Math.min(cgcBlocks.cursor.index, cgcBlocks.cursor.list.length));
+    const keep = canvas.scrollTop;
+    cgcBlocks.lists = [];
+    canvas.innerHTML = cgcbListHtml(cgcBlocks.model, true);
+    canvas.scrollTop = keep;
+    const undo = document.getElementById('cgcb-undo');
+    if (undo) undo.disabled = !cgcBlocks.undo.length;
+    cgcbCheck();
+    if (focusId) {
+      const el = canvas.querySelector(`.cgcb-block[data-id="${focusId}"]`);
+      if (el && el.scrollIntoView) el.scrollIntoView({ block: 'nearest' });
+    }
+  }
+
+  /* ----- changing the tree ----- */
+  // Puts a new block at { list, index }, then moves the pink line to the next handy spot.
+  function cgcbInsert(block, at){
+    cgcbSnap();
+    cgcbFreshIds(block);
+    block.gap = at.list === cgcBlocks.model && block.type === 'when' && at.index > 0; // a blank line above each new top-level "when"
+    at.list.splice(at.index, 0, block);
+    cgcBlocks.cursor = block.body ? { list: block.body, index: 0 } : { list: at.list, index: at.index + 1 };
+    cgcbCommit();
+    cgcbRender(block.id);
+  }
+  // Moves a block that is already in the tree to { list, index }.
+  function cgcbMove(id, at){
+    const from = cgcbFind(id);
+    if (!from) return;
+    if (cgcbHolds(from.block, at.list)) return; // a block can't go inside itself
+    if (from.list === at.list && (at.index === from.index || at.index === from.index + 1)) return; // dropped where it already is
+    cgcbSnap();
+    from.list.splice(from.index, 1);
+    let index = at.index;
+    if (from.list === at.list && index > from.index) index--;
+    from.block.gap = false;
+    at.list.splice(index, 0, from.block);
+    cgcBlocks.cursor = { list: at.list, index: index + 1 };
+    cgcbCommit();
+    cgcbRender(id);
+  }
+  // The small buttons on a block: up, down, copy, delete, and the "if" extras.
+  function cgcbAct(name, id, n){
+    const hit = cgcbFind(id);
+    if (!hit) return;
+    const { list, index, block } = hit;
+    if (name === 'up' && index === 0) return;
+    if (name === 'down' && index === list.length - 1) return;
+    cgcbSnap();
+    if (name === 'up') { list.splice(index, 1); list.splice(index - 1, 0, block); }
+    else if (name === 'down') { list.splice(index, 1); list.splice(index + 1, 0, block); }
+    else if (name === 'dup') { const copy = cgcbFreshIds(JSON.parse(JSON.stringify(block))); copy.gap = false; list.splice(index + 1, 0, copy); }
+    else if (name === 'del') list.splice(index, 1);
+    else if (name === 'addelif') block.elifs.push({ cond: 'var.score >= 5', body: [] });
+    else if (name === 'addelse') block.other = [];
+    else if (name === 'delelif') block.elifs.splice(n, 1);
+    else if (name === 'delelse') block.other = null;
+    cgcbCommit();
+    cgcbRender(name === 'del' ? 0 : id);
+  }
+  // Undo: go back to the code from before the last change.
+  function cgcbUndo(){
+    const d = cgcBlocks.draft;
+    if (!d) return;
+    while (cgcBlocks.undo.length) {
+      const code = cgcBlocks.undo.pop();
+      if (code === d.code) continue;
+      const res = cgcbFromCode(code);
+      if (res.error) continue;
+      cgcBlocks.model = res.model;
+      cgcBlocks.cursor = null;
+      // Put the old text back exactly as it was, spacing and all.
+      d.code = code;
+      cgcBlocks.code = code;
+      cgcBlocks.owner = [];
+      const input = document.getElementById('cgc-code');
+      if (input) input.value = code;
+      saveModEditorDraft();
+      updateModEditorPreview();
+      break;
+    }
+    cgcbRender();
+  }
+
+  // Wires up the Text / Blocks switch and the block area. Called once each time the editor is drawn.
+  // text: { input, paint } from the Text box, so it can be refreshed when switching back.
+  function cgcbBind(d, text){
+    const root = document.getElementById('cgcb-root');
+    const wrap = document.getElementById('cgc-code-wrap');
+    const canvas = document.getElementById('cgcb-canvas');
+    const buttons = Array.from(document.querySelectorAll('.cgc-mode-btn'));
+    if (!root || !wrap || !canvas) return;
+
+    const show = (mode) => {
+      const blocks = mode === 'blocks';
+      root.hidden = !blocks;
+      wrap.hidden = blocks;
+      buttons.forEach((b) => {
+        const on = b.dataset.mode === mode;
+        b.classList.toggle('is-on', on);
+        b.setAttribute('aria-pressed', String(on));
+      });
+    };
+    const toText = () => {
+      d.codeMode = 'text';
+      text.input.value = d.code;
+      text.paint();
+      cgcCheckCode(d.code);
+      show('text');
+    };
+    const toBlocks = () => {
+      const problem = cgcbOpen(d);
+      if (problem) {
+        // Stay in Text mode and say why, so the player can fix it.
+        toText();
+        const el = document.getElementById('cgc-check');
+        if (el) { el.className = 'cgc-check error'; el.textContent = `Blocks can't open yet: ${problem}. Fix it here in Text mode, then try Blocks again.`; }
+        return;
+      }
+      d.codeMode = 'blocks';
+      show('blocks');
+      cgcbRender();
+    };
+    buttons.forEach(b => b.addEventListener('click', () => {
+      if (b.dataset.mode === (d.codeMode === 'blocks' ? 'blocks' : 'text')) return;
+      clearTimeout(cgcCheckTimer);
+      if (b.dataset.mode === 'blocks') toBlocks(); else toText();
+      saveModEditorDraft();
+    }));
+
+    const slotSpot = (slot) => ({ list: cgcBlocks.lists[Number(slot.dataset.l)], index: Number(slot.dataset.i) });
+    const paletteBlock = (key) => {
+      const [g, i] = String(key).split('.').map(Number);
+      const item = CGCB_PALETTE[g] && CGCB_PALETTE[g].items[i];
+      return item ? item.make() : null;
+    };
+
+    // Clicks: palette blocks, gaps, and the small buttons on blocks.
+    root.addEventListener('click', (e) => {
+      const pal = e.target.closest('.cgcb-pal-item');
+      if (pal) {
+        const block = paletteBlock(pal.dataset.p);
+        if (block) cgcbInsert(block, cgcBlocks.cursor);
+        return;
+      }
+      const actBtn = e.target.closest('[data-act]');
+      if (actBtn) { cgcbAct(actBtn.dataset.act, Number(actBtn.dataset.id), Number(actBtn.dataset.n || 0)); return; }
+      const slot = e.target.closest('.cgcb-slot');
+      if (slot) { cgcBlocks.cursor = slotSpot(slot); cgcbRender(); }
+    });
+    document.getElementById('cgcb-undo').addEventListener('click', cgcbUndo);
+
+    // Typing in a box or picking from a drop-down changes that block's code right away.
+    canvas.addEventListener('focusin', (e) => { if (e.target.closest('[data-f]')) cgcbSnap(); });
+    canvas.addEventListener('input', (e) => {
+      const el = e.target.closest('[data-f]');
+      if (!el) return;
+      const hit = cgcbFind(Number(el.dataset.id));
+      if (!hit) return;
+      const field = el.dataset.f;
+      const value = el.value.replace(/[\r\n]+/g, ' ');
+      if (field.indexOf('elif:') === 0) hit.block.elifs[Number(field.slice(5))].cond = value;
+      else hit.block[field] = value;
+      if (el.tagName === 'INPUT') el.size = Math.max(el.classList.contains('is-wide') ? 14 : 3, Math.min(48, value.length + 1)); // the box grows as you type
+      cgcbCommit();
+    });
+    // Enter means "done with this box".
+    canvas.addEventListener('keydown', (e) => { if (e.key === 'Enter' && e.target.matches('input.cgcb-in')) e.target.blur(); });
+
+    // Dragging: a block by its dots, or a new block straight out of the palette.
+    const dragDone = () => {
+      cgcBlocks.drag = null;
+      root.classList.remove('is-dragging');
+      root.querySelectorAll('.cgcb-slot.is-hot').forEach(s => s.classList.remove('is-hot'));
+    };
+    root.addEventListener('dragstart', (e) => {
+      const pal = e.target.closest('.cgcb-pal-item');
+      const grip = e.target.closest('.cgcb-grip');
+      if (pal) cgcBlocks.drag = { pal: pal.dataset.p };
+      else if (grip) {
+        cgcBlocks.drag = { id: Number(grip.dataset.id) };
+        try { e.dataTransfer.setDragImage(grip.closest('.cgcb-block'), 14, 14); } catch (err) {}
+      } else return;
+      e.dataTransfer.effectAllowed = 'copyMove';
+      try { e.dataTransfer.setData('text/plain', 'cgc-block'); } catch (err) {}
+      // Wait a moment before making the gaps bigger, or the browser cancels the drag.
+      setTimeout(() => { if (cgcBlocks.drag) root.classList.add('is-dragging'); }, 0);
+    });
+    root.addEventListener('dragover', (e) => {
+      if (!cgcBlocks.drag) return;
+      const slot = e.target.closest('.cgcb-slot');
+      root.querySelectorAll('.cgcb-slot.is-hot').forEach(s => { if (s !== slot) s.classList.remove('is-hot'); });
+      if (!slot) return;
+      e.preventDefault();
+      slot.classList.add('is-hot');
+    });
+    root.addEventListener('drop', (e) => {
+      const drag = cgcBlocks.drag;
+      const slot = e.target.closest('.cgcb-slot');
+      if (!drag || !slot) { dragDone(); return; }
+      e.preventDefault();
+      const at = slotSpot(slot);
+      dragDone();
+      if (drag.pal) {
+        const block = paletteBlock(drag.pal);
+        if (block) cgcbInsert(block, at);
+      } else {
+        cgcbMove(drag.id, at);
+      }
+    });
+    root.addEventListener('dragend', dragDone);
+
+    // Open in the mode the player used last. New mods start in Text.
+    if (d.codeMode === 'blocks') toBlocks(); else show('text');
   }
 
   function cgcCheckCode(code){
@@ -17888,6 +18862,7 @@ ${hasCode
       iconData: '',
       files: { icons: [], cursors: [], bg: [], music: [] },
       code: CGC_DEFAULT_CODE, // CGC: every new mod starts with this
+      codeMode: 'text',       // BLOCK CODING (1.33.0): 'text' to type code, 'blocks' to build it from blocks
       payload: [],            // CGC: the payload folder, [{ name: 'cookie.png', url }]
       remixOf: null           // REMIX: { id, name } of the original mod, or null for a brand new mod
     };

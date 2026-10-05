@@ -108,8 +108,8 @@ Rules:
 Near the top of `index.html`:
 
 ```html
-<!-- Game version: 1.32.0 | Deployment: 209 | Update both on every release, see README.md -->
-<meta name="game-version" content="1.32.0">
+<!-- Game version: 1.33.0 | Deployment: 209 | Update both on every release, see README.md -->
+<meta name="game-version" content="1.33.0">
 ```
 
 Bump both the version comment and the `game-version` meta tag on every release. The deployment number is an internal counter for tracking Apps Script/Sheet deployments - increment it whenever the backend Web App is redeployed, even if the game version string doesn't change.
@@ -170,5 +170,6 @@ Rules for changing CGC:
 - **CGA export and import** (1.31.0) - the mod editor's top bar has `Export .cga` and `Import .cga`. A `.cga` (Clicker Game Archive) is a real zip with a different ending: `mod.json` (details and file list), `code.cgc` (the CGC code), `icon.*`, and the folders `icons/`, `cursors/`, `backgrounds/`, `music/`, `payload/`. Uploaded files are stored as real files, links stay links in `mod.json`. The zip is written and read in the page with no library (`cgaZip()`, `cgaUnzip()`). Import only lets in pictures, sounds, web links and `extras/` songs. Bump `CGA_VERSION` if the layout changes.
 - The reset email is sent by a standalone Google Apps Script kept at `scripts/reset-mailer.gs` (live copy runs on script.google.com). Its web app URL and shared secret are the `MAILER_URL` and `MAILER_SECRET` secrets on the reset function.
 - **Forgot password + email** (1.32.0) - a `reset` edge function (`supabase/functions/reset/index.ts`), separate from `api`, with actions setEmail / requestPasswordReset / resetPassword. The game calls it at `RESET_API_URL` (api url with `/api` swapped for `/reset`). Login screen has a `Forgot your password?` link opening a reset overlay; sign-up and Advanced Settings collect a recovery email. **Setup: deploy the `reset` function (Verify JWT off), run the add-column SQL in the README header of that file, set MAILER_URL and MAILER_SECRET secrets, and deploy the Apps Script mailer (its code was shared in chat).** Reset codes are SHA-256 fingerprinted, 15-min, 5 tries, rate-limited, and never reveal whether an email exists.
+- **Block coding** (1.33.0) - the Code panel in the mod editor has a `Text | Blocks` switch. Blocks is a second view of the same code, not a second language: `draft.code` is still the only thing tested, saved and published. `cgcbFromCode()` reads the text line by line into a tree of blocks, `cgcbToCode()` writes the tree back as text after every change, and a line with no block of its own becomes a `code` block so nothing is lost. Before Blocks opens, `cgcbSameMeaning()` parses both versions with `CGC.parse()` and compares them, and the editor stays in Text mode if they differ or if a `when` / `if` / `repeat` is missing its `end`. Opening Blocks never rewrites the text, only changing a block does. The choice is saved in the draft as `codeMode`. Add a block type in four places: `CGCB_CATS`, `CGCB_PALETTE`, a pattern in `cgcbFromCode()`, and a case in both `cgcbToCode()` and `cgcbBlockHtml()`. When CGC gets a new statement, add its block too (it works as a `code` block until then).
 - Every code box in `CGC_GUIDE` is real CGC. After changing the language or a guide page, paste its code boxes into the editor and run them.
 - `MOD_EDITOR_SIZE_LIMIT` (250K) caps a mod's files, payload and code together.
