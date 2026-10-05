@@ -36,6 +36,7 @@ If you fork this project or move it to a new Sheet/Apps Script deployment, updat
 - **Leaderboard** - global and friends-only rankings.
 - **Achievements** - unlockable achievement list with hint system.
 - **Workshop / Mods** - browse, install, and upload user mods; installed mods list. Mods made in the editor can run **CGC** code (see below).
+- **Mod pricing and Remix** (1.25.0) - in the mod editor, the **Auto** button next to Price sets the price to the storage percent divided by 10. Storage can go past 100%, and every percent over costs 1 extra Gem to upload (`modEditorExtraGems()`). Every mod page has a **Remix** button: if you downloaded the mod, paying `MOD_REMIX_COST` (100) Gems copies it into your editor. A published remix links to the original through `repoUrl` (the `repo_url` column), saved as `<game link>?mod=<original id>` and read by `modRemixSourceId()`.
 - **Friends & Messages** - friend requests, friend picker, and a simple chat system.
 - **Notification badges** (1.22.0) - a red badge above the Stats tab shows friend requests + unread messages. Inside Stats, Overview shows the friend request count and Messages shows the unread count. Polled every `NOTIF_POLL_MS` (15s).
 - **New shop item alert** (1.22.0) - when a shop item becomes affordable for the first time, the Shop tab flickers yellow (purple if the player's favorite color is yellow). Clicking Shop opens the right category, scrolls to the item and flashes it. New items must be added to `SHOP_WATCH_ITEMS` to get the alert.
@@ -107,8 +108,8 @@ Rules:
 Near the top of `index.html`:
 
 ```html
-<!-- Game version: 1.24.1 | Deployment: 208 | Update both on every release, see README.md -->
-<meta name="game-version" content="1.24.1">
+<!-- Game version: 1.25.0 | Deployment: 208 | Update both on every release, see README.md -->
+<meta name="game-version" content="1.25.0">
 ```
 
 Bump both the version comment and the `game-version` meta tag on every release. The deployment number is an internal counter for tracking Apps Script/Sheet deployments - increment it whenever the backend Web App is redeployed, even if the game version string doesn't change.
