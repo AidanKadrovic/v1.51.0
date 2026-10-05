@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<!-- Game version: 1.29.0 | Deployment: 208 | Update both on every release, see README.md -->
-<meta name="game-version" content="1.29.0">
+<!-- Game version: 1.29.1 | Deployment: 208 | Update both on every release, see README.md -->
+<meta name="game-version" content="1.29.1">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>The Clicker Game!</title>
 <link rel="icon" type="image/x-icon" href="images/ui/maksy.ico" id="favicon-link">
@@ -16218,10 +16218,9 @@
       models: ['claude-sonnet-5-5', 'claude-haiku-4-5-20251001'],
       connectorNote: '',
       connectorSteps: [
-        'Open Claude and go to Customize, then Connectors.',
-        'Click + Add, then Add custom connector.',
-        'Name it The Clicker Game, paste the connector link and click Continue.',
-        'Pick "No sign in", then click Add.',
+        'Click Add to Claude. Claude opens in a new tab with the name and link already filled in.',
+        'Check the link is the same as the one above, then click Continue.',
+        'Leave it on "No sign-in", click Add, then click Connect.',
         'In a chat, click +, then Connectors, and turn The Clicker Game on.'
       ] },
     { id: 'gemini', name: 'Gemini', color: '#c1aef0', maker: 'Google',
@@ -16528,6 +16527,7 @@
         <input class="cgc-link-url" id="cgc-link-url-guide" readonly value="${esc(cgcConnectorUrl())}" aria-label="Connector link">
         <button class="workshop-icon-btn" id="cgc-link-url-copy-guide">Copy link</button>
       </div>
+      ${ai.id === 'claude' ? '<div class="cgc-ai-row"><button class="auth-btn" id="cgc-link-add-claude-guide">Add to Claude</button></div>' : ''}
       ${connectorSteps}
       <p class="mio-side-note">Menus in AI apps move around sometimes. Look for the words "connector" or "MCP server".</p>
 
@@ -16563,6 +16563,8 @@
     const urlCopy = document.getElementById('cgc-link-url-copy-guide');
     urlCopy.addEventListener('click', () => cgcLinkCopy(cgcConnectorUrl(), urlCopy, 'Copy link'));
     document.getElementById('cgc-link-open').addEventListener('click', () => { closeCgcGuide(); cgcLinkOpen(); });
+    const addClaude = document.getElementById('cgc-link-add-claude-guide');
+    if (addClaude) addClaude.addEventListener('click', () => window.open(cgcClaudeAddUrl(), '_blank', 'noopener'));
     document.getElementById('cgc-ai-paste').addEventListener('toggle', (e) => { cgcVibe.pasteOpen = e.target.open; });
 
     // Typing just updates what we remember. Nothing is redrawn, so the cursor stays put.
@@ -16958,6 +16960,14 @@ ${hasCode
   // The connector link: the game's API link with "api" swapped for "mcp".
   function cgcConnectorUrl(){ return SHEET_API_URL.replace(/\/api\/?$/, '/mcp'); }
 
+  // ADD TO CLAUDE (1.29.1): Claude has a special link that opens its "Add custom connector"
+  // box with the name and connector link already typed in, so nothing has to be pasted.
+  function cgcClaudeAddUrl(){
+    return 'https://claude.ai/customize/connectors?modal=add-custom-connector'
+      + '&connectorName=' + encodeURIComponent('The Clicker Game')
+      + '&connectorUrl=' + encodeURIComponent(cgcConnectorUrl());
+  }
+
   function cgcLinkNewCode(){
     const nums = new Uint32Array(8);
     crypto.getRandomValues(nums);
@@ -17152,6 +17162,7 @@ ${hasCode
         <div class="cgc-link-row">
           <input class="cgc-link-url" id="cgc-link-url" readonly value="${esc(cgcConnectorUrl())}">
           <button class="workshop-icon-btn" id="cgc-link-url-copy">Copy link</button>
+          <button class="workshop-icon-btn cgc-secondary-btn" id="cgc-link-add-claude" title="Opens Claude with the connector already filled in">Add to Claude</button>
         </div>
         <span class="cgc-link-label">2. Tell your AI this connect code</span>
         <div class="cgc-link-row">
@@ -17180,6 +17191,7 @@ ${hasCode
     const on = (id, fn) => { const el = document.getElementById(id); if (el) el.addEventListener('click', () => fn(el)); };
     on('cgc-link-howto', () => openCgcGuide('vibecoding'));
     on('cgc-link-url-copy', (el) => cgcLinkCopy(cgcConnectorUrl(), el, 'Copy link'));
+    on('cgc-link-add-claude', () => window.open(cgcClaudeAddUrl(), '_blank', 'noopener'));
     on('cgc-link-code-copy', (el) => cgcLinkCopy(code, el, 'Copy code'));
     on('cgc-link-say-copy', (el) => cgcLinkCopy(`Use The Clicker Game connector. My connect code is ${code}. Make a mod that `, el, 'Copy'));
     on('cgc-link-code-new', () => { cgcLinkNewCode(); cgcLink.steps = []; cgcLinkStart(); });
