@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<!-- Game version: 1.30.0 | Deployment: 208 | Update both on every release, see README.md -->
-<meta name="game-version" content="1.30.0">
+<!-- Game version: 1.31.0 | Deployment: 208 | Update both on every release, see README.md -->
+<meta name="game-version" content="1.31.0">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>The Clicker Game!</title>
 <link rel="icon" type="image/x-icon" href="images/ui/maksy.ico" id="favicon-link">
@@ -18214,6 +18214,11 @@ ${hasCode
           <h2 class="mod-editor-title">${modEditorEditingId ? 'Edit mod' : 'Mod editor'}</h2>
           <span class="mio-side-note">${modEditorEditingId ? 'Changes save on this device until you click Save changes.' : 'Your work saves automatically on this device.'}</span>
           <button class="workshop-icon-btn cgc-book-btn" id="cgc-book-btn" title="Open the CGC guide: rules, code types and examples" aria-label="Open the CGC guide">${CGC_BOOK_SVG}<span>CGC guide</span></button>
+          <button class="workshop-icon-btn cgc-secondary-btn" id="mod-editor-export" title="Save this mod to your computer as a .cga file (Clicker Game Archive)">Export .cga</button>
+          <label class="workshop-icon-btn cgc-secondary-btn mod-editor-upload-btn" title="Load a mod from a .cga file">
+            Import .cga
+            <input type="file" id="mod-editor-import" accept=".cga,.zip,application/zip">
+          </label>
         </div>
         <div class="mod-editor-grid">
           <div class="mod-editor-main">
@@ -18360,6 +18365,13 @@ ${hasCode
       leaveModEditor();
     });
     document.getElementById('cgc-book-btn').addEventListener('click', () => openCgcGuide());
+    // CGA (1.31.0): export the mod to a file, or load one back in.
+    document.getElementById('mod-editor-export').addEventListener('click', modEditorExportCga);
+    document.getElementById('mod-editor-import').addEventListener('change', (e) => {
+      const file = e.target.files && e.target.files[0];
+      e.target.value = ''; // so picking the same file twice still works
+      if (file) modEditorImportCga(file);
+    });
     cgcBindEditor(d);
     const extrasBtn = document.getElementById('mod-editor-extras-btn');
     if (extrasBtn) extrasBtn.addEventListener('click', openExtrasBrowser);
@@ -18552,6 +18564,326 @@ ${hasCode
       modEditorPublishing = false;
       const b = document.getElementById('mod-editor-publish');
       if (b) { b.disabled = false; b.textContent = modEditorPublishLabel(); }
+    }
+  }
+
+  /* ---------- CGA: CLICKER GAME ARCHIVE (1.31.0) ----------
+     Export saves the mod in the editor as one .cga file. Import loads one back.
+     A .cga is a real zip file with a different ending, so renaming it to .zip opens it
+     in any zip program. Inside:
+       mod.json            name, description, category, version, price, and the list of files
+       code.cgc            the mod's CGC (Clicker Game Code)
+       icon.png            the mod icon, if there is one
+       icons/ cursors/ backgrounds/ music/ payload/   the mod's files
+     Uploaded files are stored as real pictures and sounds. Files added as links stay
+     links inside mod.json, because the file itself lives on the internet. */
+  const CGA_VERSION = 1;                       // bump if the layout inside the archive changes
+  const CGA_MAX_BYTES = 8 * 1024 * 1024;       // biggest .cga the game will open
+  const CGA_MAX_FILES = 300;                   // most files inside one .cga
+  // folder inside the archive -> where those files live in the editor's draft
+  const CGA_FOLDERS = { icons: 'icons', cursors: 'cursors', backgrounds: 'bg', music: 'music' };
+  const CGA_MIME_EXT = {
+    'image/png': 'png', 'image/jpeg': 'jpg', 'image/webp': 'webp', 'image/gif': 'gif', 'image/svg+xml': 'svg',
+    'audio/wav': 'wav', 'audio/x-wav': 'wav', 'audio/wave': 'wav', 'audio/mpeg': 'mp3', 'audio/mp3': 'mp3',
+    'audio/ogg': 'ogg', 'audio/mp4': 'm4a', 'audio/aac': 'aac', 'audio/opus': 'opus', 'audio/webm': 'webm'
+  };
+  const CGA_EXT_MIME = {
+    png: 'image/png', jpg: 'image/jpeg', jpeg: 'image/jpeg', webp: 'image/webp', gif: 'image/gif', svg: 'image/svg+xml',
+    wav: 'audio/wav', mp3: 'audio/mpeg', ogg: 'audio/ogg', m4a: 'audio/mp4', aac: 'audio/aac', opus: 'audio/opus', webm: 'audio/webm'
+  };
+
+  /* ----- zip writing and reading (no library needed) ----- */
+
+  // CRC32 is the checksum every zip entry carries so damage can be noticed.
+  let cgaCrcTable = null;
+  function cgaCrc32(bytes){
+    if (!cgaCrcTable) {
+      cgaCrcTable = new Uint32Array(256);
+      for (let n = 0; n < 256; n++) {
+        let c = n;
+        for (let k = 0; k < 8; k++) c = (c & 1) ? (0xEDB88320 ^ (c >>> 1)) : (c >>> 1);
+        cgaCrcTable[n] = c >>> 0;
+      }
+    }
+    let crc = 0xFFFFFFFF;
+    for (let i = 0; i < bytes.length; i++) crc = cgaCrcTable[(crc ^ bytes[i]) & 0xFF] ^ (crc >>> 8);
+    return (crc ^ 0xFFFFFFFF) >>> 0;
+  }
+
+  // Builds a zip from [{ name, bytes }]. Files are stored as they are (not squeezed),
+  // because pictures and sounds are already squeezed and the code is tiny.
+  function cgaZip(entries){
+    const enc = new TextEncoder();
+    const now = new Date();
+    const time = (now.getHours() << 11) | (now.getMinutes() << 5) | (now.getSeconds() >> 1);
+    const date = ((now.getFullYear() - 1980) << 9) | ((now.getMonth() + 1) << 5) | now.getDate();
+    const parts = [];   // every piece of the file, in order
+    const central = []; // the table of contents that goes at the end
+    let offset = 0;
+    entries.forEach(entry => {
+      const name = enc.encode(entry.name);
+      const crc = cgaCrc32(entry.bytes);
+      const head = new DataView(new ArrayBuffer(30));
+      head.setUint32(0, 0x04034b50, true);  // "local file" marker
+      head.setUint16(4, 20, true);          // zip version needed
+      head.setUint16(6, 0x0800, true);      // names are UTF-8
+      head.setUint16(8, 0, true);           // 0 = stored, not squeezed
+      head.setUint16(10, time, true);
+      head.setUint16(12, date, true);
+      head.setUint32(14, crc, true);
+      head.setUint32(18, entry.bytes.length, true);
+      head.setUint32(22, entry.bytes.length, true);
+      head.setUint16(26, name.length, true);
+      head.setUint16(28, 0, true);
+      parts.push(new Uint8Array(head.buffer), name, entry.bytes);
+
+      const cen = new DataView(new ArrayBuffer(46));
+      cen.setUint32(0, 0x02014b50, true);   // "table of contents entry" marker
+      cen.setUint16(4, 20, true);
+      cen.setUint16(6, 20, true);
+      cen.setUint16(8, 0x0800, true);
+      cen.setUint16(10, 0, true);
+      cen.setUint16(12, time, true);
+      cen.setUint16(14, date, true);
+      cen.setUint32(16, crc, true);
+      cen.setUint32(20, entry.bytes.length, true);
+      cen.setUint32(24, entry.bytes.length, true);
+      cen.setUint16(28, name.length, true);
+      cen.setUint32(42, offset, true);      // where this file starts
+      central.push(new Uint8Array(cen.buffer), name);
+      offset += 30 + name.length + entry.bytes.length;
+    });
+    const centralSize = central.reduce((sum, part) => sum + part.length, 0);
+    const end = new DataView(new ArrayBuffer(22));
+    end.setUint32(0, 0x06054b50, true);     // "end of zip" marker
+    end.setUint16(8, entries.length, true);
+    end.setUint16(10, entries.length, true);
+    end.setUint32(12, centralSize, true);
+    end.setUint32(16, offset, true);
+    const all = parts.concat(central, [new Uint8Array(end.buffer)]);
+    const out = new Uint8Array(all.reduce((sum, part) => sum + part.length, 0));
+    let at = 0;
+    all.forEach(part => { out.set(part, at); at += part.length; });
+    return out;
+  }
+
+  // Un-squeezes one "deflate" entry. Only needed for archives re-zipped by another program.
+  async function cgaInflate(bytes){
+    if (typeof DecompressionStream === 'undefined') throw new Error("this browser can't open squeezed archives");
+    const stream = new Blob([bytes]).stream().pipeThrough(new DecompressionStream('deflate-raw'));
+    return new Uint8Array(await new Response(stream).arrayBuffer());
+  }
+
+  // Reads a zip and returns a Map of file name -> bytes.
+  async function cgaUnzip(bytes){
+    const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+    // The "end of zip" marker is near the end of the file. Search backwards for it.
+    let end = -1;
+    for (let i = bytes.length - 22; i >= Math.max(0, bytes.length - 66000); i--) {
+      if (view.getUint32(i, true) === 0x06054b50) { end = i; break; }
+    }
+    if (end === -1) throw new Error("that file isn't a .cga archive");
+    const count = view.getUint16(end + 10, true);
+    if (count > CGA_MAX_FILES) throw new Error('that archive has too many files in it');
+    let at = view.getUint32(end + 16, true);
+    const dec = new TextDecoder();
+    const files = new Map();
+    let total = 0;
+    for (let n = 0; n < count; n++) {
+      if (at + 46 > bytes.length || view.getUint32(at, true) !== 0x02014b50) throw new Error('that archive is damaged');
+      const method = view.getUint16(at + 10, true);
+      const packedSize = view.getUint32(at + 20, true);
+      const fullSize = view.getUint32(at + 24, true);
+      const nameLen = view.getUint16(at + 28, true);
+      const extraLen = view.getUint16(at + 30, true);
+      const commentLen = view.getUint16(at + 32, true);
+      const local = view.getUint32(at + 42, true);
+      const name = dec.decode(bytes.subarray(at + 46, at + 46 + nameLen));
+      at += 46 + nameLen + extraLen + commentLen;
+      if (name.endsWith('/')) continue; // a folder, not a file
+      total += fullSize;
+      if (total > CGA_MAX_BYTES * 2) throw new Error('that archive is too big');
+      if (local + 30 > bytes.length || view.getUint32(local, true) !== 0x04034b50) throw new Error('that archive is damaged');
+      const start = local + 30 + view.getUint16(local + 26, true) + view.getUint16(local + 28, true);
+      const packed = bytes.subarray(start, start + packedSize);
+      let data;
+      if (method === 0) data = packed;
+      else if (method === 8) data = await cgaInflate(packed);
+      else throw new Error('that archive uses a kind of squeezing the game does not know');
+      files.set(name, data);
+    }
+    return files;
+  }
+
+  /* ----- turning files into bytes and back ----- */
+
+  // "data:image/png;base64,AAAA" -> { mime, bytes }. Returns null for anything that isn't a data URL.
+  function cgaDataUrlToBytes(url){
+    const match = /^data:([^;,]*)((?:;[^;,]*)*),/.exec(String(url || ''));
+    if (!match) return null;
+    const body = url.slice(match[0].length);
+    let bytes;
+    if (/;base64/i.test(match[2])) {
+      const bin = atob(body);
+      bytes = new Uint8Array(bin.length);
+      for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+    } else {
+      bytes = new TextEncoder().encode(decodeURIComponent(body));
+    }
+    return { mime: (match[1] || 'application/octet-stream').toLowerCase(), bytes };
+  }
+
+  function cgaBytesToDataUrl(bytes, mime){
+    let bin = '';
+    for (let i = 0; i < bytes.length; i += 0x8000) bin += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000));
+    return 'data:' + mime + ';base64,' + btoa(bin);
+  }
+
+  // A file name that is safe inside the archive and isn't already used there.
+  function cgaEntryName(folder, wanted, ext, used){
+    let base = cgcCleanFileName(wanted).replace(/\.[a-z0-9]+$/i, '') || 'file';
+    let name = `${folder}${base}.${ext}`;
+    for (let n = 2; used.has(name); n++) name = `${folder}${base}-${n}.${ext}`;
+    used.add(name);
+    return name;
+  }
+
+  // Builds the archive for a draft. Returns the bytes of the .cga file.
+  function modEditorBuildCga(d){
+    const enc = new TextEncoder();
+    const entries = [];
+    const used = new Set(['mod.json', 'code.cgc']);
+    // Stores one { name, url } file. Uploaded files go in the archive, links stay links.
+    const pack = (folder, f) => {
+      const data = cgaDataUrlToBytes(f.url);
+      if (!data) return { name: f.name, url: f.url };
+      const ext = CGA_MIME_EXT[data.mime] || (String(f.name).match(/\.([a-z0-9]+)$/i) || [])[1] || 'bin';
+      const path = cgaEntryName(folder, f.name, ext, used);
+      entries.push({ name: path, bytes: data.bytes });
+      return { name: f.name, file: path };
+    };
+    const manifest = {
+      format: 'cga',
+      formatVersion: CGA_VERSION,
+      game: 'The Clicker Game!',
+      exportedBy: currentUsername || '',
+      exportedAt: new Date().toISOString(),
+      name: d.name || '',
+      description: d.description || '',
+      category: d.category || 'Other',
+      mature: !!d.mature,
+      version: d.version || '1.0',
+      price: Number(d.price) || 0,
+      remixOf: d.remixOf || null,
+      code: 'code.cgc',
+      icon: null,
+      files: {},
+      payload: []
+    };
+    if (d.iconData) {
+      const icon = pack('', { name: 'icon', url: d.iconData });
+      manifest.icon = icon.file ? icon.file : { url: icon.url };
+    }
+    Object.keys(CGA_FOLDERS).forEach(folder => {
+      manifest.files[folder] = (d.files[CGA_FOLDERS[folder]] || []).map(f => pack(folder + '/', f));
+    });
+    manifest.payload = (d.payload || []).map(f => pack("payload/", f));
+    // mod.json and the code go first so they are easy to find when the archive is opened by hand.
+    entries.unshift(
+      { name: 'mod.json', bytes: enc.encode(JSON.stringify(manifest, null, 2)) },
+      { name: 'code.cgc', bytes: enc.encode(String(d.code || '')) }
+    );
+    return cgaZip(entries);
+  }
+
+  // Export button: builds the archive and hands it to the browser as a download.
+  function modEditorExportCga(){
+    const d = modEditorDraft;
+    if (!d) return;
+    try {
+      const bytes = modEditorBuildCga(d);
+      const fileName = modEditorSlug(d.name || 'my-mod') + '.cga';
+      const url = URL.createObjectURL(new Blob([bytes], { type: 'application/zip' }));
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = fileName;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 2000);
+      modEditorStatus(`Saved ${fileName} (${Math.max(1, Math.round(bytes.length / 1024))} KB). Use Import .cga to load it again.`);
+    } catch (e) {
+      modEditorStatus("Couldn't export this mod. Try removing the last file you added.", true);
+    }
+  }
+
+  // Turns the bytes of a .cga file back into an editor draft. Throws with a reason if it can't.
+  async function modEditorReadCga(bytes){
+    if (bytes.length > CGA_MAX_BYTES) throw new Error('that file is too big');
+    const files = await cgaUnzip(bytes);
+    if (!files.has('mod.json')) throw new Error("that file isn't a .cga archive (it has no mod.json)");
+    let manifest;
+    try { manifest = JSON.parse(new TextDecoder().decode(files.get('mod.json'))); } catch (e) { throw new Error('the mod.json inside is broken'); }
+    if (!manifest || manifest.format !== 'cga') throw new Error("that file isn't a .cga archive");
+    if (Number(manifest.formatVersion) > CGA_VERSION) throw new Error('that archive was made by a newer version of the game');
+
+    // Turns one entry from mod.json back into { name, url }. Returns null if it can't be trusted.
+    const unpack = (f, cleanName) => {
+      if (!f || typeof f !== 'object') return null;
+      const name = cleanName ? cgcCleanFileName(f.name) : String(f.name || '').slice(0, 40);
+      if (typeof f.file === 'string' && files.has(f.file)) {
+        const ext = (f.file.match(/\.([a-z0-9]+)$/i) || [])[1] || '';
+        const mime = CGA_EXT_MIME[ext.toLowerCase()];
+        if (!mime) return null; // only pictures and sounds are allowed in
+        return { name, url: cgaBytesToDataUrl(files.get(f.file), mime) };
+      }
+      // Links must be normal web links, or a song from the game's own extras folder.
+      if (typeof f.url === 'string' && (/^https?:\/\/\S+$/i.test(f.url) || /^extras\/[^\/\\]+$/.test(f.url))) return { name, url: f.url };
+      return null;
+    };
+
+    const d = newModEditorDraft();
+    d.name = String(manifest.name || '').slice(0, 60);
+    d.description = String(manifest.description || '').slice(0, 500);
+    d.mature = !!manifest.mature;
+    d.category = String(manifest.category || 'Other').slice(0, 40);
+    d.version = String(manifest.version || '1.0').slice(0, 12);
+    d.price = Math.max(0, Math.floor(Number(manifest.price) || 0));
+    if (manifest.remixOf && manifest.remixOf.id) d.remixOf = { id: String(manifest.remixOf.id), name: String(manifest.remixOf.name || '') };
+    const codeFile = typeof manifest.code === 'string' && files.has(manifest.code) ? manifest.code : 'code.cgc';
+    d.code = files.has(codeFile) ? new TextDecoder().decode(files.get(codeFile)) : CGC_DEFAULT_CODE;
+    if (manifest.icon) {
+      const icon = unpack(typeof manifest.icon === 'string' ? { name: 'icon', file: manifest.icon } : { name: 'icon', url: manifest.icon.url });
+      if (icon) d.iconData = icon.url;
+    }
+    let skipped = 0;
+    Object.keys(CGA_FOLDERS).forEach(folder => {
+      const list = manifest.files && Array.isArray(manifest.files[folder]) ? manifest.files[folder] : [];
+      list.forEach(f => { const got = unpack(f, false); if (got) d.files[CGA_FOLDERS[folder]].push(got); else skipped++; });
+    });
+    (Array.isArray(manifest.payload) ? manifest.payload : []).forEach(f => {
+      const got = unpack(f, true);
+      if (!got) { skipped++; return; }
+      got.name = cgcUniqueFileName(got.name, d.payload, -1);
+      d.payload.push(got);
+    });
+    return { draft: d, skipped };
+  }
+
+  // Import button: reads the picked file and swaps it in for what is in the editor.
+  async function modEditorImportCga(file){
+    try {
+      if (file.size > CGA_MAX_BYTES) throw new Error('that file is too big');
+      const result = await modEditorReadCga(new Uint8Array(await file.arrayBuffer()));
+      const what = modEditorEditingId ? 'the changes to this mod' : 'the mod in your editor';
+      if (modEditorHasContent() && !confirm(`Replace ${what} with "${result.draft.name || file.name}"?`)) return;
+      cgcStopTest();
+      modEditorDraft = result.draft;
+      saveModEditorDraft();
+      renderModEditor();
+      modEditorStatus(`Loaded ${file.name}.${result.skipped ? ` ${result.skipped} file${result.skipped === 1 ? ' was' : 's were'} skipped because the game couldn't use ${result.skipped === 1 ? 'it' : 'them'}.` : ''}${modEditorSize() > MOD_EDITOR_SIZE_LIMIT ? ' It is over 100% storage, so publishing costs extra Gems.' : ''}`, false);
+    } catch (e) {
+      modEditorStatus(`Couldn't import: ${e && e.message ? e.message : 'the file could not be read'}.`, true);
     }
   }
 
