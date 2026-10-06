@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<!-- Game version: 1.34.0 | Deployment: 210 | Update both on every release, see README.md -->
-<meta name="game-version" content="1.34.0">
+<!-- Game version: 1.35.0 | Deployment: 210 | Update both on every release, see README.md -->
+<meta name="game-version" content="1.35.0">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>The Clicker Game!</title>
 <link rel="icon" type="image/x-icon" href="images/ui/maksy.ico" id="favicon-link">
@@ -37,7 +37,10 @@
     --melon-light:#79cf67;
     --tab-color: var(--melon-light);
     --moneys-green:#4ade80;
-    --btn-text: var(--night);
+    --on-bright:#130f29;          /* dark text for bright buttons, the same in light and dark mode */
+    --zap-text: var(--zap);               /* yellow used as TEXT. Light mode swaps in a darker gold so it can be read */
+    --melon-text: var(--melon-light);     /* account color used as TEXT. Light mode darkens it the same way */
+    --btn-text: var(--on-bright);
     --rind:#faf3df;
     --lavender:#c1aef0;
     --cream:#f6efdd;
@@ -53,14 +56,26 @@
     --hero-gradient: linear-gradient(110deg, var(--melon-light) 0%, var(--zap) 55%, var(--pow) 100%);
   }
 
-  body.light-mode{
+  /* LIGHT MODE colors. These sit on <html> (not <body>) so colors built from other
+     colors, like --surface, get rebuilt with the light values.
+     This is only the backup copy: the real values come from settings/themes.json
+     (see THEMES in the script). Keep the two roughly in sync. */
+  html.light-mode{
     --night:#f2f0f9;
     --card:#ffffff;
     --card-hover:#ece9f7;
     --rind:#221c38;
+    --cream:#221c38;
     --muted: rgba(34,28,56,0.62);
     --line: rgba(34,28,56,0.1);
+    --lavender:#7c5cd6;
+    --moneys-green:#16a34a;
+    --shine: inset 0 1px 0 rgba(255,255,255,0.9);
+    --zap-text:#a16207;
+    --melon-text: color-mix(in srgb, var(--melon-light) 55%, #000);
+    color-scheme:light;
   }
+  html{ color-scheme:dark; }
 
   *{box-sizing:border-box; touch-action:manipulation;}
 
@@ -135,7 +150,7 @@
     width:100%;
     font-family:'Fredoka One', cursive;
     font-size:13px;
-    color:var(--night);
+    color:var(--on-bright);
     background:var(--brand-gradient);
     border:2px solid var(--ink);
     box-shadow:var(--pop-sm);
@@ -237,11 +252,92 @@
     flex-shrink:0;
   }
 
+  /* ---------- THEME PICKER (Settings tab) ----------
+     Three small square buttons: light, dark, system. The picked one is lit up. */
+  .theme-picker{
+    display:flex;
+    flex-direction:column;
+    align-items:flex-end;
+    gap:8px;
+    flex-shrink:0;
+  }
+  .theme-mode-btns{
+    display:flex;
+    gap:8px;
+  }
+  .theme-mode-btn{
+    width:40px;
+    height:40px;
+    padding:0;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    color:var(--rind);
+    background:var(--card-hover);
+    border:2px solid var(--ink);
+    border-radius:11px;
+    cursor:pointer;
+    box-shadow:0 3px 0 var(--ink);
+    transition:transform .08s ease, box-shadow .08s ease;
+  }
+  .theme-mode-btn svg{ width:20px; height:20px; display:block; }
+  .theme-mode-btn:hover{ transform:translateY(-1px); box-shadow:0 4px 0 var(--ink); }
+  .theme-mode-btn:active{ transform:translateY(2px); box-shadow:0 1px 0 var(--ink); }
+  .theme-mode-btn.active{
+    color:var(--on-bright);
+    background:var(--brand-gradient);
+    transform:translateY(2px);
+    box-shadow:0 1px 0 var(--ink);
+  }
+
+  /* ---------- CREDITS MENU (Settings tab > Credits) ---------- */
+  .credits-list{
+    max-height:300px;
+    overflow-y:auto;
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+    margin-bottom:14px;
+    padding:2px 4px 6px 2px; /* room for the drop shadows */
+  }
+  .credits-row{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+    width:100%;
+    text-align:left;
+    font:inherit;
+    color:var(--rind);
+    background:var(--night);
+    border:2px solid var(--ink);
+    border-radius:14px;
+    padding:10px 12px;
+    box-shadow:0 3px 0 var(--ink);
+  }
+  button.credits-row{ cursor:pointer; transition:transform .08s ease; }
+  button.credits-row:hover{ transform:translateY(-1px); }
+  .credits-name{
+    font-family:'Fredoka One', cursive;
+    font-size:14px;
+    overflow-wrap:anywhere;
+  }
+  .credits-position{
+    flex-shrink:0;
+    font-family:'Fredoka One', cursive;
+    font-size:11px;
+    color:var(--on-bright);
+    background:var(--brand-gradient);
+    border:2px solid var(--ink);
+    border-radius:999px;
+    padding:3px 10px;
+  }
+
   /* ---------- PROFILE ---------- */
   .click-counter{
     font-family:'Fredoka One', cursive;
     font-size:13px;
-    color:var(--night);
+    color:var(--on-bright);
     background:var(--brand-gradient);
     border:2px solid var(--ink);
     box-shadow:var(--pop-sm);
@@ -360,7 +456,7 @@
     border-radius:10px;
     border:2px solid var(--ink);
     background:var(--brand-gradient);
-    color:var(--night);
+    color:var(--on-bright);
     font-size:13px;
     cursor:pointer;
     display:flex;
@@ -496,7 +592,7 @@
     transform:translateX(-50%) translateY(-12px) scale(0.9);
     background:var(--brand-gradient);
     border:2px solid var(--ink);
-    color:var(--night);
+    color:var(--on-bright);
     font-family:'Fredoka One', cursive;
     font-size:12.5px;
     font-weight:400;
@@ -596,7 +692,7 @@
   .tab-btn.active{
     background:var(--brand-gradient);
     border-color:var(--ink);
-    color:var(--night);
+    color:var(--on-bright);
     box-shadow:var(--pop-sm);
     transform:translate(-1px,-1px);
   }
@@ -791,7 +887,7 @@
   .link-arrow{
     flex-shrink:0;
     font-size:15px;
-    color:var(--melon-light);
+    color:var(--melon-text);
     transition:transform .15s ease;
   }
   .link-card:hover .link-arrow{transform:translateX(3px);}
@@ -832,7 +928,7 @@
   .leaderboard-row.me{
     border-color:var(--zap);
   }
-  .leaderboard-row.rank-1 .leaderboard-rank{ color:var(--zap); }
+  .leaderboard-row.rank-1 .leaderboard-rank{ color:var(--zap-text); }
   .leaderboard-row.rank-2 .leaderboard-rank{ color:#d7dbe3; }
   .leaderboard-row.rank-3 .leaderboard-rank{ color:#d98a4f; }
 
@@ -1211,11 +1307,11 @@
     justify-content:center;
     font-family:'Fredoka One', cursive;
     font-size:16px;
-    color:var(--melon-light);
+    color:var(--melon-text);
   }
   .achievement-card.unlocked .achievement-icon{
     background:var(--brand-gradient);
-    color:var(--night);
+    color:var(--on-bright);
   }
   .achievement-card.diff-easy.unlocked .achievement-icon{ background:linear-gradient(135deg, var(--melon-light), #3f8a30); }
   .achievement-card.diff-medium.unlocked .achievement-icon{ background:linear-gradient(135deg, var(--zap), #ff9a3c); }
@@ -1235,11 +1331,11 @@
   }
   .achievement-difficulty.diff-easy{
     background:rgba(87,171,70,0.25);
-    color:var(--melon-light);
+    color:var(--melon-text);
   }
   .achievement-difficulty.diff-medium{
     background:rgba(255,203,61,0.22);
-    color:var(--zap);
+    color:var(--zap-text);
   }
   .achievement-difficulty.diff-hard{
     background:rgba(255,93,160,0.22);
@@ -1341,7 +1437,7 @@
     flex-shrink:0;
     font-family:'Fredoka One', cursive;
     font-size:11.5px;
-    color:var(--night);
+    color:var(--on-bright);
     background:var(--brand-gradient);
     border:2px solid var(--ink);
     border-radius:10px;
@@ -1408,7 +1504,7 @@
     flex:1;
     font-family:'Fredoka One', cursive;
     font-size:10px;
-    color:var(--night);
+    color:var(--on-bright);
     background:var(--brand-gradient);
     border:2px solid var(--ink);
     border-radius:8px;
@@ -1593,7 +1689,7 @@
     gap:8px;
     padding:9px 12px;
     background:var(--brand-gradient);
-    color:var(--night);
+    color:var(--on-bright);
     font-family:'Fredoka One', cursive;
     font-size:12.5px;
     border-radius:11px 11px 0 0;
@@ -1605,7 +1701,7 @@
   .debug-panel-close{
     background:none;
     border:none;
-    color:var(--night);
+    color:var(--on-bright);
     font-size:18px;
     line-height:1;
     cursor:pointer;
@@ -1699,7 +1795,7 @@
     justify-content:center;
     font-family:'Fredoka One', cursive;
     font-size:16px;
-    color:var(--night);
+    color:var(--on-bright);
     flex-shrink:0;
     border:2px solid var(--ink);
   }
@@ -1719,10 +1815,10 @@
     font-size:10px;
     text-transform:uppercase;
     letter-spacing:0.08em;
-    color:var(--zap);
+    color:var(--zap-text);
     font-weight:600;
   }
-  .achievement-popup.diff-easy .achievement-popup-label{ color:var(--melon-light); }
+  .achievement-popup.diff-easy .achievement-popup-label{ color:var(--melon-text); }
   .achievement-popup.diff-hard .achievement-popup-label{ color:var(--pow); }
   .achievement-popup.diff-extreme .achievement-popup-label{ color:#ff5c5c; }
   .achievement-popup.diff-special .achievement-popup-label{ color:#b47cff; }
@@ -1736,7 +1832,7 @@
     font-family:'Poppins', sans-serif;
     font-size:10.5px;
     font-weight:600;
-    color:var(--zap);
+    color:var(--zap-text);
   }
 
   /* ---------- ROBLOX NOOB ---------- */
@@ -2160,7 +2256,7 @@
     height:18px;
     border-radius:50%;
     background:var(--melon-light);
-    color:var(--night);
+    color:var(--on-bright);
     display:flex;
     align-items:center;
     justify-content:center;
@@ -2293,7 +2389,7 @@
     font-size:10.5px;
     color:var(--muted);
   }
-  .limited-chip.equipped .limited-chip-state{ color:var(--melon-light); }
+  .limited-chip.equipped .limited-chip-state{ color:var(--melon-text); }
 
   /* ---------- PROFILE FRAMES ----------
      Added to .stats-avatar, .public-profile-avatar, .leaderboard-avatar and
@@ -2647,7 +2743,7 @@
     width:100%;
     font-family:'Fredoka One', cursive;
     font-size:14px;
-    color:var(--night);
+    color:var(--on-bright);
     background:var(--brand-gradient);
     border:2px solid var(--ink);
     border-radius:10px;
@@ -2719,7 +2815,7 @@
   }
   .edit-toggle-btn[data-on="true"]{
     background:var(--brand-gradient);
-    color:var(--night);
+    color:var(--on-bright);
     border-color:var(--ink);
   }
   .auth-error{
@@ -2733,12 +2829,12 @@
     margin-top:12px;
     font-family:'Poppins', sans-serif;
     font-size:12.5px;
-    color:var(--zap);
+    color:var(--zap-text);
     text-decoration:underline;
     cursor:pointer;
   }
   .auth-link:hover{
-    color:var(--melon-light);
+    color:var(--melon-text);
   }
 
   .color-grid{
@@ -2862,9 +2958,9 @@
   }
   /* Option text (and the closed select) use the achievement's difficulty color. */
   .edit-featured-select option.diff-easy,
-  .edit-featured-select.diff-easy{ color:var(--melon-light); }
+  .edit-featured-select.diff-easy{ color:var(--melon-text); }
   .edit-featured-select option.diff-medium,
-  .edit-featured-select.diff-medium{ color:var(--zap); }
+  .edit-featured-select.diff-medium{ color:var(--zap-text); }
   .edit-featured-select option.diff-hard,
   .edit-featured-select.diff-hard{ color:var(--pow); }
   .edit-featured-select option.diff-extreme,
@@ -2888,7 +2984,7 @@
     font-weight:600;
     text-transform:uppercase;
     letter-spacing:0.08em;
-    color:var(--zap);
+    color:var(--zap-text);
   }
   .public-profile-featured-chip{
     display:flex;
@@ -2913,7 +3009,7 @@
     background:var(--brand-gradient);
     font-family:'Fredoka One', cursive;
     font-size:14px;
-    color:var(--night);
+    color:var(--on-bright);
   }
   .public-profile-featured-text{
     display:flex;
@@ -2999,7 +3095,7 @@
   .stats-subtab-btn.active{
     background:var(--brand-gradient);
     border-color:var(--ink);
-    color:var(--night);
+    color:var(--on-bright);
     box-shadow:var(--pop-sm);
     transform:translate(-1px,-1px);
   }
@@ -3086,7 +3182,7 @@
     border:2px solid var(--ink);
     cursor:pointer;
     background:var(--brand-gradient);
-    color:var(--night);
+    color:var(--on-bright);
     box-shadow:var(--pop-sm);
     transition:transform .12s ease, box-shadow .12s ease;
   }
@@ -3110,7 +3206,7 @@
   }
   .friend-action-btn.accept{
     background:var(--brand-gradient);
-    color:var(--night);
+    color:var(--on-bright);
   }
   .friend-request-actions{
     display:flex;
@@ -3175,7 +3271,7 @@
     font-family:'Fredoka One', cursive;
     font-size:10px;
     line-height:1.4;
-    color:var(--night);
+    color:var(--on-bright);
     background:#79cf67;
     border:2px solid var(--ink);
     border-radius:999px;
@@ -3368,7 +3464,7 @@
   .workshop-icon-btn{
     font-family:'Fredoka One', cursive;
     font-size:11.5px;
-    color:var(--night);
+    color:var(--on-bright);
     background:var(--brand-gradient);
     border:2px solid var(--ink);
     border-radius:9px;
@@ -3537,7 +3633,7 @@
   }
   .workshop-chip.active{
     background:var(--brand-gradient);
-    color:var(--night);
+    color:var(--on-bright);
   }
   /* Grid of mod tiles, mod.io-portal style: a wide responsive grid of
      chunky pop cards instead of one long stacked list. */
@@ -3663,7 +3759,7 @@
     color:var(--rind);
   }
   .chat-message-row.mine .chat-message-sender{
-    color:var(--night);
+    color:var(--on-bright);
   }
   .chat-message-text{
     font-family:'Poppins', sans-serif;
@@ -3672,7 +3768,7 @@
     word-break:break-word;
   }
   .chat-message-row.mine .chat-message-text{
-    color:var(--night);
+    color:var(--on-bright);
   }
   .chat-message-time{
     font-family:'Poppins', sans-serif;
@@ -3868,7 +3964,7 @@
   }
   .workshop-item-meta{
     font-size:10.5px;
-    color:var(--zap);
+    color:var(--zap-text);
     font-weight:600;
   }
   .workshop-tabs{
@@ -3889,7 +3985,7 @@
   }
   .workshop-tabs button.active{
     background:var(--brand-gradient);
-    color:var(--night);
+    color:var(--on-bright);
   }
   .workshop-item-stats{
     display:flex;
@@ -3978,7 +4074,7 @@
   }
   .vote-btn.active{
     background:var(--brand-gradient);
-    color:var(--night);
+    color:var(--on-bright);
   }
   .workshop-download-count{
     font-size:11px;
@@ -4646,7 +4742,7 @@
   .mio-filter.active{
     background:var(--brand-gradient);
     border-color:var(--ink);
-    color:var(--night);
+    color:var(--on-bright);
     font-weight:600;
   }
   .mio-filter-count{
@@ -4661,7 +4757,7 @@
   }
   .mio-filter.active .mio-filter-count{
     background:rgba(0,0,0,0.18);
-    color:var(--night);
+    color:var(--on-bright);
   }
   .mio-switch-row{
     position:relative;
@@ -4804,7 +4900,7 @@
     font-family:'Poppins', sans-serif;
     font-size:12px;
     font-weight:600;
-    color:var(--zap);
+    color:var(--zap-text);
   }
   .mio-featured-info h2{
     font-family:'Fredoka One', cursive;
@@ -5195,7 +5291,7 @@
     min-width:0;
     overflow-wrap:anywhere;
   }
-  .mio-meta-list a{ color:var(--zap); text-decoration:underline; }
+  .mio-meta-list a{ color:var(--zap-text); text-decoration:underline; }
   .mio-meta-list .workshop-download-count{ font-size:13px; color:var(--rind); }
   .workshop-mature-note{
     margin-top:-6px;
@@ -5375,10 +5471,8 @@
   .link-card{
     background-image:linear-gradient(180deg, rgba(255,255,255,0.045), rgba(255,255,255,0) 55%);
   }
-  body.light-mode .shop-card,
-  body.light-mode .achievement-card,
-  body.light-mode .leaderboard-row,
-  body.light-mode .stats-card,
+  /* Light mode: only the old link cards drop the highlight. The other cards get their
+     color from --surface (a background-image), so wiping it made them see-through. */
   body.light-mode .link-card{
     background-image:none;
   }
@@ -5469,7 +5563,7 @@
   }
   .new-mod-tab:hover{ color:var(--rind); background:var(--card-hover); }
   .new-mod-tab.active{
-    color:var(--night);
+    color:var(--on-bright);
     background:var(--brand-gradient);
     border-color:var(--ink);
     box-shadow:2px 2px 0 var(--ink);
@@ -5581,7 +5675,7 @@
     background:none;
     border:none;
     padding:0;
-    color:var(--zap);
+    color:var(--zap-text);
     font:inherit;
     text-decoration:underline;
     cursor:pointer;
@@ -5995,7 +6089,7 @@
   }
   .chat-role-pill.you{
     background:var(--melon-light);
-    color:var(--night);
+    color:var(--on-bright);
   }
   .chat-remove-btn{
     flex-shrink:0;
@@ -6055,7 +6149,7 @@
     box-shadow:var(--pop-sm);
   }
   .chat-row.unread .chat-row-name-text{
-    color:var(--zap);
+    color:var(--zap-text);
   }
 
   /* Messages: avatar next to the sender name, delete link */
@@ -6108,9 +6202,6 @@
     --shine: inset 0 1px 0 rgba(255,255,255,0.10);
     --surface: linear-gradient(180deg, var(--card-hover) 0%, var(--card) 70%);
     --btn-edge:#3d7f2c;          /* the colored "side" under candy buttons */
-  }
-  body.light-mode{
-    --shine: inset 0 1px 0 rgba(255,255,255,0.9);
   }
 
   /* Spotlight on the clicker, a soft floor for the walkers. */
@@ -6952,7 +7043,7 @@
     padding:14px 18px;
     border-bottom:2px solid var(--ink);
     background:var(--brand-gradient);
-    color:var(--night);
+    color:var(--on-bright);
   }
   .cgc-guide-head h2{ margin:0; font-family:'Fredoka One', cursive; font-size:20px; }
   .cgc-guide-icon svg{ width:24px; height:24px; display:block; }
@@ -6990,7 +7081,7 @@
     line-height:1.65;
   }
   .cgc-guide-content h3{ font-family:'Fredoka One', cursive; font-size:22px; margin:0 0 10px; }
-  .cgc-guide-content h4{ font-family:'Fredoka One', cursive; font-size:15px; margin:20px 0 6px; color:var(--zap); }
+  .cgc-guide-content h4{ font-family:'Fredoka One', cursive; font-size:15px; margin:20px 0 6px; color:var(--zap-text); }
   .cgc-guide-content p{ margin:0 0 10px; }
   .cgc-guide-content ul{ margin:0 0 10px; padding-left:20px; }
   .cgc-guide-content li{ margin-bottom:6px; }
@@ -7072,7 +7163,7 @@
   .cgc-tpl-text{ flex:1; min-width:0; display:flex; flex-direction:column; gap:2px; color:var(--rind); }
   .cgc-tpl-text strong{ font-size:13px; }
   .cgc-tpl-text span{ font-size:11.5px; opacity:0.75; line-height:1.4; }
-  .cgc-tpl-text em{ font-style:normal; color:var(--zap); }
+  .cgc-tpl-text em{ font-style:normal; color:var(--zap-text); }
   .cgc-tpl-btns{ display:flex; gap:6px; flex:0 0 auto; }
   .cgc-tpl-btns .workshop-icon-btn{ padding:6px 10px; }
 
@@ -7173,7 +7264,7 @@
     border-radius:14px;
     box-shadow:0 5px 0 0 var(--ink);
   }
-  .cgc-ai-direct summary{ font-family:'Fredoka One', cursive; font-size:15px; color:var(--zap); cursor:pointer; }
+  .cgc-ai-direct summary{ font-family:'Fredoka One', cursive; font-size:15px; color:var(--zap-text); cursor:pointer; }
   .cgc-ai-direct[open] summary{ margin-bottom:10px; }
   .cgc-ai-linked{
     display:inline-block;
@@ -7523,8 +7614,8 @@
   .cgc-helper-steps li{ padding:3px 0 3px 22px; position:relative; }
   .cgc-helper-steps li::before{ content:'\2713'; position:absolute; left:2px; color:var(--moneys-green); font-weight:700; }
   .cgc-helper-steps li.bad::before{ content:'!'; color:#ff6b6b; }
-  .cgc-helper-steps li.now::before{ content:'\2026'; color:var(--zap); }
-  .cgc-helper-steps li.now{ color:var(--zap); }
+  .cgc-helper-steps li.now::before{ content:'\2026'; color:var(--zap-text); }
+  .cgc-helper-steps li.now{ color:var(--zap-text); }
   .cgc-helper-said{
     white-space:pre-wrap;
     font-size:12.5px;
@@ -7752,7 +7843,7 @@
   .room-view-btn.active{
     background:var(--brand-gradient);
     border-color:var(--ink);
-    color:var(--night);
+    color:var(--on-bright);
     box-shadow:2px 2px 0 var(--ink);
   }
   /* The big card at the top of Room Stats. */
@@ -7785,7 +7876,7 @@
     border-radius:999px;
     padding:4px 10px;
   }
-  .room-tag.kind{ background:var(--brand-gradient); color:var(--night); }
+  .room-tag.kind{ background:var(--brand-gradient); color:var(--on-bright); }
   .room-tag.offline{ color:var(--muted); }
   .room-code{
     display:flex;
@@ -7800,7 +7891,7 @@
     font-weight:400;
     font-size:17px;
     letter-spacing:3px;
-    color:var(--zap);
+    color:var(--zap-text);
   }
   .room-mini-btn{
     font-family:'Fredoka One', cursive;
@@ -7909,7 +8000,7 @@
     font-size:9px;
     text-transform:uppercase;
     letter-spacing:.5px;
-    color:var(--night);
+    color:var(--on-bright);
     background:var(--lavender);
     border:2px solid var(--ink);
     border-radius:999px;
@@ -7987,7 +8078,7 @@
   }
   .room-kind-btn .room-kind-emoji{ font-size:22px; line-height:1; }
   .room-kind-btn:hover{ transform:translate(-1px,-1px); box-shadow:4px 4px 0 var(--ink); }
-  .room-kind-btn.active{ background:var(--brand-gradient); color:var(--night); }
+  .room-kind-btn.active{ background:var(--brand-gradient); color:var(--on-bright); }
   .room-kind-btn.active small{ color:rgba(10,8,16,0.7); }
   .room-icon-grid{
     display:grid;
@@ -8016,7 +8107,7 @@
     color:var(--muted);
     margin:0;
   }
-  .room-cost b{ color:var(--zap); font-weight:600; }
+  .room-cost b{ color:var(--zap-text); font-weight:600; }
   /* Small chip under the click counter while you are in a room. */
   .room-chip{
     display:none;
@@ -8026,7 +8117,7 @@
     margin:8px auto 0;
     font-family:'Fredoka One', cursive;
     font-size:11.5px;
-    color:var(--night);
+    color:var(--on-bright);
     background:var(--brand-gradient);
     border:2px solid var(--ink);
     border-radius:999px;
@@ -8036,6 +8127,41 @@
   }
   .room-chip.visible{ display:inline-flex; }
   .room-chip span{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+
+  /* =====================================================================
+     LIGHT MODE FIXES (1.35.0)
+     Spots that were written with dark-only colors. Each rule only runs in
+     light mode, so dark mode is untouched. Add new light mode fixes here.
+     ===================================================================== */
+  /* Text that sits right on the page background gets its own card, so it can be read on any background. */
+  body.light-mode .empty-state{
+    background:var(--card);
+  }
+  body.light-mode .achievements-progress{
+    background:var(--card);
+    border:2px solid var(--ink);
+    border-radius:16px;
+    padding:10px 14px 12px;
+    box-shadow:0 4px 0 var(--ink);
+  }
+  body.light-mode .achievements-progress-track{
+    background:var(--card-hover);
+  }
+  /* Bright greens and yellows are hard to read on white: use deeper shades and drop the dark shadows. */
+  body.light-mode .daily-reward-amount{ color:#15803d; text-shadow:none; }
+  body.light-mode .daily-day.done{ color:#15803d; }
+  body.light-mode .loading-title{ filter:brightness(0.72) saturate(1.4); }
+  /* Panels that were always dark: flip them so their (now dark) text shows up. */
+  body.light-mode .loading-screen.special .loading-content{
+    background:rgba(255,255,255,0.92);
+    box-shadow:0 6px 0 #0b0818;
+  }
+  body.light-mode .bulk-buy-panel{
+    background:var(--card);
+  }
+  body.light-mode .nsfw-reveal-btn{
+    background:rgba(255,255,255,0.88);
+  }
 </style>
 </head>
 <body>
@@ -11302,6 +11428,127 @@
   fetchSettingsJson('cursors.json').then(l => applySettingsCursors(cleanSettingsFiles(l))).catch(() => {});
   fetchSettingsJson('backgrounds.json').then(l => applySettingsBackgrounds(cleanSettingsFiles(l))).catch(() => {});
   fetchSettingsJson('fonts.json').then(applySettingsFonts).catch(() => {});
+
+  /* ---------- THEMES (settings/themes.json) ----------
+     A theme is a set of colors with two versions: "dark" and "light".
+     Each color name is a CSS variable without the "--" (so "card" sets --card).
+     The Settings tab has three buttons that pick which version to show:
+       light  = always the light colors
+       dark   = always the dark colors
+       system = follow the device's own light/dark setting (the default)
+     The pick is saved on this device only (localStorage), not on the account.
+     The list below is only a backup used if settings/themes.json is missing or broken.
+     The account color (--melon and friends) is set by applyAccountTheme() and is not part of a theme. */
+  const COLOR_MODE_KEY = 'fgd_color_mode';   // 'light', 'dark' or 'system'
+  const UI_THEME_KEY = 'fgd_ui_theme';       // id of the picked theme (only matters with 2+ themes)
+  const COLOR_MODES = ['light', 'dark', 'system'];
+  const UI_THEMES = [
+    {
+      id: 'original',
+      label: 'Original',
+      dark: {
+        'night': '#130f29', 'card': '#1f1940', 'card-hover': '#2a2254', 'ink': '#0b0818',
+        'rind': '#faf3df', 'cream': '#f6efdd', 'muted': 'rgba(246,239,221,0.6)', 'line': 'rgba(255,255,255,0.06)',
+        'lavender': '#c1aef0', 'grape': '#8b5cf6', 'zap': '#ffcb3d', 'pow': '#ff5da0',
+        'moneys-green': '#4ade80', 'on-bright': '#130f29', 'zap-text': '#ffcb3d', 'shine': 'inset 0 1px 0 rgba(255,255,255,0.10)'
+      },
+      light: {
+        'night': '#f2f0f9', 'card': '#ffffff', 'card-hover': '#ece9f7', 'ink': '#0b0818',
+        'rind': '#221c38', 'cream': '#221c38', 'muted': 'rgba(34,28,56,0.62)', 'line': 'rgba(34,28,56,0.1)',
+        'lavender': '#7c5cd6', 'grape': '#8b5cf6', 'zap': '#ffcb3d', 'pow': '#ff5da0',
+        'moneys-green': '#16a34a', 'on-bright': '#130f29', 'zap-text': '#a16207', 'shine': 'inset 0 1px 0 rgba(255,255,255,0.9)'
+      }
+    }
+  ];
+  // Watches the device's light/dark setting, for the "system" button.
+  const systemLightQuery = window.matchMedia ? window.matchMedia('(prefers-color-scheme: light)') : null;
+
+  function getColorMode(){
+    let saved = null;
+    try { saved = localStorage.getItem(COLOR_MODE_KEY); } catch (e) {}
+    return COLOR_MODES.includes(saved) ? saved : 'system';
+  }
+
+  // True when the light colors should be showing right now.
+  function isLightModeActive(){
+    const mode = getColorMode();
+    if (mode === 'system') return !!(systemLightQuery && systemLightQuery.matches);
+    return mode === 'light';
+  }
+
+  // The picked theme, or the first one in the list if the pick is gone.
+  function getUiTheme(){
+    let saved = null;
+    try { saved = localStorage.getItem(UI_THEME_KEY); } catch (e) {}
+    return UI_THEMES.find(t => t.id === saved) || UI_THEMES[0];
+  }
+
+  // Turns { "card": "#fff" } into "--card:#fff;". Skips anything that is not a plain color name and value.
+  function themeVarsCss(vars){
+    return Object.keys(vars || {})
+      .filter(name => /^[a-z0-9-]{1,40}$/i.test(name) && typeof vars[name] === 'string' && !/[;{}<>]/.test(vars[name]))
+      .map(name => `--${name}:${vars[name].trim()};`)
+      .join('');
+  }
+
+  // Writes the picked theme's colors into a <style> tag at the end of <head>.
+  function applyUiTheme(){
+    const theme = getUiTheme();
+    let styleEl = document.getElementById('settings-theme-style');
+    if (!styleEl) {
+      styleEl = document.createElement('style');
+      styleEl.id = 'settings-theme-style';
+      document.head.appendChild(styleEl);
+    }
+    styleEl.textContent = `:root{${themeVarsCss(theme.dark)}}\nhtml.light-mode{${themeVarsCss(theme.light)}}`;
+  }
+
+  // Shows the light or dark colors. The class goes on <html> (for the colors) and
+  // on <body> (older CSS rules are written as "body.light-mode ...").
+  function applyLightMode(){
+    const light = isLightModeActive();
+    document.documentElement.classList.toggle('light-mode', light);
+    document.body.classList.toggle('light-mode', light);
+  }
+
+  // Called by the three buttons in the Settings tab.
+  function setColorMode(mode){
+    if (!COLOR_MODES.includes(mode)) return;
+    try { localStorage.setItem(COLOR_MODE_KEY, mode); } catch (e) {}
+    game.lightMode = (mode === 'light'); // kept for the "Seen the Light" achievement
+    applyLightMode();
+  }
+
+  // Saves made before 1.35.0 kept light mode on the account. Carry that pick over once.
+  function migrateOldLightMode(){
+    let saved = null;
+    try { saved = localStorage.getItem(COLOR_MODE_KEY); } catch (e) {}
+    if (!saved && game.lightMode) {
+      try { localStorage.setItem(COLOR_MODE_KEY, 'light'); } catch (e) {}
+    }
+  }
+
+  // themes.json entries: { id, label, dark: { name: color }, light: { name: color } }
+  function applySettingsThemes(fileList){
+    const themes = (Array.isArray(fileList) ? fileList : []).filter(t =>
+      t && /^[a-z0-9_-]{1,30}$/i.test(String(t.id || '')) && typeof t.label === 'string' && t.label.trim()
+      && t.dark && typeof t.dark === 'object' && t.light && typeof t.light === 'object');
+    if (!themes.length) return;
+    UI_THEMES.length = 0;
+    themes.forEach(t => UI_THEMES.push({ id: String(t.id), label: t.label.trim(), dark: t.dark, light: t.light }));
+    applyUiTheme();
+    if (activeTab === 'settings' && document.querySelector('.theme-picker')) renderSettings(); // refresh the theme list if Settings is open
+  }
+
+  applyUiTheme();
+  applyLightMode();
+  // The device switched between light and dark: only matters on "system".
+  if (systemLightQuery) {
+    const onSystemChange = () => { if (getColorMode() === 'system') applyLightMode(); };
+    if (systemLightQuery.addEventListener) systemLightQuery.addEventListener('change', onSystemChange);
+    else if (systemLightQuery.addListener) systemLightQuery.addListener(onSystemChange); // older Safari
+  }
+  fetchSettingsJson('themes.json').then(applySettingsThemes).catch(() => {});
 
   /* ---------- DVD LOGO ---------- */
   const DVD_COLORS = ['#57ab46', '#79cf67', '#c1aef0', '#faf3df', '#ff6f9c', '#66c2ff'];
@@ -21167,7 +21414,7 @@ ${hasCode
     document.documentElement.style.setProperty('--melon', color);
     document.documentElement.style.setProperty('--melon-light', color);
     document.documentElement.style.setProperty('--tab-color', brightenColor(color, 25, 15));
-    document.documentElement.style.setProperty('--btn-text', COOL_COLORS.includes(color) ? '#ffffff' : 'var(--night)');
+    document.documentElement.style.setProperty('--btn-text', COOL_COLORS.includes(color) ? '#ffffff' : 'var(--on-bright)');
     currentThemeColor = color; // remember it so the "Color" background choice knows which picture to use
     // If the player picked a picture background (not "Color"), keep it.
     // Otherwise show the picture that matches their favorite color.
@@ -22523,6 +22770,13 @@ ${hasCode
 
   const GAME_REPO_URL = 'https://github.com/FallGameDev/clicker';
 
+  // The three theme buttons in Settings. `icon` is the inside of a 24x24 SVG.
+  const THEME_MODE_BUTTONS = [
+    { mode: 'light', label: 'Light', icon: '<circle cx="12" cy="12" r="4"/><path d="M12 2.5v2.5M12 19v2.5M2.5 12H5M19 12h2.5M5.3 5.3l1.8 1.8M16.9 16.9l1.8 1.8M5.3 18.7l1.8-1.8M16.9 7.1l1.8-1.8"/>' },
+    { mode: 'dark', label: 'Dark', icon: '<path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5z"/>' },
+    { mode: 'system', label: 'System (match my device)', icon: '<rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8.5 20h7M12 16v4"/>' }
+  ];
+
   function renderSettings(){
     list.innerHTML = `
       <div class="shop-card">
@@ -22535,9 +22789,21 @@ ${hasCode
       <div class="shop-card">
         <div class="shop-info">
           <h3>Theme</h3>
-          <p>Switch between dark mode and light mode.</p>
+          <p>Pick light, dark, or match your device. Saved on this device.</p>
         </div>
-        <button class="buy-btn" id="toggle-theme">${game.lightMode ? 'Switch to Dark' : 'Switch to Light'}</button>
+        <!-- THEME PICKER (1.35.0): three square buttons. The theme list only shows with 2+ themes in settings/themes.json -->
+        <div class="theme-picker">
+          ${UI_THEMES.length > 1 ? `
+          <select class="layout-select" id="theme-select" aria-label="Theme">
+            ${UI_THEMES.map(t => `<option value="${escapeChatHtml(t.id)}">${escapeChatHtml(t.label)}</option>`).join('')}
+          </select>` : ''}
+          <div class="theme-mode-btns" role="group" aria-label="Color mode">
+            ${THEME_MODE_BUTTONS.map(b => `
+            <button class="theme-mode-btn${getColorMode() === b.mode ? ' active' : ''}" data-mode="${b.mode}" title="${b.label}" aria-label="${b.label}" aria-pressed="${getColorMode() === b.mode}">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${b.icon}</svg>
+            </button>`).join('')}
+          </div>
+        </div>
       </div>
       <div class="shop-card">
         <div class="shop-info">
@@ -22591,7 +22857,7 @@ ${hasCode
       <div class="shop-card">
         <div class="shop-info">
           <h3>Credits</h3>
-          <p>See the admins, mods, devs, directors, and owner behind this game.</p>
+          <p>See everyone who helped make this game.</p>
         </div>
         <button class="buy-btn" id="open-credits">View</button>
       </div>
@@ -22625,12 +22891,23 @@ ${hasCode
       updateDefaultBgVolume();
     });
 
-    document.getElementById('toggle-theme').addEventListener('click', () => {
-      game.lightMode = !game.lightMode;
-      applyLightMode();
-      saveGame();
-      renderSettings();
+    // THEME PICKER: light / dark / system buttons, saved in localStorage by setColorMode().
+    list.querySelectorAll('.theme-mode-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        setColorMode(btn.dataset.mode);
+        saveGame();
+        checkAchievements();
+        renderSettings();
+      });
     });
+    const themeSelect = document.getElementById('theme-select');
+    if (themeSelect) {
+      themeSelect.value = getUiTheme().id;
+      themeSelect.addEventListener('change', () => {
+        try { localStorage.setItem(UI_THEME_KEY, themeSelect.value); } catch (e) {}
+        applyUiTheme();
+      });
+    }
 
     document.getElementById('toggle-low-perf').addEventListener('click', () => {
       localStorage.setItem(LOW_PERF_KEY, isLowPerfMode() ? '0' : '1');
@@ -22688,11 +22965,30 @@ ${hasCode
     confirmOverlay.classList.add('visible');
   }
 
+  /* ---------- CREDITS (settings/credits.json) ----------
+     The Credits menu lists every { "name", "position" } in settings/credits.json.
+     Optional "username": the person's account name. With it, tapping the row opens their profile.
+     The list below is only a backup used if the file is missing or broken. */
+  const CREDITS = [
+    { name: 'FallGameDev', position: 'Owner', username: 'FallGameDev' }
+  ];
+
+  // Keeps only entries with a name and a position.
+  function cleanCredits(list){
+    return (Array.isArray(list) ? list : [])
+      .filter(e => e && typeof e.name === 'string' && e.name.trim() && typeof e.position === 'string' && e.position.trim())
+      .map(e => ({
+        name: e.name.trim(),
+        position: e.position.trim(),
+        username: typeof e.username === 'string' ? e.username.trim() : ''
+      }));
+  }
+
   async function openCreditsDialog(){
     confirmBox.innerHTML = `
       <h1 class="auth-heading">Credits</h1>
-      <p class="auth-sub">The admins, mods, devs, directors, and owner behind this game.</p>
-      <div id="credits-list" style="max-height:280px; overflow-y:auto; display:flex; flex-direction:column; gap:8px; margin-bottom:14px;">
+      <p class="auth-sub">Everyone who helped make this game.</p>
+      <div class="credits-list" id="credits-list">
         <div class="empty-state loading-state">Loading...</div>
       </div>
       <button class="auth-btn secondary" id="confirm-cancel">Close</button>
@@ -22700,48 +22996,30 @@ ${hasCode
     document.getElementById('confirm-cancel').addEventListener('click', closeConfirm);
     confirmOverlay.classList.add('visible');
 
-    try {
-      const result = await sheetRequest({ action: 'getLeaderboard' });
-      const listEl = document.getElementById('credits-list');
-      if (!listEl) return;
+    // Read the file fresh each time, so edits show up without a new release.
+    let credits = [];
+    try { credits = cleanCredits(await fetchSettingsJson('credits.json')); } catch (e) {}
+    if (!credits.length) credits = CREDITS;
 
-      const staff = result.admins || [];
-      if (!staff.length) {
-        listEl.innerHTML = '<div class="empty-state">No staff listed yet.</div>';
-        return;
-      }
+    const listEl = document.getElementById('credits-list');
+    if (!listEl) return; // the dialog was closed while loading
 
-      listEl.innerHTML = staff.map(entry => `
-        <div class="leaderboard-row" data-username="${entry.username}" style="cursor:pointer;">
-          <div class="leaderboard-avatar">
-            <img src="${entry.profileIcon || 'images/ui/profile.png'}" alt="${entry.username}">
-          </div>
-          <span class="leaderboard-name" data-username="${entry.username}" style="color:${authColor(entry.auth)}">${entry.username}${authBadge(entry.auth)}</span>
-        </div>
-      `).join('');
+    // A row is a button when it has a username (opens the profile), plain otherwise.
+    listEl.innerHTML = credits.map(entry => {
+      const tag = entry.username ? 'button' : 'div';
+      return `
+        <${tag} class="credits-row"${entry.username ? ` data-username="${escapeChatHtml(entry.username)}"` : ''}>
+          <span class="credits-name">${escapeChatHtml(entry.name)}</span>
+          <span class="credits-position">${escapeChatHtml(entry.position)}</span>
+        </${tag}>`;
+    }).join('');
 
-      listEl.querySelectorAll('.leaderboard-row').forEach(row => {
-        row.addEventListener('click', () => {
-          closeConfirm();
-          openPublicProfile(row.dataset.username);
-        });
+    listEl.querySelectorAll('button.credits-row').forEach(row => {
+      row.addEventListener('click', () => {
+        closeConfirm();
+        openPublicProfile(row.dataset.username);
       });
-
-      staff.forEach(entry => {
-        ensureFontLoaded(entry.font).then(family => {
-          if (!family) return;
-          const nameEl = listEl.querySelector(`.leaderboard-name[data-username="${CSS.escape(entry.username)}"]`);
-          if (nameEl) nameEl.style.fontFamily = `'${family}'`;
-        });
-      });
-    } catch (e) {
-      const listEl = document.getElementById('credits-list');
-      if (listEl) listEl.innerHTML = '<div class="empty-state">Couldn\'t load credits.</div>';
-    }
-  }
-
-  function applyLightMode(){
-    document.body.classList.toggle('light-mode', !!game.lightMode);
+    });
   }
 
   /* ---------- CONFIRM OVERLAY (Reset Data / Delete Account) ---------- */
@@ -24294,6 +24572,7 @@ ${hasCode
     applyOfflineEarnings();
     updateCounter();
     cgcStartAll(); // CGC: run the code of installed editor mods
+    migrateOldLightMode(); // old saves: carry the account's light mode pick to this device
     applyLightMode();
     switchBgSong(DEFAULT_BG_SONG);
     updatePickerVisibility();

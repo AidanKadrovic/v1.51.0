@@ -89,6 +89,8 @@ Built-in lists live in the `settings/` folder, so they can be changed without ed
 | `settings/cursors.json` | Cursors in the Cursor Picker. |
 | `settings/backgrounds.json` | Backgrounds in the Background Switcher. |
 | `settings/fonts.json` | Fonts in the Font Manager. |
+| `settings/themes.json` | Color themes. Each theme has a dark and a light set of colors. |
+| `settings/credits.json` | The names and positions shown in Settings > Credits. |
 
 **music.json, cursors.json, backgrounds.json:** a list of `{ "label": "Name shown in the picker", "file": "file name" }`. Write the full path from the main folder, like `audio/music/lofi.mp3`, `images/cursors/duck.png`, `backgrounds/zen.jpeg` or `extras/name.mp3`. For cursors and backgrounds, `"default"` means the normal cursor or plain color background.
 
@@ -98,6 +100,16 @@ Built-in lists live in the `settings/` folder, so they can be changed without ed
 - `fallback`: used while it loads, like `cursive` or `sans-serif`.
 - `file` (optional): a font file in the `fonts/` folder, like `fonts/caveat.ttf`.
 - `google` (optional): `true` to load the family from Google Fonts.
+
+**themes.json:** a list of `{ "id", "label", "dark": { ... }, "light": { ... } }`.
+- `id`: short id, letters, numbers, `-` and `_` only. Never change it for an existing theme, players' saved choice uses it.
+- `dark` and `light`: color names and values. A name is a CSS variable without the `--`, so `"card": "#ffffff"` sets `--card`. The main ones are `night` (page), `card`, `card-hover`, `ink` (outlines), `rind` (text), `muted` (quiet text), `line`, `zap-text` (yellow text) and `on-bright` (text on bright buttons).
+- The first theme in the list is the default. With 2 or more themes, a theme list shows up next to the buttons in Settings.
+- The Settings tab has three buttons: light, dark and system (the default, it follows the device). The pick is saved on the device in `localStorage` (`fgd_color_mode`, and `fgd_ui_theme` for the theme), not on the account.
+- The account color (`--melon`) is not part of a theme.
+- Light mode fixes for single spots live in the `LIGHT MODE FIXES` block at the end of the `<style>` in `index.html`.
+
+**credits.json:** a list of `{ "name", "position", "username" }`. `username` is optional: with it, tapping the row opens that player's profile. Names show in the order they are written.
 
 Rules:
 - Valid JSON only: double quotes, commas between entries, no comma after the last one, no comments.
@@ -109,8 +121,8 @@ Rules:
 Near the top of `index.html`:
 
 ```html
-<!-- Game version: 1.34.0 | Deployment: 210 | Update both on every release, see README.md -->
-<meta name="game-version" content="1.34.0">
+<!-- Game version: 1.35.0 | Deployment: 210 | Update both on every release, see README.md -->
+<meta name="game-version" content="1.35.0">
 ```
 
 Bump both the version comment and the `game-version` meta tag on every release. The deployment number is an internal counter for tracking Apps Script/Sheet deployments - increment it whenever the backend Web App is redeployed, even if the game version string doesn't change.

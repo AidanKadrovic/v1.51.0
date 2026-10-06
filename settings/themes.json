@@ -1,0 +1,42 @@
+[
+  {
+    "id": "original",
+    "label": "Original",
+    "dark": {
+      "night": "#130f29",
+      "card": "#1f1940",
+      "card-hover": "#2a2254",
+      "ink": "#0b0818",
+      "rind": "#faf3df",
+      "cream": "#f6efdd",
+      "muted": "rgba(246,239,221,0.6)",
+      "line": "rgba(255,255,255,0.06)",
+      "lavender": "#c1aef0",
+      "grape": "#8b5cf6",
+      "zap": "#ffcb3d",
+      "pow": "#ff5da0",
+      "moneys-green": "#4ade80",
+      "on-bright": "#130f29",
+      "zap-text": "#ffcb3d",
+      "shine": "inset 0 1px 0 rgba(255,255,255,0.10)"
+    },
+    "light": {
+      "night": "#f2f0f9",
+      "card": "#ffffff",
+      "card-hover": "#ece9f7",
+      "ink": "#0b0818",
+      "rind": "#221c38",
+      "cream": "#221c38",
+      "muted": "rgba(34,28,56,0.62)",
+      "line": "rgba(34,28,56,0.1)",
+      "lavender": "#7c5cd6",
+      "grape": "#8b5cf6",
+      "zap": "#ffcb3d",
+      "pow": "#ff5da0",
+      "moneys-green": "#16a34a",
+      "on-bright": "#130f29",
+      "zap-text": "#a16207",
+      "shine": "inset 0 1px 0 rgba(255,255,255,0.9)"
+    }
+  }
+]
