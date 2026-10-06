@@ -113,7 +113,7 @@ Built-in lists live in the `settings/` folder, so they can be changed without ed
   - `"page"`: the page background, a color or a gradient. It replaces the favorite color picture, but never a picture the player picked in the Background Switcher.
   - `"color-scheme"`: `"light"` or `"dark"`, for scrollbars and dropdowns. Use `"dark"` when a theme's light side is really dark (like Terminal).
 - Extra names: `on-bright` is the text on accent buttons, `zap` is the second color of the button gradient, `counter-bg` and `counter-text` color the score pill, `melon-text` is the accent color used as text, `btn-edge` and `soft-edge` are the sides under buttons.
-- Optional, next to `id` and `label`: `"font"` (a font list for the whole UI, skipped if the player picked a font in the Font Manager), `"square": true` (no rounded corners), `"compactTabs": true` (smaller tab text, for wide fonts).
+- Optional, next to `id` and `label`: `"font"` (a font list for the whole UI, skipped if the player picked a font in the Font Manager), `"corners"` (`"square"`, `"slight"`, `"normal"` or `"extra"`: how round every corner is. The old `"square": true` still works and means `"square"`), `"compactTabs": true` (smaller tab text, for wide fonts).
 - Themes in the file: Original, Terminal (light is green, dark is purple), Windows 98, Macintosh 1984, Nature, Reddit, Rec Room (the colors of the rec.net site), Synthwave, Ocean, Game Boy.
 - None of the themes in the file sets a `"font"`, so the game font stays the same in every theme.
 - After adding a theme, check that text can be read on cards and that button text can be read on the accent color (aim for a contrast of 4.5 or more).
@@ -131,8 +131,8 @@ Rules:
 Near the top of `index.html`:
 
 ```html
-<!-- Game version: 1.37.0 | Deployment: 211 | Update both on every release, see README.md -->
-<meta name="game-version" content="1.37.0">
+<!-- Game version: 1.38.0 | Deployment: 211 | Update both on every release, see README.md -->
+<meta name="game-version" content="1.38.0">
 ```
 
 Bump both the version comment and the `game-version` meta tag on every release. The deployment number is an internal counter for tracking Apps Script/Sheet deployments - increment it whenever the backend Web App is redeployed, even if the game version string doesn't change.
@@ -171,7 +171,7 @@ How a mod is saved (`customFiles` in the workshop row):
 
 - `payload`: `[{ name: "cookie.png", file: "cookie.png", url }]`
 - `script`: `[{ name: "main.cgc", file: "main.cgc", url: "data:text/plain;charset=utf-8,..." }]`. The code is a text data URL on purpose, so the API's installed-mods compaction and rehydration handle it like any uploaded file.
-- `themes` (1.37.0): `[{ name: "My theme", file: "theme-1.json", url: "data:application/json;charset=utf-8,..." }]`. The JSON inside is `{ name, square, light: {...}, dark: {...} }` with these colors on each side: `page`, `card`, `raised`, `outline`, `text`, `muted`, `accent`, `buttonText`, `accent2`, `danger`, `money`, `pill`, `pillText`. It is a data URL for the same reason as `script`. The key is left out when a mod has no themes.
+- `themes` (1.37.0): `[{ name: "My theme", file: "theme-1.json", url: "data:application/json;charset=utf-8,..." }]`. The JSON inside is `{ name, corners, light: {...}, dark: {...} }` (`corners` is `square`, `slight`, `normal` or `extra`) with these colors on each side: `page`, `card`, `raised`, `outline`, `text`, `muted`, `accent`, `buttonText`, `accent2`, `danger`, `money`, `pill`, `pillText`. It is a data URL for the same reason as `script`. The key is left out when a mod has no themes.
 
 Mod data (currencies and `storage.` variables):
 
@@ -182,6 +182,7 @@ Mod data (currencies and `storage.` variables):
 Mod themes (1.37.0):
 
 - Made in the mod editor's **Themes** section. `New theme` adds one and opens the theme editor (`renderModThemeEditor()`): a box for every color, a Light / Dark switch for the side being edited, a light and a dark preview, and a contrast check.
+- **Corner rounding (1.38.0):** the theme editor has four Corners buttons (Square, Slight, Round, Extra). `THEME_CORNERS` holds the choices. Slight and Extra work by re-reading every corner rule in the game's stylesheet and multiplying its pixel sizes (`scaledCornersCss()`), so circles and pill shapes keep their shape. Square flattens everything, circles too.
 - Each theme counts as 50% of the mod's storage (`MOD_THEME_STORAGE_SHARE`), whatever its real size. `modFilesSize()` does the math, so a third theme goes past 100% and costs extra Gems like any other storage.
 - Every color must be a plain `#rrggbb`. `cleanModTheme()` swaps anything else for the default color, so a mod can't put other CSS into the page. Do not loosen this check.
 - Themes from installed mods show up in the Preferences theme picker right away (`refreshModThemes()`), named `Theme name (Mod name)`. Their id is `mod:<mod id>:<number>`.

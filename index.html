@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<!-- Game version: 1.37.0 | Deployment: 211 | Update both on every release, see README.md -->
-<meta name="game-version" content="1.37.0">
+<!-- Game version: 1.38.0 | Deployment: 211 | Update both on every release, see README.md -->
+<meta name="game-version" content="1.38.0">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>The Clicker Game!</title>
 <link rel="icon" type="image/x-icon" href="images/ui/maksy.ico" id="favicon-link">
@@ -8212,6 +8212,19 @@
     box-shadow:0 1px 0 var(--ink);
   }
   .te-fields{ display:flex; flex-direction:column; gap:6px; }
+  /* CORNER ROUNDING buttons: four small buttons, each with a little corner drawing. */
+  .te-corner-row{ align-items:flex-start; flex-direction:column; gap:6px; }
+  .te-corner-row .te-switch{ flex-wrap:wrap; }
+  .te-corner{ display:flex; align-items:center; gap:6px; padding:7px 10px; font-size:12px; }
+  .te-corner-icon{
+    width:13px;
+    height:13px;
+    border-top:3px solid currentColor;
+    border-left:3px solid currentColor;
+  }
+  .te-corner-icon-slight{ border-top-left-radius:4px; }
+  .te-corner-icon-normal{ border-top-left-radius:8px; }
+  .te-corner-icon-extra{ border-top-left-radius:13px; }
   .te-field{
     display:grid;
     grid-template-columns:1fr 40px 96px;
@@ -8243,7 +8256,7 @@
     background:var(--tp-page);
     color:var(--tp-text);
     border:3px solid var(--line);
-    border-radius:14px;
+    border-radius:calc(14px * var(--tp-r, 1));
     padding:10px;
     cursor:pointer;
     font-family:'Poppins', sans-serif;
@@ -8275,15 +8288,15 @@
     width:100%;
     background:var(--tp-raised);
     border:2px solid var(--tp-outline);
-    border-radius:10px;
+    border-radius:calc(10px * var(--tp-r, 1));
     padding:4px;
     font-size:10px;
     font-family:'Fredoka One', cursive;
   }
-  .te-prev-tabs b, .te-prev-tabs span{ flex:1; text-align:center; padding:4px 2px; border-radius:7px; font-weight:400; color:var(--tp-muted); }
+  .te-prev-tabs b, .te-prev-tabs span{ flex:1; text-align:center; padding:4px 2px; border-radius:calc(7px * var(--tp-r, 1)); font-weight:400; color:var(--tp-muted); }
   .te-prev-tabs b{ background:linear-gradient(135deg, var(--tp-accent), var(--tp-accent2)); color:var(--tp-buttonText); border:2px solid var(--tp-outline); }
   .te-prev-row{ display:flex; align-items:center; gap:10px; width:100%; font-size:10px; }
-  .te-prev-chip{ background:var(--tp-danger); color:#fff; border:2px solid var(--tp-outline); border-radius:7px; padding:2px 10px; font-family:'Fredoka One', cursive; }
+  .te-prev-chip{ background:var(--tp-danger); color:#fff; border:2px solid var(--tp-outline); border-radius:calc(7px * var(--tp-r, 1)); padding:2px 10px; font-family:'Fredoka One', cursive; }
   .te-prev-quiet{ color:var(--tp-muted); }
   .te-prev-card{
     display:flex;
@@ -8293,7 +8306,7 @@
     width:100%;
     background:var(--tp-card);
     border:2px solid var(--tp-outline);
-    border-radius:10px;
+    border-radius:calc(10px * var(--tp-r, 1));
     padding:7px 8px;
     box-shadow:0 3px 0 var(--tp-outline);
     text-align:left;
@@ -8309,7 +8322,7 @@
     color:var(--tp-buttonText);
     background:linear-gradient(135deg, var(--tp-accent), var(--tp-accent2));
     border:2px solid var(--tp-outline);
-    border-radius:8px;
+    border-radius:calc(8px * var(--tp-r, 1));
     padding:4px 10px;
   }
   .te-prev-btn.te-prev-owned{ background:var(--tp-raised); color:var(--tp-muted); }
@@ -11718,9 +11731,66 @@
     return `${selector} body:not(.picked-bg){background:${vars.page.trim()} !important;background-attachment:fixed !important;}\n`;
   }
 
+  /* ---------- CORNER ROUNDING (1.38.0) ----------
+     A theme can pick how round the corners are with "corners":
+       square = no rounding anywhere, circles turn into squares too (the old "square": true)
+       slight = every corner is less than half as round
+       normal = the game's own corners (the default)
+       extra  = every corner is rounder
+     Circles and pill shapes (50%, 999px) stay as they are, except in square. */
+  const THEME_CORNERS = {
+    square: { label: 'Square', scale: 0 },
+    slight: { label: 'Slight', scale: 0.4 },
+    normal: { label: 'Round', scale: 1 },
+    extra:  { label: 'Extra', scale: 1.7 }
+  };
+
+  // Which corner choice a theme uses. Old themes only have "square": true.
+  function themeCorners(theme){
+    if (theme && THEME_CORNERS[theme.corners]) return theme.corners;
+    return theme && theme.square === true ? 'square' : 'normal';
+  }
+
+  // Builds CSS that repeats every corner rule of the game with its pixel sizes multiplied by `scale`.
+  // The game has hundreds of rules with their own corner sizes, so this reads them from the
+  // stylesheet instead of listing them by hand. Each scale is only worked out once.
+  const scaledCornersCache = {};
+  function scaledCornersCss(scale){
+    if (scaledCornersCache[scale]) return scaledCornersCache[scale];
+    const CORNER_PROPS = ['border-radius', 'border-top-left-radius', 'border-top-right-radius', 'border-bottom-right-radius', 'border-bottom-left-radius'];
+    // 100px and up means "pill shape", so those are left alone.
+    const scaleValue = value => value.replace(/(\d*\.?\d+)px/g, (match, n) => Number(n) >= 100 ? match : (Math.round(Number(n) * scale * 10) / 10) + 'px');
+    const walk = rules => {
+      let out = '';
+      Array.from(rules || []).forEach(rule => {
+        if (rule.type === 1) { // a normal rule: selector { ... }
+          let body = '';
+          const shorthand = rule.style.getPropertyValue('border-radius');
+          (shorthand ? ['border-radius'] : CORNER_PROPS.slice(1)).forEach(prop => {
+            const value = rule.style.getPropertyValue(prop);
+            // Rules without px (like 50%) are repeated unchanged, so they keep winning where they won before.
+            if (value) body += `${prop}:${scaleValue(value)} !important;`;
+          });
+          if (body) out += `${rule.selectorText}{${body}}\n`;
+        } else if (rule.type === 4 || rule.type === 12) { // @media or @supports: keep the rules inside their condition
+          const inner = walk(rule.cssRules);
+          if (inner) out += `@${rule.type === 4 ? 'media' : 'supports'} ${rule.conditionText}{\n${inner}}\n`;
+        }
+      });
+      return out;
+    };
+    let css = '';
+    try {
+      const main = document.querySelector('head style:not([id])'); // the game's own big <style>
+      css = main && main.sheet ? walk(main.sheet.cssRules) : '';
+    } catch (e) {}
+    scaledCornersCache[scale] = css;
+    return css;
+  }
+
   // Writes the picked theme's colors into a <style> tag at the end of <head>.
   // Optional extras on a theme: "font" (a font list for the whole UI, skipped when the
-  // player picked a font in the Font Manager), "square": true (no rounded corners) and "compactTabs": true.
+  // player picked a font in the Font Manager), "corners" (see CORNER ROUNDING above) and "compactTabs": true.
   function applyUiTheme(){
     const theme = getUiTheme();
     let styleEl = document.getElementById('settings-theme-style');
@@ -11735,7 +11805,10 @@
       // Code boxes keep their own font so mod code still lines up.
       css += `body:not([class*="ui-font-"]) *:not(code):not(pre):not(textarea):not([class*="cgc-code"]):not([class*="cgc-hl"]){font-family:${theme.font.trim()} !important;}\n`;
     }
-    if (theme.square === true) css += `*,*::before,*::after{border-radius:0 !important;}\n`;
+    // CORNER ROUNDING (1.38.0): see THEME_CORNERS below.
+    const corners = themeCorners(theme);
+    if (corners === 'square') css += `*,*::before,*::after{border-radius:0 !important;}\n`;
+    else if (THEME_CORNERS[corners].scale !== 1) css += scaledCornersCss(THEME_CORNERS[corners].scale);
     // "compactTabs": true is for wide fonts (like typewriter fonts): smaller tab text so all five tabs still fit.
     if (theme.compactTabs === true) css += `@media (min-width:481px){.tabs .tab-btn{font-size:10px;padding-left:3px;padding-right:3px;gap:3px;letter-spacing:-0.3px;}}\n`;
     styleEl.textContent = css;
@@ -11766,14 +11839,14 @@
     }
   }
 
-  // themes.json entries: { id, label, dark: { name: color }, light: { name: color }, font?, square?, compactTabs? }
+  // themes.json entries: { id, label, dark: { name: color }, light: { name: color }, font?, corners?, square?, compactTabs? }
   function applySettingsThemes(fileList){
     const themes = (Array.isArray(fileList) ? fileList : []).filter(t =>
       t && /^[a-z0-9_-]{1,30}$/i.test(String(t.id || '')) && typeof t.label === 'string' && t.label.trim()
       && t.dark && typeof t.dark === 'object' && t.light && typeof t.light === 'object');
     if (!themes.length) return;
     UI_THEMES.length = 0;
-    themes.forEach(t => UI_THEMES.push({ id: String(t.id), label: t.label.trim(), dark: t.dark, light: t.light, font: t.font, square: t.square === true, compactTabs: t.compactTabs === true }));
+    themes.forEach(t => UI_THEMES.push({ id: String(t.id), label: t.label.trim(), dark: t.dark, light: t.light, font: t.font, corners: t.corners, square: t.square === true, compactTabs: t.compactTabs === true }));
     rebuildThemeSelect();
     applyUiTheme();
   }
@@ -11814,7 +11887,7 @@
 
   /* ---------- MOD THEMES (1.37.0) ----------
      A mod can carry themes made in the mod editor's theme editor. A mod theme is small and strict:
-       { name, square, light: { page, card, ... }, dark: { page, card, ... } }
+       { name, corners, light: { page, card, ... }, dark: { page, card, ... } }
      Every color must be a plain #rrggbb. Anything else is swapped for the default color, so a mod
      can never slip other CSS into the page. modThemeVars() turns the short list of colors into the
      full set of names the theme engine uses.
@@ -11847,7 +11920,9 @@
   // Returns a safe copy of a mod theme, or null if it is not a theme at all.
   function cleanModTheme(raw){
     if (!raw || typeof raw !== 'object') return null;
-    const out = { name: String(raw.name || 'Theme').replace(/[<>]/g, '').slice(0, 40) || 'Theme', square: raw.square === true, light: {}, dark: {} };
+    const corners = themeCorners(raw); // one of the THEME_CORNERS names. Themes made in 1.37.0 only had "square".
+    // "square" is still written so a copy of the game from before 1.38.0 reads square themes correctly.
+    const out = { name: String(raw.name || 'Theme').replace(/[<>]/g, '').slice(0, 40) || 'Theme', corners, square: corners === 'square', light: {}, dark: {} };
     ['light', 'dark'].forEach(mode => {
       MOD_THEME_FIELDS.forEach(f => {
         const value = raw[mode] && raw[mode][f.key];
@@ -11906,7 +11981,7 @@
       list.forEach((entry, i) => {
         const theme = modThemeFromEntry(entry);
         if (!theme) return;
-        MOD_THEMES.push({ id: `mod:${mod.id}:${i}`, label: `${theme.name} (${mod.name || 'mod'})`, light: modThemeVars(theme.light), dark: modThemeVars(theme.dark), square: theme.square });
+        MOD_THEMES.push({ id: `mod:${mod.id}:${i}`, label: `${theme.name} (${mod.name || 'mod'})`, light: modThemeVars(theme.light), dark: modThemeVars(theme.dark), corners: theme.corners });
       });
     });
   }
@@ -19849,7 +19924,7 @@ ${hasCode
       code: CGC_DEFAULT_CODE, // CGC: every new mod starts with this
       codeMode: 'text',       // BLOCK CODING (1.33.0): 'text' to type code, 'blocks' to build it from blocks
       payload: [],            // CGC: the payload folder, [{ name: 'cookie.png', url }]
-      themes: [],             // MOD THEMES: [{ name, square, light: {...}, dark: {...} }], see cleanModTheme()
+      themes: [],             // MOD THEMES: [{ name, corners, light: {...}, dark: {...} }], see cleanModTheme()
       remixOf: null           // REMIX: { id, name } of the original mod, or null for a brand new mod
     };
   }
@@ -20500,7 +20575,7 @@ ${hasCode
         </div>
         <div class="mod-editor-file-main">
           <input type="text" class="auth-input mod-theme-name" data-index="${i}" value="${esc(t.name)}" placeholder="Theme name" maxlength="40">
-          <span class="mod-editor-file-src">Light and dark colors &middot; ${share}% of storage</span>
+          <span class="mod-editor-file-src">Light and dark colors &middot; ${THEME_CORNERS[themeCorners(t)].label.toLowerCase()} corners &middot; ${share}% of storage</span>
         </div>
         <button class="workshop-icon-btn mod-theme-edit" data-index="${i}">Edit colors</button>
         <button class="mod-editor-remove mod-theme-remove" data-index="${i}" title="Remove" aria-label="Remove ${esc(t.name)}">&times;</button>
@@ -20621,10 +20696,16 @@ ${hasCode
               </div>`).join('')}
             </div>
             <button type="button" class="workshop-icon-btn" id="te-copy">Copy ${cap(other)} Colors To ${cap(modThemeEditMode)}</button>
-            <label class="workshop-mature-row" for="te-square">
-              <input type="checkbox" id="te-square"${theme.square ? ' checked' : ''}>
-              <span>Square corners</span>
-            </label>
+            <!-- CORNER ROUNDING (1.38.0): one pick for the whole theme, both light and dark -->
+            <div class="te-switch-row te-corner-row">
+              <span class="te-switch-label">Corners</span>
+              <div class="te-switch" role="group" aria-label="Corner rounding">
+                ${Object.keys(THEME_CORNERS).map(id => `
+                <button type="button" class="te-mode te-corner${themeCorners(theme) === id ? ' active' : ''}" data-corners="${id}" aria-pressed="${themeCorners(theme) === id}" title="${THEME_CORNERS[id].label} corners">
+                  <i class="te-corner-icon te-corner-icon-${id}" aria-hidden="true"></i>${THEME_CORNERS[id].label}
+                </button>`).join('')}
+              </div>
+            </div>
           </div>
           <div class="te-side">
             <div class="te-previews" id="te-previews"></div>
@@ -20641,8 +20722,21 @@ ${hasCode
       theme.name = e.target.value.replace(/[<>]/g, '').slice(0, 40);
       saveModEditorDraft();
     });
-    overlay.querySelectorAll('.te-mode').forEach(btn => {
+    overlay.querySelectorAll('.te-mode[data-mode]').forEach(btn => {
       btn.addEventListener('click', () => { modThemeEditMode = btn.dataset.mode; renderModThemeEditor(); });
+    });
+    // CORNER ROUNDING: lights up the picked button and redraws the previews.
+    overlay.querySelectorAll('.te-corner').forEach(btn => {
+      btn.addEventListener('click', () => {
+        theme.corners = btn.dataset.corners;
+        theme.square = theme.corners === 'square';
+        overlay.querySelectorAll('.te-corner').forEach(b => {
+          b.classList.toggle('active', b === btn);
+          b.setAttribute('aria-pressed', String(b === btn));
+        });
+        saveModEditorDraft();
+        updateModThemePreviews();
+      });
     });
     // The color square and the text box of a row always show the same color.
     const setColor = (key, value, from) => {
@@ -20676,11 +20770,6 @@ ${hasCode
       saveModEditorDraft();
       renderModThemeEditor();
     });
-    document.getElementById('te-square').addEventListener('change', (e) => {
-      theme.square = e.target.checked;
-      saveModEditorDraft();
-      updateModThemePreviews();
-    });
     updateModThemePreviews();
   }
 
@@ -20689,7 +20778,7 @@ ${hasCode
     const c = theme[mode];
     const vars = MOD_THEME_FIELDS.map(f => `--tp-${f.key}:${c[f.key]}`).join(';');
     return `
-      <div class="te-preview${mode === modThemeEditMode ? ' te-active' : ''}${theme.square ? ' te-square' : ''}" data-mode="${mode}" role="button" tabindex="0" aria-label="Edit the ${mode} colors" style="${vars}">
+      <div class="te-preview${mode === modThemeEditMode ? ' te-active' : ''}${themeCorners(theme) === 'square' ? ' te-square' : ''}" data-mode="${mode}" role="button" tabindex="0" aria-label="Edit the ${mode} colors" style="${vars};--tp-r:${THEME_CORNERS[themeCorners(theme)].scale}">
         <div class="te-prev-tag">${mode === 'light' ? 'Light' : 'Dark'}</div>
         <div class="te-prev-screen">
           <div class="te-prev-pill">1,234 clicks</div>
