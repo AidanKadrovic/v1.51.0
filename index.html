@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<!-- Game version: 1.36.1 | Deployment: 210 | Update both on every release, see README.md -->
-<meta name="game-version" content="1.36.1">
+<!-- Game version: 1.37.0 | Deployment: 211 | Update both on every release, see README.md -->
+<meta name="game-version" content="1.37.0">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>The Clicker Game!</title>
 <link rel="icon" type="image/x-icon" href="images/ui/maksy.ico" id="favicon-link">
@@ -8162,6 +8162,170 @@
   body.light-mode .nsfw-reveal-btn{
     background:rgba(255,255,255,0.88);
   }
+
+  /* =====================================================================
+     MOD THEMES: the Themes section of the mod editor and the theme editor (1.37.0)
+     ===================================================================== */
+  /* The little two-tone square next to a theme in the list: light half, dark half, a dot of accent in each. */
+  .mod-theme-chip{
+    flex-shrink:0;
+    width:52px;
+    height:52px;
+    display:flex;
+    border:2px solid var(--ink);
+    border-radius:10px;
+    overflow:hidden;
+  }
+  .mod-theme-chip span{ flex:1; display:flex; align-items:center; justify-content:center; }
+  .mod-theme-chip i{ width:12px; height:12px; border-radius:50%; border:2px solid rgba(0,0,0,0.35); }
+
+  .te-box{ width:min(1060px, 100%); height:min(820px, 100%); }
+  .te-body{
+    flex:1;
+    min-height:0;
+    overflow-y:auto;
+    display:grid;
+    grid-template-columns:minmax(260px, 340px) 1fr;
+    gap:20px;
+    padding:18px;
+    text-align:left;
+  }
+  .te-controls, .te-side{ display:flex; flex-direction:column; gap:10px; min-width:0; }
+  .te-switch-row{ display:flex; align-items:center; gap:12px; margin-top:4px; }
+  .te-switch-label{ font-family:'Fredoka One', cursive; font-size:14px; color:var(--rind); }
+  .te-switch{ display:flex; gap:6px; }
+  .te-mode{
+    font-family:'Fredoka One', cursive;
+    font-size:13px;
+    color:var(--rind);
+    background:var(--card-hover);
+    border:2px solid var(--ink);
+    border-radius:10px;
+    padding:8px 16px;
+    cursor:pointer;
+    box-shadow:0 3px 0 var(--ink);
+  }
+  .te-mode.active{
+    color:var(--on-bright);
+    background:var(--brand-gradient);
+    transform:translateY(2px);
+    box-shadow:0 1px 0 var(--ink);
+  }
+  .te-fields{ display:flex; flex-direction:column; gap:6px; }
+  .te-field{
+    display:grid;
+    grid-template-columns:1fr 40px 96px;
+    align-items:center;
+    gap:8px;
+  }
+  .te-field label{ font-family:'Poppins', sans-serif; font-size:12.5px; font-weight:600; color:var(--rind); }
+  .te-color{
+    width:40px;
+    height:34px;
+    padding:2px;
+    background:var(--night);
+    border:2px solid var(--ink);
+    border-radius:9px;
+    cursor:pointer;
+  }
+  .te-field .te-hex{
+    width:100%;
+    padding:7px 8px;
+    font-family:ui-monospace, Menlo, Consolas, monospace;
+    font-size:12.5px;
+    min-height:0;
+  }
+  .te-hex.te-bad{ border-color:#ff5c5c; }
+
+  .te-previews{ display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  /* A preview only uses its own --tp-* colors, never the game's current theme. */
+  .te-preview{
+    background:var(--tp-page);
+    color:var(--tp-text);
+    border:3px solid var(--line);
+    border-radius:14px;
+    padding:10px;
+    cursor:pointer;
+    font-family:'Poppins', sans-serif;
+    min-width:0;
+  }
+  .te-preview.te-active{ border-color:var(--zap); box-shadow:0 0 0 3px rgba(255,203,61,0.25); }
+  .te-prev-tag{ font-family:'Fredoka One', cursive; font-size:11px; letter-spacing:1px; text-transform:uppercase; color:var(--tp-muted); margin-bottom:8px; }
+  .te-prev-screen{ display:flex; flex-direction:column; align-items:center; gap:8px; }
+  .te-prev-pill{
+    font-family:'Fredoka One', cursive;
+    font-size:12px;
+    color:var(--tp-pillText);
+    background:var(--tp-pill);
+    border:2px solid var(--tp-outline);
+    border-radius:999px;
+    padding:4px 12px;
+  }
+  .te-prev-avatar{
+    width:44px;
+    height:44px;
+    border-radius:50%;
+    background:var(--tp-card);
+    border:5px solid var(--tp-accent);
+    box-shadow:0 0 0 2px var(--tp-outline);
+  }
+  .te-prev-tabs{
+    display:flex;
+    gap:4px;
+    width:100%;
+    background:var(--tp-raised);
+    border:2px solid var(--tp-outline);
+    border-radius:10px;
+    padding:4px;
+    font-size:10px;
+    font-family:'Fredoka One', cursive;
+  }
+  .te-prev-tabs b, .te-prev-tabs span{ flex:1; text-align:center; padding:4px 2px; border-radius:7px; font-weight:400; color:var(--tp-muted); }
+  .te-prev-tabs b{ background:linear-gradient(135deg, var(--tp-accent), var(--tp-accent2)); color:var(--tp-buttonText); border:2px solid var(--tp-outline); }
+  .te-prev-row{ display:flex; align-items:center; gap:10px; width:100%; font-size:10px; }
+  .te-prev-chip{ background:var(--tp-danger); color:#fff; border:2px solid var(--tp-outline); border-radius:7px; padding:2px 10px; font-family:'Fredoka One', cursive; }
+  .te-prev-quiet{ color:var(--tp-muted); }
+  .te-prev-card{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:8px;
+    width:100%;
+    background:var(--tp-card);
+    border:2px solid var(--tp-outline);
+    border-radius:10px;
+    padding:7px 8px;
+    box-shadow:0 3px 0 var(--tp-outline);
+    text-align:left;
+  }
+  .te-prev-card > div{ display:flex; flex-direction:column; min-width:0; }
+  .te-prev-card strong{ font-family:'Fredoka One', cursive; font-weight:400; font-size:11.5px; color:var(--tp-text); }
+  .te-prev-card em{ font-style:normal; font-size:9.5px; color:var(--tp-muted); }
+  .te-prev-card u{ text-decoration:none; font-size:9.5px; font-weight:600; color:var(--tp-money); }
+  .te-prev-btn{
+    flex-shrink:0;
+    font-family:'Fredoka One', cursive;
+    font-size:10.5px;
+    color:var(--tp-buttonText);
+    background:linear-gradient(135deg, var(--tp-accent), var(--tp-accent2));
+    border:2px solid var(--tp-outline);
+    border-radius:8px;
+    padding:4px 10px;
+  }
+  .te-prev-btn.te-prev-owned{ background:var(--tp-raised); color:var(--tp-muted); }
+  .te-preview.te-square, .te-preview.te-square *{ border-radius:0; }
+
+  .te-table{ width:100%; border-collapse:collapse; font-family:'Poppins', sans-serif; font-size:12px; color:var(--rind); }
+  .te-table th{ text-align:left; font-family:'Fredoka One', cursive; font-weight:400; font-size:11px; letter-spacing:0.5px; text-transform:uppercase; color:var(--muted); padding:6px 8px; }
+  .te-table td{ padding:6px 8px; border-top:1px solid var(--line); }
+  .te-table .te-ok{ color:var(--moneys-green); font-weight:600; white-space:nowrap; }
+  .te-table .te-low{ color:#ff5c5c; font-weight:600; white-space:nowrap; }
+  @media (max-width:760px){
+    .te-body{ grid-template-columns:1fr; }
+  }
+  @media (max-width:420px){
+    .te-previews{ grid-template-columns:1fr; }
+  }
 </style>
 </head>
 <body>
@@ -8510,6 +8674,11 @@
         <div class="cursor-picker" id="font-manager-picker">
           <select id="font-manager-select"></select>
         </div>
+
+        <!-- THEME SWITCHER (1.37.0): shows once the Theme Switcher is bought in the Shop -->
+        <div class="cursor-picker" id="theme-picker">
+          <select id="theme-select" aria-label="Theme"></select>
+        </div>
       </div>
     </div>
   </div>
@@ -8789,6 +8958,7 @@
       selectedUiFont: '',
       fontManagerChosen: false,
       fontManagerOwned: false,
+      themeSwitcherOwned: false, // THEME SWITCHER (1.37.0): Shop item that adds the theme picker to Preferences
       megaBoostOwned: 0,
       turboClickerOwned: 0,
       luckyCharmOwned: false,
@@ -9056,6 +9226,7 @@
   const NOOB_COST = 250;
   const EFFECTS_COST = 750;
   const FONT_MANAGER_COST = 900;
+  const THEME_SWITCHER_COST = 1200; // THEME SWITCHER (1.37.0)
   const LUCKY_CHARM_COST = 2500;
 
   function buyMusicPlayer(){
@@ -9217,6 +9388,19 @@
     syncToSheet();
     renderShop();
     showFontManager();
+  }
+
+  // THEME SWITCHER (1.37.0): one-time buy, adds the theme picker to Preferences.
+  function buyThemeSwitcher(){
+    if (game.themeSwitcherOwned || game.clicks < THEME_SWITCHER_COST) return;
+    playSound('audio/sfx/money.mp3');
+    game.clicks -= THEME_SWITCHER_COST;
+    game.themeSwitcherOwned = true;
+    updateCounter();
+    saveGame();
+    syncToSheet();
+    renderShop();
+    showThemePicker();
   }
 
   function buyLuckyCharm(){
@@ -9560,6 +9744,7 @@
     'Icon Modifier': { color:'#eab308', svg:'<circle cx="12" cy="12" r="9.5"/><circle cx="8.8" cy="10" r="1.4" fill="#000" fill-opacity=".45"/><circle cx="15.2" cy="10" r="1.4" fill="#000" fill-opacity=".45"/><path d="M8 14.2a4.6 4.6 0 0 0 8 0" fill="none" stroke="#000" stroke-opacity=".45" stroke-width="1.8" stroke-linecap="round"/>' },
     'Click Effects': { color:'#d946ef', svg:'<path d="M12 2l1.9 6.1L20 10l-6.1 1.9L12 18l-1.9-6.1L4 10l6.1-1.9z"/><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z"/><path d="M5 16l.6 1.4L7 18l-1.4.6L5 20l-.6-1.4L3 18l1.4-.6z"/>' },
     'Font Manager': { color:'#64748b', svg:'<path d="M2.5 20L8 4h2.5L16 20h-3l-1.3-4H6.8l-1.3 4zm5.2-7h3.1L9.2 8z"/><path d="M17 20v-6.5a2.6 2.6 0 0 1 4.5-1.8" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><path d="M15.5 15.5h5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>' },
+    'Theme Switcher': { color:'#0ea5e9', svg:'<path d="M12 3a9 9 0 1 0 0 18c1.1 0 1.9-.8 1.9-1.9 0-.5-.2-.9-.5-1.2-.3-.3-.4-.7-.4-1.1 0-1 .8-1.8 1.8-1.8H17a4 4 0 0 0 4-4C21 6.1 17 3 12 3z"/><circle cx="7.6" cy="11.5" r="1.4" fill="#000" fill-opacity=".45"/><circle cx="10.2" cy="7.5" r="1.4" fill="#000" fill-opacity=".45"/><circle cx="14.8" cy="7.5" r="1.4" fill="#000" fill-opacity=".45"/>' },
     'Auto Kill': { color:'#dc2626', svg:'<circle cx="12" cy="12" r="7.5" fill="none" stroke="currentColor" stroke-width="2.2"/><circle cx="12" cy="12" r="2.5"/><path d="M12 1.5v5M12 17.5v5M1.5 12h5M17.5 12h5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>' },
     'Offline Earnings': { color:'#4f46e5', svg:'<path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5z"/><path d="M16 3l.6 1.6 1.6.6-1.6.6L16 7.4l-.6-1.6-1.6-.6 1.6-.6zM20 7.5l.4 1 1 .4-1 .4-.4 1-.4-1-1-.4 1-.4z"/>' },
     'Lucky Charm': { color:'#22c55e', svg:'<circle cx="8.5" cy="8.5" r="4"/><circle cx="15.5" cy="8.5" r="4"/><circle cx="8.5" cy="15.5" r="4"/><circle cx="15.5" cy="15.5" r="4"/><path d="M12 12l5.5 9.5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>' },
@@ -9712,6 +9897,15 @@
         </div>
         <button class="buy-btn" id="buy-font-manager" ${game.fontManagerOwned ? 'disabled' : (game.clicks < FONT_MANAGER_COST ? 'disabled' : '')}>${game.fontManagerOwned ? 'Owned' : 'Buy (' + FONT_MANAGER_COST + ')'}</button>
       </div>` },
+      { category: 'customization', html: `
+      <div class="shop-card">
+        ${shopIconHTML('Theme Switcher')}
+        <div class="shop-info">
+          <h3>Theme Switcher</h3>
+          <p>One-time buy. Adds a picker to recolor the whole game with a theme. Mods from the Workshop can add more themes.</p>
+        </div>
+        <button class="buy-btn" id="buy-themes" ${game.themeSwitcherOwned ? 'disabled' : (game.clicks < THEME_SWITCHER_COST ? 'disabled' : '')}>${game.themeSwitcherOwned ? 'Owned' : 'Buy (' + THEME_SWITCHER_COST + ')'}</button>
+      </div>` },
       { category: 'plain', html: `
       <div class="shop-card">
         ${shopIconHTML('Auto Kill')}
@@ -9860,6 +10054,7 @@
     bind('buy-icon', buyIconModifier);
     bind('buy-effects', buyEffects);
     bind('buy-font-manager', buyFontManager);
+    bind('buy-themes', buyThemeSwitcher);
     bind('buy-autokill', buyAutoKill);
     bind('buy-noob', buyNoob);
     const amogusExpandBtn = document.getElementById('amogus-expand-btn');
@@ -9916,6 +10111,7 @@
     { id: 'buy-icon',         category: 'customization', available: () => !game.iconModifierOwned && game.clicks >= ICON_COST,         owned: () => !!game.iconModifierOwned },
     { id: 'buy-effects',      category: 'customization', available: () => !game.effectsOwned && game.clicks >= EFFECTS_COST,           owned: () => !!game.effectsOwned },
     { id: 'buy-font-manager', category: 'customization', available: () => !game.fontManagerOwned && game.clicks >= FONT_MANAGER_COST,  owned: () => !!game.fontManagerOwned },
+    { id: 'buy-themes',       category: 'customization', available: () => !game.themeSwitcherOwned && game.clicks >= THEME_SWITCHER_COST, owned: () => !!game.themeSwitcherOwned },
     { id: 'buy-autokill',     category: 'plain',         available: () => !game.autoKillOwned && game.clicks >= AUTO_KILL_COST,        owned: () => !!game.autoKillOwned },
     { id: 'buy-offline',      category: 'plain',         available: () => !game.offlineEarningsOwned && game.clicks >= OFFLINE_COST,   owned: () => !!game.offlineEarningsOwned },
     { id: 'buy-luckycharm',   category: 'plain',         available: () => !game.luckyCharmOwned && game.clicks >= LUCKY_CHARM_COST,    owned: () => !!game.luckyCharmOwned },
@@ -11462,6 +11658,10 @@
       }
     }
   ];
+  const MOD_THEMES = [];      // themes that come from installed mods (filled by loadModThemes)
+  let themeGateOn = false;    // turns on in startGame(): from then on themes need the Theme Switcher
+  function allUiThemes(){ return UI_THEMES.concat(MOD_THEMES); }
+
   // Watches the device's light/dark setting, for the "system" button.
   const systemLightQuery = window.matchMedia ? window.matchMedia('(prefers-color-scheme: light)') : null;
 
@@ -11478,11 +11678,13 @@
     return mode === 'light';
   }
 
-  // The picked theme, or the first one in the list if the pick is gone.
+  // The picked theme, or the first one in the list (Original) if the pick is gone.
+  // Once the save is loaded, a player without the Theme Switcher always gets Original.
   function getUiTheme(){
+    if (themeGateOn && !game.themeSwitcherOwned) return UI_THEMES[0];
     let saved = null;
     try { saved = localStorage.getItem(UI_THEME_KEY); } catch (e) {}
-    return UI_THEMES.find(t => t.id === saved) || UI_THEMES[0];
+    return allUiThemes().find(t => t.id === saved) || UI_THEMES[0];
   }
 
   // A theme value is safe when it is plain text with none of the characters that could break out of the rule.
@@ -11572,10 +11774,151 @@
     if (!themes.length) return;
     UI_THEMES.length = 0;
     themes.forEach(t => UI_THEMES.push({ id: String(t.id), label: t.label.trim(), dark: t.dark, light: t.light, font: t.font, square: t.square === true, compactTabs: t.compactTabs === true }));
+    rebuildThemeSelect();
     applyUiTheme();
-    if (activeTab === 'settings' && document.querySelector('.theme-picker')) renderSettings(); // refresh the theme list if Settings is open
   }
 
+  /* ---------- THEME SWITCHER (1.37.0): the theme picker in Preferences ----------
+     Bought in the Shop (game.themeSwitcherOwned, saved on the account).
+     The picked theme is saved on this device (UI_THEME_KEY), like the other pickers. */
+  const themeSelect = document.getElementById('theme-select');
+
+  function rebuildThemeSelect(){
+    let saved = null;
+    try { saved = localStorage.getItem(UI_THEME_KEY); } catch (e) {}
+    themeSelect.innerHTML = '';
+    const placeholder = document.createElement('option');
+    placeholder.value = '';
+    placeholder.textContent = 'Choose a theme';
+    placeholder.disabled = true;
+    themeSelect.appendChild(placeholder);
+    allUiThemes().forEach(t => {
+      const opt = document.createElement('option');
+      opt.value = t.id;
+      opt.textContent = t.label;
+      themeSelect.appendChild(opt);
+    });
+    themeSelect.value = allUiThemes().some(t => t.id === saved) ? saved : '';
+  }
+
+  themeSelect.addEventListener('change', () => {
+    try { localStorage.setItem(UI_THEME_KEY, themeSelect.value); } catch (e) {}
+    applyUiTheme();
+  });
+
+  function showThemePicker(){
+    updatePickerVisibility();
+    rebuildThemeSelect();
+    applyUiTheme();
+  }
+
+  /* ---------- MOD THEMES (1.37.0) ----------
+     A mod can carry themes made in the mod editor's theme editor. A mod theme is small and strict:
+       { name, square, light: { page, card, ... }, dark: { page, card, ... } }
+     Every color must be a plain #rrggbb. Anything else is swapped for the default color, so a mod
+     can never slip other CSS into the page. modThemeVars() turns the short list of colors into the
+     full set of names the theme engine uses.
+     In a mod's customFiles a theme is one entry of "themes": { name, file, url } where url is a JSON
+     data URL, the same trick the CGC code uses, so the API stores and returns it like any upload. */
+  const MOD_THEME_FIELDS = [
+    { key: 'page', label: 'Page' },
+    { key: 'card', label: 'Card' },
+    { key: 'raised', label: 'Raised' },
+    { key: 'outline', label: 'Outline' },
+    { key: 'text', label: 'Text' },
+    { key: 'muted', label: 'Muted text' },
+    { key: 'accent', label: 'Accent' },
+    { key: 'buttonText', label: 'Button text' },
+    { key: 'accent2', label: 'Second accent' },
+    { key: 'danger', label: 'Danger' },
+    { key: 'money', label: 'Moneys' },
+    { key: 'pill', label: 'Score pill' },
+    { key: 'pillText', label: 'Score text' }
+  ];
+  // What a brand new theme starts with: the Original theme's colors.
+  const MOD_THEME_DEFAULT = {
+    light: { page: '#f2f0f9', card: '#ffffff', raised: '#ece9f7', outline: '#0b0818', text: '#221c38', muted: '#6e6a80', accent: '#57ab46',
+             buttonText: '#130f29', accent2: '#ffcb3d', danger: '#e0457f', money: '#16a34a', pill: '#2c2360', pillText: '#ffffff' },
+    dark:  { page: '#130f29', card: '#1f1940', raised: '#2a2254', outline: '#0b0818', text: '#faf3df', muted: '#b8b0c8', accent: '#79cf67',
+             buttonText: '#130f29', accent2: '#ffcb3d', danger: '#e0457f', money: '#4ade80', pill: '#1a1538', pillText: '#ffffff' }
+  };
+  const HEX_COLOR = /^#[0-9a-f]{6}$/i;
+
+  // Returns a safe copy of a mod theme, or null if it is not a theme at all.
+  function cleanModTheme(raw){
+    if (!raw || typeof raw !== 'object') return null;
+    const out = { name: String(raw.name || 'Theme').replace(/[<>]/g, '').slice(0, 40) || 'Theme', square: raw.square === true, light: {}, dark: {} };
+    ['light', 'dark'].forEach(mode => {
+      MOD_THEME_FIELDS.forEach(f => {
+        const value = raw[mode] && raw[mode][f.key];
+        out[mode][f.key] = HEX_COLOR.test(String(value || '')) ? String(value).toLowerCase() : MOD_THEME_DEFAULT[mode][f.key];
+      });
+    });
+    return out;
+  }
+
+  // Theme -> the entry saved in customFiles.themes.
+  function modThemeEntry(theme, index){
+    const clean = cleanModTheme(theme);
+    return { name: clean.name, file: `theme-${index + 1}.json`, url: 'data:application/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(clean)) };
+  }
+
+  // customFiles.themes entry -> theme (null if it can't be read).
+  function modThemeFromEntry(entry){
+    const url = String((entry && (entry.url || entry.base64)) || '');
+    const comma = url.indexOf(',');
+    if (url.indexOf('data:application/json') !== 0 || comma === -1) return null;
+    try { return cleanModTheme(JSON.parse(decodeURIComponent(url.slice(comma + 1)))); } catch (e) { return null; }
+  }
+
+  // How bright a #rrggbb color is, from 0 (black) to 1 (white).
+  function colorLuminance(hex){
+    const n = parseInt(String(hex).slice(1), 16);
+    const part = v => { v /= 255; return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); };
+    return 0.2126 * part((n >> 16) & 255) + 0.7152 * part((n >> 8) & 255) + 0.0722 * part(n & 255);
+  }
+  // Contrast between two colors, from 1 (the same) to 21 (black on white). 4.5 or more is easy to read.
+  function colorContrast(a, b){
+    const la = colorLuminance(a), lb = colorLuminance(b);
+    return (Math.max(la, lb) + 0.05) / (Math.min(la, lb) + 0.05);
+  }
+
+  // One side (light or dark) of a mod theme -> the names the theme engine understands.
+  function modThemeVars(c){
+    // A bright color used as text falls back to the normal text color when it would be hard to read on a card.
+    const asText = color => colorContrast(color, c.card) >= 3 ? color : c.text;
+    return {
+      'page': c.page, 'night': c.page, 'card': c.card, 'card-hover': c.raised, 'ink': c.outline,
+      'rind': c.text, 'cream': c.text, 'muted': c.muted, 'line': `color-mix(in srgb, ${c.text} 14%, transparent)`,
+      'accent': c.accent, 'on-bright': c.buttonText, 'zap': c.accent2, 'pow': c.danger,
+      'zap-text': asText(c.accent2), 'melon-text': asText(c.accent), 'lavender': c.muted, 'grape': c.accent,
+      'moneys-green': asText(c.money), 'soft-edge': c.raised, 'btn-edge': c.outline,
+      'counter-bg': c.pill, 'counter-text': c.pillText, 'shine': 'inset 0 0 0 rgba(0,0,0,0)',
+      'color-scheme': colorLuminance(c.page) < 0.4 ? 'dark' : 'light'
+    };
+  }
+
+  // Reads the themes out of every installed mod.
+  function loadModThemes(){
+    MOD_THEMES.length = 0;
+    (game.installedMods || []).forEach(mod => {
+      const list = mod && mod.customFiles && Array.isArray(mod.customFiles.themes) ? mod.customFiles.themes : [];
+      list.forEach((entry, i) => {
+        const theme = modThemeFromEntry(entry);
+        if (!theme) return;
+        MOD_THEMES.push({ id: `mod:${mod.id}:${i}`, label: `${theme.name} (${mod.name || 'mod'})`, light: modThemeVars(theme.light), dark: modThemeVars(theme.dark), square: theme.square });
+      });
+    });
+  }
+
+  // Call after a mod is installed, updated or removed: the picker and the page catch up right away.
+  function refreshModThemes(){
+    loadModThemes();
+    rebuildThemeSelect();
+    applyUiTheme();
+  }
+
+  rebuildThemeSelect();
   applyUiTheme();
   applyLightMode();
   // The device switched between light and dark: only matters on "system".
@@ -12548,8 +12891,10 @@
     effectPickerEl.classList.toggle('visible', !!game.effectsOwned);
     const fontManagerPickerEl = document.getElementById('font-manager-picker');
     if (fontManagerPickerEl) fontManagerPickerEl.classList.toggle('visible', !!game.fontManagerOwned);
+    const themePickerEl = document.getElementById('theme-picker');
+    if (themePickerEl) themePickerEl.classList.toggle('visible', !!game.themeSwitcherOwned);
 
-    const anyPickerOwned = !!(game.musicPlayerOwned || game.cursorsOwned || game.bgOwned || game.iconModifierOwned || game.effectsOwned || game.fontManagerOwned);
+    const anyPickerOwned = !!(game.musicPlayerOwned || game.cursorsOwned || game.bgOwned || game.iconModifierOwned || game.effectsOwned || game.fontManagerOwned || game.themeSwitcherOwned);
     const preferencesDropdownEl = document.getElementById('preferences-dropdown');
     if (preferencesDropdownEl) preferencesDropdownEl.classList.toggle('visible', anyPickerOwned);
   }
@@ -14681,6 +15026,7 @@
     saveGame();
     syncToSheet();
     cgcStartMod(findInstalledMod(item.id)); // CGC: restart its code with the new version
+    refreshModThemes(); // MOD THEMES
     showWorkshopRefreshBanner();
     renderWorkshopBody();
   }
@@ -14690,6 +15036,7 @@
     game.installedMods = (game.installedMods || []).filter(m => m && m.id !== item.id);
     saveGame();
     syncToSheet();
+    refreshModThemes(); // MOD THEMES: a removed theme switches back to Original
     showWorkshopRefreshBanner();
     renderWorkshopBody();
   }
@@ -14717,6 +15064,7 @@
           saveGame();
           syncToSheet();
           cgcStartMod(findInstalledMod(item.id)); // CGC
+          refreshModThemes(); // MOD THEMES
           showWorkshopRefreshBanner();
         }
         renderWorkshopBody();
@@ -19464,6 +19812,18 @@ ${hasCode
     { id: 'music', label: 'Music', hint: 'Songs are too big to store, so add a direct link to an .mp3 file.', accept: '', linkOnly: true, linkHint: 'https://example.com/song.mp3' }
   ];
 
+  // MOD THEMES (1.37.0): every theme in a mod counts as this share of the storage budget,
+  // no matter how small it really is. 0.5 = 50%, so two themes fill a mod.
+  const MOD_THEME_STORAGE_SHARE = 0.5;
+
+  // Storage size of a customFiles object: the real size of the files plus the flat cost of each theme.
+  function modFilesSize(customFiles){
+    const files = Object.assign({}, customFiles || {});
+    const themeCount = Array.isArray(files.themes) ? files.themes.length : 0;
+    delete files.themes;
+    return JSON.stringify(files).length + Math.round(themeCount * MOD_EDITOR_SIZE_LIMIT * MOD_THEME_STORAGE_SHARE);
+  }
+
   // REMIX (1.25.0): Gems it costs to copy a mod you downloaded into your editor.
   const MOD_REMIX_COST = 100;
 
@@ -19489,6 +19849,7 @@ ${hasCode
       code: CGC_DEFAULT_CODE, // CGC: every new mod starts with this
       codeMode: 'text',       // BLOCK CODING (1.33.0): 'text' to type code, 'blocks' to build it from blocks
       payload: [],            // CGC: the payload folder, [{ name: 'cookie.png', url }]
+      themes: [],             // MOD THEMES: [{ name, square, light: {...}, dark: {...} }], see cleanModTheme()
       remixOf: null           // REMIX: { id, name } of the original mod, or null for a brand new mod
     };
   }
@@ -19503,6 +19864,7 @@ ${hasCode
       const merged = Object.assign(base, d, { files: Object.assign(base.files, d.files || {}) });
       if (typeof merged.code !== 'string') merged.code = CGC_DEFAULT_CODE;
       if (!Array.isArray(merged.payload)) merged.payload = [];
+      merged.themes = (Array.isArray(merged.themes) ? merged.themes : []).map(cleanModTheme).filter(Boolean);
       return merged;
     } catch (e) {
       return null;
@@ -19548,6 +19910,8 @@ ${hasCode
     d.payload = (Array.isArray(files.payload) ? files.payload : [])
       .filter(f => f && f.url && f.name)
       .map(f => ({ name: String(f.name), url: String(f.url) }));
+    // MOD THEMES
+    d.themes = (Array.isArray(files.themes) ? files.themes : []).map(modThemeFromEntry).filter(Boolean);
     return d;
   }
 
@@ -19656,17 +20020,20 @@ ${hasCode
     out.payload = (modEditorDraft.payload || []).map(f => ({ name: f.name, file: f.name, url: f.url }));
     const code = String(modEditorDraft.code || '');
     out.script = code.trim() ? [cgcScriptEntry(code)] : [];
+    // MOD THEMES: only added when the mod has themes, so mods without them are saved exactly as before.
+    const themes = modEditorDraft.themes || [];
+    if (themes.length) out.themes = themes.map(modThemeEntry);
     return out;
   }
 
   // CGC: a mod needs at least one asset, payload file or real code to publish.
   function modEditorHasContent(){
     const code = String(modEditorDraft.code || '').trim();
-    return modEditorFileCount() > 0 || (modEditorDraft.payload || []).length > 0 || (code && code !== CGC_DEFAULT_CODE);
+    return modEditorFileCount() > 0 || (modEditorDraft.payload || []).length > 0 || (modEditorDraft.themes || []).length > 0 || (code && code !== CGC_DEFAULT_CODE);
   }
 
   function modEditorSize(){
-    return JSON.stringify(modEditorCustomFiles()).length;
+    return modFilesSize(modEditorCustomFiles());
   }
 
   /* ---------- STORAGE PRICING (1.25.0) ----------
@@ -19692,7 +20059,7 @@ ${hasCode
     if (!modEditorEditingId) return over;
     const original = workshopItemsCache.find(i => i.id === modEditorEditingId);
     let paid = 0;
-    try { paid = original ? Math.max(0, modStoragePercent(JSON.stringify(original.customFiles || {}).length) - 100) : 0; } catch (e) {}
+    try { paid = original ? Math.max(0, modStoragePercent(modFilesSize(original.customFiles)) - 100) : 0; } catch (e) {}
     return Math.max(0, over - paid);
   }
 
@@ -19874,6 +20241,7 @@ ${hasCode
             </section>
             ${cgcEditorSectionsHtml(d)}
             ${sectionHtml}
+            ${modThemeSectionHtml(d)}
           </div>
 
           <aside class="mod-editor-side">
@@ -20088,7 +20456,7 @@ ${hasCode
         onChange();
       });
     });
-    workshopBody.querySelectorAll('.mod-editor-remove').forEach(btn => {
+    workshopBody.querySelectorAll('.mod-editor-remove[data-type]').forEach(btn => {
       btn.addEventListener('click', () => {
         d.files[btn.dataset.type].splice(Number(btn.dataset.index), 1);
         saveModEditorDraft();
@@ -20109,6 +20477,270 @@ ${hasCode
       renderModEditor();
     });
     document.getElementById('mod-editor-publish').addEventListener('click', publishModFromEditor);
+    bindModThemeSection(d);
+  }
+
+  /* ---------- MOD THEMES: the Themes section and the theme editor (1.37.0) ----------
+     The section lists the mod's themes. "New theme" adds one and opens the theme editor:
+     a menu with every color, a Light / Dark switch for which side is being edited,
+     a light preview and a dark preview, and a contrast check.
+     Each theme counts as 50% of the mod's storage (MOD_THEME_STORAGE_SHARE). */
+  let modThemeEditIndex = -1;       // which theme of the draft the editor has open
+  let modThemeEditMode = 'light';   // which side the color boxes change
+
+  function modThemeSectionHtml(d){
+    const esc = escapeChatHtml;
+    const list = d.themes || [];
+    const share = Math.round(MOD_THEME_STORAGE_SHARE * 100);
+    const rows = list.map((t, i) => `
+      <div class="mod-editor-file">
+        <div class="mod-theme-chip" aria-hidden="true">
+          <span style="background:${t.light.page}"><i style="background:${t.light.accent}"></i></span>
+          <span style="background:${t.dark.page}"><i style="background:${t.dark.accent}"></i></span>
+        </div>
+        <div class="mod-editor-file-main">
+          <input type="text" class="auth-input mod-theme-name" data-index="${i}" value="${esc(t.name)}" placeholder="Theme name" maxlength="40">
+          <span class="mod-editor-file-src">Light and dark colors &middot; ${share}% of storage</span>
+        </div>
+        <button class="workshop-icon-btn mod-theme-edit" data-index="${i}">Edit colors</button>
+        <button class="mod-editor-remove mod-theme-remove" data-index="${i}" title="Remove" aria-label="Remove ${esc(t.name)}">&times;</button>
+      </div>`).join('');
+    return `
+      <section class="mio-panel mod-editor-section">
+        <div class="mod-editor-section-head">
+          <h3 class="mio-panel-heading">Themes <span class="mod-editor-count">${list.length}</span></h3>
+          <button class="workshop-icon-btn" id="mod-theme-new">New theme</button>
+        </div>
+        <p class="mio-side-note">Color themes for the whole game. Players pick them with the Theme Switcher from the Shop. Each theme uses ${share}% of your mod's storage.</p>
+        <div class="mod-editor-files">${rows || '<div class="mod-editor-empty">No themes yet.</div>'}</div>
+      </section>`;
+  }
+
+  function bindModThemeSection(d){
+    const newBtn = document.getElementById('mod-theme-new');
+    if (!newBtn) return;
+    newBtn.addEventListener('click', () => {
+      if (!Array.isArray(d.themes)) d.themes = [];
+      d.themes.push(cleanModTheme({ name: `Theme ${d.themes.length + 1}` })); // starts with the Original colors
+      saveModEditorDraft();
+      renderModEditor();
+      if (modEditorSize() > MOD_EDITOR_SIZE_LIMIT) modEditorOverStorageNotice();
+      openModThemeEditor(d.themes.length - 1); // making a theme opens the color menu right away
+    });
+    workshopBody.querySelectorAll('.mod-theme-edit').forEach(btn => {
+      btn.addEventListener('click', () => openModThemeEditor(Number(btn.dataset.index)));
+    });
+    workshopBody.querySelectorAll('.mod-theme-remove').forEach(btn => {
+      btn.addEventListener('click', () => {
+        d.themes.splice(Number(btn.dataset.index), 1);
+        saveModEditorDraft();
+        renderModEditor();
+      });
+    });
+    workshopBody.querySelectorAll('.mod-theme-name').forEach(input => {
+      input.addEventListener('input', () => {
+        const theme = d.themes[Number(input.dataset.index)];
+        if (theme) theme.name = input.value.replace(/[<>]/g, '').slice(0, 40);
+        saveModEditorDraft();
+        updateModEditorPreview();
+      });
+    });
+  }
+
+  // The theme the editor has open, or null.
+  function modThemeBeingEdited(){
+    return modEditorDraft && Array.isArray(modEditorDraft.themes) ? (modEditorDraft.themes[modThemeEditIndex] || null) : null;
+  }
+
+  function ensureModThemeEditor(){
+    let overlay = document.getElementById('mod-theme-editor');
+    if (overlay) return overlay;
+    overlay = document.createElement('div');
+    overlay.className = 'cgc-guide-overlay';
+    overlay.id = 'mod-theme-editor';
+    overlay.setAttribute('role', 'dialog');
+    overlay.setAttribute('aria-modal', 'true');
+    overlay.setAttribute('aria-label', 'Theme editor');
+    document.body.appendChild(overlay);
+    overlay.addEventListener('click', (e) => { if (e.target === overlay) closeModThemeEditor(); });
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && overlay.classList.contains('visible')) closeModThemeEditor();
+    });
+    return overlay;
+  }
+
+  function openModThemeEditor(index){
+    modThemeEditIndex = index;
+    if (!modThemeBeingEdited()) return;
+    modThemeEditMode = isLightModeActive() ? 'light' : 'dark'; // start on the side the player is looking at
+    const overlay = ensureModThemeEditor();
+    renderModThemeEditor();
+    overlay.classList.add('visible');
+  }
+
+  function closeModThemeEditor(){
+    const overlay = document.getElementById('mod-theme-editor');
+    if (overlay) overlay.classList.remove('visible');
+    modThemeEditIndex = -1;
+    saveModEditorDraft();
+    if (workshopView === 'create' && modEditorDraft) renderModEditor(); // the list shows the new name and colors
+  }
+
+  // Draws the whole editor. Typing only redraws the previews (updateModThemePreviews), so the cursor stays put.
+  function renderModThemeEditor(){
+    const overlay = ensureModThemeEditor();
+    const theme = modThemeBeingEdited();
+    if (!theme) return;
+    const esc = escapeChatHtml;
+    const colors = theme[modThemeEditMode];
+    const other = modThemeEditMode === 'light' ? 'dark' : 'light';
+    const cap = word => word.charAt(0).toUpperCase() + word.slice(1);
+    overlay.innerHTML = `
+      <div class="cgc-guide te-box">
+        <div class="cgc-guide-head">
+          <h2>Theme editor</h2>
+          <button class="mod-editor-remove cgc-guide-close" id="te-close" aria-label="Close theme editor">&times;</button>
+        </div>
+        <div class="te-body">
+          <div class="te-controls">
+            <label class="workshop-upload-label" for="te-name">Theme name</label>
+            <input type="text" id="te-name" class="auth-input" maxlength="40" value="${esc(theme.name)}" placeholder="My theme">
+            <div class="te-switch-row">
+              <span class="te-switch-label">Editing</span>
+              <div class="te-switch" role="group" aria-label="Which colors to edit">
+                <button type="button" class="te-mode${modThemeEditMode === 'light' ? ' active' : ''}" data-mode="light" aria-pressed="${modThemeEditMode === 'light'}">Light</button>
+                <button type="button" class="te-mode${modThemeEditMode === 'dark' ? ' active' : ''}" data-mode="dark" aria-pressed="${modThemeEditMode === 'dark'}">Dark</button>
+              </div>
+            </div>
+            <div class="te-fields">
+              ${MOD_THEME_FIELDS.map(f => `
+              <div class="te-field">
+                <label for="te-hex-${f.key}">${f.label}</label>
+                <input type="color" class="te-color" data-key="${f.key}" value="${colors[f.key]}" aria-label="${f.label} color">
+                <input type="text" class="auth-input te-hex" id="te-hex-${f.key}" data-key="${f.key}" value="${colors[f.key].toUpperCase()}" maxlength="7" spellcheck="false">
+              </div>`).join('')}
+            </div>
+            <button type="button" class="workshop-icon-btn" id="te-copy">Copy ${cap(other)} Colors To ${cap(modThemeEditMode)}</button>
+            <label class="workshop-mature-row" for="te-square">
+              <input type="checkbox" id="te-square"${theme.square ? ' checked' : ''}>
+              <span>Square corners</span>
+            </label>
+          </div>
+          <div class="te-side">
+            <div class="te-previews" id="te-previews"></div>
+            <div class="te-contrast" id="te-contrast"></div>
+            <p class="mio-side-note">OK means 4.5 or better for text, 3 for the accent color. Click a preview to edit that side.</p>
+            <button type="button" class="auth-btn" id="te-done">Done</button>
+          </div>
+        </div>
+      </div>`;
+
+    document.getElementById('te-close').addEventListener('click', closeModThemeEditor);
+    document.getElementById('te-done').addEventListener('click', closeModThemeEditor);
+    document.getElementById('te-name').addEventListener('input', (e) => {
+      theme.name = e.target.value.replace(/[<>]/g, '').slice(0, 40);
+      saveModEditorDraft();
+    });
+    overlay.querySelectorAll('.te-mode').forEach(btn => {
+      btn.addEventListener('click', () => { modThemeEditMode = btn.dataset.mode; renderModThemeEditor(); });
+    });
+    // The color square and the text box of a row always show the same color.
+    const setColor = (key, value, from) => {
+      if (!HEX_COLOR.test(value)) return;
+      theme[modThemeEditMode][key] = value.toLowerCase();
+      const colorEl = overlay.querySelector(`.te-color[data-key="${key}"]`);
+      const hexEl = overlay.querySelector(`.te-hex[data-key="${key}"]`);
+      if (from !== 'color' && colorEl) colorEl.value = value.toLowerCase();
+      if (from !== 'hex' && hexEl) hexEl.value = value.toUpperCase();
+      saveModEditorDraft();
+      updateModThemePreviews();
+    };
+    overlay.querySelectorAll('.te-color').forEach(input => {
+      input.addEventListener('input', () => setColor(input.dataset.key, input.value, 'color'));
+    });
+    overlay.querySelectorAll('.te-hex').forEach(input => {
+      input.addEventListener('input', () => {
+        let value = input.value.trim();
+        if (value && value[0] !== '#') value = '#' + value;
+        input.classList.toggle('te-bad', !HEX_COLOR.test(value));
+        setColor(input.dataset.key, value, 'hex');
+      });
+      // Leaving the box with a half typed color puts the last good color back.
+      input.addEventListener('blur', () => {
+        input.value = theme[modThemeEditMode][input.dataset.key].toUpperCase();
+        input.classList.remove('te-bad');
+      });
+    });
+    document.getElementById('te-copy').addEventListener('click', () => {
+      theme[modThemeEditMode] = Object.assign({}, theme[other]);
+      saveModEditorDraft();
+      renderModThemeEditor();
+    });
+    document.getElementById('te-square').addEventListener('change', (e) => {
+      theme.square = e.target.checked;
+      saveModEditorDraft();
+      updateModThemePreviews();
+    });
+    updateModThemePreviews();
+  }
+
+  // A small picture of the game drawn with one side of the theme.
+  function modThemePreviewHtml(theme, mode){
+    const c = theme[mode];
+    const vars = MOD_THEME_FIELDS.map(f => `--tp-${f.key}:${c[f.key]}`).join(';');
+    return `
+      <div class="te-preview${mode === modThemeEditMode ? ' te-active' : ''}${theme.square ? ' te-square' : ''}" data-mode="${mode}" role="button" tabindex="0" aria-label="Edit the ${mode} colors" style="${vars}">
+        <div class="te-prev-tag">${mode === 'light' ? 'Light' : 'Dark'}</div>
+        <div class="te-prev-screen">
+          <div class="te-prev-pill">1,234 clicks</div>
+          <div class="te-prev-avatar"></div>
+          <div class="te-prev-tabs"><b>Shop</b><span>Stats</span><span>Settings</span></div>
+          <div class="te-prev-row"><span class="te-prev-chip">All</span><span class="te-prev-quiet">Visuals</span><span class="te-prev-quiet">Plain</span></div>
+          <div class="te-prev-card">
+            <div><strong>Click Boost</strong><em>Each click is worth more.</em><u>+250 moneys</u></div>
+            <span class="te-prev-btn">Buy</span>
+          </div>
+          <div class="te-prev-card">
+            <div><strong>Music Player</strong><em>Adds a song picker.</em></div>
+            <span class="te-prev-btn te-prev-owned">Owned</span>
+          </div>
+        </div>
+      </div>`;
+  }
+
+  // Redraws the two previews and the contrast check from the theme's current colors.
+  function updateModThemePreviews(){
+    const theme = modThemeBeingEdited();
+    const previews = document.getElementById('te-previews');
+    const contrastEl = document.getElementById('te-contrast');
+    if (!theme || !previews || !contrastEl) return;
+    previews.innerHTML = modThemePreviewHtml(theme, 'light') + modThemePreviewHtml(theme, 'dark');
+    previews.querySelectorAll('.te-preview').forEach(el => {
+      const pick = () => { if (modThemeEditMode !== el.dataset.mode) { modThemeEditMode = el.dataset.mode; renderModThemeEditor(); } };
+      el.addEventListener('click', pick);
+      el.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); pick(); } });
+    });
+
+    // [label, front color, back color, the number it should reach]
+    const checks = [
+      ['Text on card', 'text', 'card', 4.5],
+      ['Text on page', 'text', 'page', 4.5],
+      ['Muted text on card', 'muted', 'card', 4.5],
+      ['Button text on accent', 'buttonText', 'accent', 4.5],
+      ['Button text on second accent', 'buttonText', 'accent2', 4.5],
+      ['Score text on score pill', 'pillText', 'pill', 4.5],
+      ['Accent on card', 'accent', 'card', 3]
+    ];
+    const cell = (mode, check) => {
+      const ratio = colorContrast(theme[mode][check[1]], theme[mode][check[2]]);
+      const ok = ratio >= check[3];
+      return `<td class="${ok ? 'te-ok' : 'te-low'}">${ratio.toFixed(2)} ${ok ? 'OK' : 'Low'}</td>`;
+    };
+    contrastEl.innerHTML = `
+      <table class="te-table">
+        <thead><tr><th>Contrast check</th><th>Light</th><th>Dark</th></tr></thead>
+        <tbody>${checks.map(ch => `<tr><td>${ch[0]}</td>${cell('light', ch)}${cell('dark', ch)}</tr>`).join('')}</tbody>
+      </table>`;
   }
 
   // EDIT MODE: saves changes to a published mod. Free, author only (checked on the server too).
@@ -20121,7 +20753,7 @@ ${hasCode
     const category = d.mature ? WORKSHOP_NSFW_CATEGORY : (String(d.category || '').trim() || 'Other');
 
     if (!name) { modEditorStatus('Give your mod a name.', true); document.getElementById('mod-editor-name').focus(); return; }
-    if (!modEditorHasContent()) { modEditorStatus('Add some code, a payload file, or at least one icon, cursor, background or song.', true); return; }
+    if (!modEditorHasContent()) { modEditorStatus('Add some code, a payload file, or at least one icon, cursor, background, song or theme.', true); return; }
     // STORAGE PRICING (1.25.0): going further past 100% storage costs 1 Gem per extra percent.
     const extraGems = modEditorExtraGems();
     if ((game.gems || 0) < extraGems) { modEditorStatus(`You need ${extraGems} Gems for the extra storage.`, true); return; }
@@ -20384,7 +21016,8 @@ ${hasCode
       code: 'code.cgc',
       icon: null,
       files: {},
-      payload: []
+      payload: [],
+      themes: (d.themes || []).map(cleanModTheme).filter(Boolean) // MOD THEMES: plain JSON, no files needed
     };
     if (d.iconData) {
       const icon = pack('', { name: 'icon', url: d.iconData });
@@ -20473,6 +21106,8 @@ ${hasCode
       got.name = cgcUniqueFileName(got.name, d.payload, -1);
       d.payload.push(got);
     });
+    // MOD THEMES: every color is checked again by cleanModTheme, so a hand edited archive can't sneak anything in.
+    d.themes = (Array.isArray(manifest.themes) ? manifest.themes : []).slice(0, 10).map(cleanModTheme).filter(Boolean);
     return { draft: d, skipped };
   }
 
@@ -20648,7 +21283,7 @@ ${hasCode
     const category = d.mature ? WORKSHOP_NSFW_CATEGORY : (String(d.category || '').trim() || 'Other');
 
     if (!name) { modEditorStatus('Give your mod a name.', true); document.getElementById('mod-editor-name').focus(); return; }
-    if (!modEditorHasContent()) { modEditorStatus('Add some code, a payload file, or at least one icon, cursor, background or song.', true); return; }
+    if (!modEditorHasContent()) { modEditorStatus('Add some code, a payload file, or at least one icon, cursor, background, song or theme.', true); return; }
     // STORAGE PRICING (1.25.0): the publish price is MOD_EDITOR_COST plus 1 Gem for every
     // percent of storage over 100. It is worked out once here so it can't change mid-upload.
     const publishCost = modEditorPublishCost();
@@ -21189,6 +21824,7 @@ ${hasCode
       effectsOwned: game.effectsOwned || false,
       selectedEffect: game.selectedEffect || 'none',
       fontManagerOwned: game.fontManagerOwned || false,
+      themeSwitcherOwned: game.themeSwitcherOwned || false, // THEME SWITCHER: needs the theme_switcher_owned column (MIGRATIONS in the API adds it)
       megaBoostOwned: game.megaBoostOwned || 0,
       turboClickerOwned: game.turboClickerOwned || 0,
       luckyCharmOwned: game.luckyCharmOwned || false,
@@ -21280,7 +21916,8 @@ ${hasCode
           effectChosen: !!savedRaw.effectChosen,
           selectedUiFont: savedRaw.selectedUiFont,
           fontManagerChosen: !!savedRaw.fontManagerChosen,
-          fontManagerOwned: !!savedRaw.fontManagerOwned
+          fontManagerOwned: !!savedRaw.fontManagerOwned,
+          themeSwitcherOwned: !!savedRaw.themeSwitcherOwned
         };
       }
     } catch (e) {}
@@ -21336,6 +21973,8 @@ ${hasCode
       // prefer server truth once it exists, fall back to the local value
       // in the meantime so a real purchase doesn't get wiped on login.
       fontManagerOwned: source.fontManagerOwned !== undefined ? !!source.fontManagerOwned : !!previousPickerPrefs.fontManagerOwned,
+      // THEME SWITCHER: same idea. A null from the server means the column is not there yet, so keep the local value.
+      themeSwitcherOwned: (source.themeSwitcherOwned !== undefined && source.themeSwitcherOwned !== null) ? !!source.themeSwitcherOwned : !!previousPickerPrefs.themeSwitcherOwned,
       selectedSong: previousPickerPrefs.selectedSong !== undefined ? previousPickerPrefs.selectedSong : 0,
       selectedSongFile: previousPickerPrefs.selectedSongFile || '',
       songChosen: !!previousPickerPrefs.songChosen,
@@ -22825,14 +23464,10 @@ ${hasCode
       <div class="shop-card">
         <div class="shop-info">
           <h3>Theme</h3>
-          <p>Pick light, dark, or match your device. Saved on this device.</p>
+          <p>Pick light, dark, or match your device. Saved on this device. ${game.themeSwitcherOwned ? 'Change the theme itself in Preferences.' : 'Buy the Theme Switcher in the Shop for more themes.'}</p>
         </div>
-        <!-- THEME PICKER (1.35.0): three square buttons. The theme list only shows with 2+ themes in settings/themes.json -->
+        <!-- THEME PICKER (1.35.0): three square buttons. The list of themes moved to Preferences in 1.37.0 (Theme Switcher) -->
         <div class="theme-picker">
-          ${UI_THEMES.length > 1 ? `
-          <select class="layout-select" id="theme-select" aria-label="Theme">
-            ${UI_THEMES.map(t => `<option value="${escapeChatHtml(t.id)}">${escapeChatHtml(t.label)}</option>`).join('')}
-          </select>` : ''}
           <div class="theme-mode-btns" role="group" aria-label="Color mode">
             ${THEME_MODE_BUTTONS.map(b => `
             <button class="theme-mode-btn${getColorMode() === b.mode ? ' active' : ''}" data-mode="${b.mode}" title="${b.label}" aria-label="${b.label}" aria-pressed="${getColorMode() === b.mode}">
@@ -22936,15 +23571,6 @@ ${hasCode
         renderSettings();
       });
     });
-    const themeSelect = document.getElementById('theme-select');
-    if (themeSelect) {
-      themeSelect.value = getUiTheme().id;
-      themeSelect.addEventListener('change', () => {
-        try { localStorage.setItem(UI_THEME_KEY, themeSelect.value); } catch (e) {}
-        applyUiTheme();
-      });
-    }
-
     document.getElementById('toggle-low-perf').addEventListener('click', () => {
       localStorage.setItem(LOW_PERF_KEY, isLowPerfMode() ? '0' : '1');
       applyLowPerfMode();
@@ -24609,6 +25235,8 @@ ${hasCode
     updateCounter();
     cgcStartAll(); // CGC: run the code of installed editor mods
     migrateOldLightMode(); // old saves: carry the account's light mode pick to this device
+    themeGateOn = true;    // THEME SWITCHER: from here on a theme needs the Shop item
+    refreshModThemes();    // themes from installed mods join the picker
     applyLightMode();
     switchBgSong(DEFAULT_BG_SONG);
     updatePickerVisibility();
@@ -24691,7 +25319,7 @@ ${hasCode
     'dvdOwned', 'swingMultiplier', 'swingLevel', 'amogusOwned', 'amogusAlive',
     'musicPlayerOwned', 'cursorsOwned', 'bgOwned', 'offlineEarningsOwned', 'iconModifierOwned',
     'autoKillOwned', 'noobOwned', 'noobLevel', 'amogusExtraTasks', 'prestige', 'boosts',
-    'effectsOwned', 'fontManagerOwned', 'megaBoostOwned', 'turboClickerOwned', 'luckyCharmOwned',
+    'effectsOwned', 'fontManagerOwned', 'themeSwitcherOwned', 'megaBoostOwned', 'turboClickerOwned', 'luckyCharmOwned',
     'headStartOwned', 'prestigeMultOwned', 'autoBuyerOwned'
   ];
   // Who can manage who. A bigger number can kick, ban or change the role of a smaller one.
@@ -24807,6 +25435,7 @@ ${hasCode
     if (game.iconModifierOwned) showIconPicker(); else updateAvatarIconDisplay();
     if (game.effectsOwned) showEffectPicker();
     if (game.fontManagerOwned) showFontManager(); else applyUiFont('');
+    showThemePicker(); // THEME SWITCHER: without it the game goes back to the Original theme
   }
 
   // Steps into a room. `reply` is the answer of a create or join request.
@@ -25056,7 +25685,7 @@ ${hasCode
       saveNoobStore();
     }
 
-    const pickerKeys = ['musicPlayerOwned', 'cursorsOwned', 'bgOwned', 'iconModifierOwned', 'effectsOwned', 'fontManagerOwned'];
+    const pickerKeys = ['musicPlayerOwned', 'cursorsOwned', 'bgOwned', 'iconModifierOwned', 'effectsOwned', 'fontManagerOwned', 'themeSwitcherOwned'];
     if (pickerKeys.some(has)) roomRefreshPickers();
 
     // Anything other than the click counter changes what the Shop shows.

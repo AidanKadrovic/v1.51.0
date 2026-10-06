@@ -105,7 +105,8 @@ Built-in lists live in the `settings/` folder, so they can be changed without ed
 - `id`: short id, letters, numbers, `-` and `_` only. Never change it for an existing theme, players' saved choice uses it.
 - `dark` and `light`: color names and values. A name is a CSS variable without the `--`, so `"card": "#ffffff"` sets `--card`. The main ones are `night` (page), `card`, `card-hover`, `ink` (outlines), `rind` (text), `muted` (quiet text), `line`, `zap-text` (yellow text) and `on-bright` (text on bright buttons).
 - The first theme in the list is the default. With 2 or more themes, a theme list shows up next to the buttons in Settings.
-- The Settings tab has three buttons: light, dark and system (the default, it follows the device). The pick is saved on the device in `localStorage` (`fgd_color_mode`, and `fgd_ui_theme` for the theme), not on the account.
+- The Settings tab has three buttons: light, dark and system (the default, it follows the device). That pick is saved on the device in `localStorage` (`fgd_color_mode`), not on the account.
+- **Theme Switcher (1.37.0):** the list of themes is a Shop item (`THEME_SWITCHER_COST` moneys, `game.themeSwitcherOwned`). Buying it adds a theme picker to Preferences, next to the font and cursor pickers. Owning it is saved on the account (the `theme_switcher_owned` column, added by `MIGRATIONS` in the `api` edge function). The picked theme is saved on the device (`fgd_ui_theme`). Without the item the game always shows the first theme in the file (Original).
 - The account color (`--melon`) is not part of the Original theme, so players keep their favorite color there. A theme can take over the button color with `"accent"`.
 - Special names inside `dark` and `light` (these are not CSS variables):
   - `"accent"`: the button color. It wins over the account's favorite color.
@@ -130,8 +131,8 @@ Rules:
 Near the top of `index.html`:
 
 ```html
-<!-- Game version: 1.36.1 | Deployment: 210 | Update both on every release, see README.md -->
-<meta name="game-version" content="1.36.1">
+<!-- Game version: 1.37.0 | Deployment: 211 | Update both on every release, see README.md -->
+<meta name="game-version" content="1.37.0">
 ```
 
 Bump both the version comment and the `game-version` meta tag on every release. The deployment number is an internal counter for tracking Apps Script/Sheet deployments - increment it whenever the backend Web App is redeployed, even if the game version string doesn't change.
@@ -170,12 +171,22 @@ How a mod is saved (`customFiles` in the workshop row):
 
 - `payload`: `[{ name: "cookie.png", file: "cookie.png", url }]`
 - `script`: `[{ name: "main.cgc", file: "main.cgc", url: "data:text/plain;charset=utf-8,..." }]`. The code is a text data URL on purpose, so the API's installed-mods compaction and rehydration handle it like any uploaded file.
+- `themes` (1.37.0): `[{ name: "My theme", file: "theme-1.json", url: "data:application/json;charset=utf-8,..." }]`. The JSON inside is `{ name, square, light: {...}, dark: {...} }` with these colors on each side: `page`, `card`, `raised`, `outline`, `text`, `muted`, `accent`, `buttonText`, `accent2`, `danger`, `money`, `pill`, `pillText`. It is a data URL for the same reason as `script`. The key is left out when a mod has no themes.
 
 Mod data (currencies and `storage.` variables):
 
 - In the save: `game.modData = { modId: { currency: {}, storage: {} } }`.
 - To the API: `modData: [{ modId, currency, storage }]` in `saveGameData`, stored in the `mod_data` column. The API adds the column by itself (see `MIGRATIONS` at the top of the edge function), nothing to run by hand.
 - Kept through prestige, kept on uninstall (a reinstall gets it back).
+
+Mod themes (1.37.0):
+
+- Made in the mod editor's **Themes** section. `New theme` adds one and opens the theme editor (`renderModThemeEditor()`): a box for every color, a Light / Dark switch for the side being edited, a light and a dark preview, and a contrast check.
+- Each theme counts as 50% of the mod's storage (`MOD_THEME_STORAGE_SHARE`), whatever its real size. `modFilesSize()` does the math, so a third theme goes past 100% and costs extra Gems like any other storage.
+- Every color must be a plain `#rrggbb`. `cleanModTheme()` swaps anything else for the default color, so a mod can't put other CSS into the page. Do not loosen this check.
+- Themes from installed mods show up in the Preferences theme picker right away (`refreshModThemes()`), named `Theme name (Mod name)`. Their id is `mod:<mod id>:<number>`.
+- `.cga` files keep themes in `mod.json` under `themes`.
+- The AI helper and the AI connector do not make themes yet.
 
 Rules for changing CGC:
 
