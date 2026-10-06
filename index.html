@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<!-- Game version: 1.35.0 | Deployment: 210 | Update both on every release, see README.md -->
-<meta name="game-version" content="1.35.0">
+<!-- Game version: 1.36.0 | Deployment: 210 | Update both on every release, see README.md -->
+<meta name="game-version" content="1.36.0">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>The Clicker Game!</title>
 <link rel="icon" type="image/x-icon" href="images/ui/maksy.ico" id="favicon-link">
@@ -6242,8 +6242,8 @@
     font-size:24px;
     line-height:1;
     letter-spacing:0.5px;
-    color:#fff;
-    background:linear-gradient(180deg, #2f2660, #1a1538);
+    color:var(--counter-text, #fff);            /* THEMES: "counter-text" and "counter-bg" recolor the score pill */
+    background:var(--counter-bg, linear-gradient(180deg, #2f2660, #1a1538));
     border:2px solid var(--ink);
     border-radius:999px;
     padding:10px 22px 10px 12px;
@@ -6260,8 +6260,8 @@
     filter:drop-shadow(0 2px 0 rgba(0,0,0,0.3));
   }
   body.light-mode .click-counter{
-    color:#fff;
-    background:linear-gradient(180deg, #4a3c8f, #2c2360);
+    color:var(--counter-text, #fff);
+    background:var(--counter-bg, linear-gradient(180deg, #4a3c8f, #2c2360));
   }
 
   /* ---------- The clicker ---------- */
@@ -6330,7 +6330,7 @@
   .tab-btn.active,
   .stats-subtab-btn.active,
   .workshop-icon-btn,
-  .preferences-toggle.open{ color:var(--ink); }
+  .preferences-toggle.open{ color:var(--on-bright); }
   /* Inside the docks the edge is drawn but takes no space, so the dock never jumps. */
   .tab-btn.active,
   .stats-subtab-btn.active,
@@ -6378,7 +6378,7 @@
   }
   .auth-btn.secondary:hover{ transform:translateY(-1px); border-color:var(--ink); box-shadow:0 5px 0 0 var(--btn-edge), 0 5px 0 2px var(--ink), var(--shine); }
   .auth-btn.secondary:active{ transform:translateY(3px); box-shadow:0 1px 0 0 var(--btn-edge), 0 1px 0 2px var(--ink); }
-  body.light-mode .auth-btn.secondary{ --btn-edge:#c9c3e3; }
+  body.light-mode .auth-btn.secondary{ --btn-edge:var(--soft-edge, #c9c3e3); }
 
   /* ---------- Panels ---------- */
   .shop-card,
@@ -6441,7 +6441,7 @@
     color:var(--rind);
   }
   .bulk-expand-btn:hover{ border-color:var(--ink); filter:brightness(1.15); }
-  .bulk-expand-btn.open{ border-color:var(--ink); background:var(--zap); color:var(--ink); }
+  .bulk-expand-btn.open{ border-color:var(--on-bright); background:var(--zap); color:var(--on-bright); }
   .shop-card:has(+ .bulk-buy-panel){
     border-bottom-left-radius:8px;
     border-bottom-right-radius:8px;
@@ -6496,8 +6496,8 @@
   }
   .preferences-toggle:hover{ transform:translateY(-1px); box-shadow:0 5px 0 0 #151030, 0 5px 0 2px var(--ink), var(--shine); }
   .preferences-toggle:active{ transform:translateY(3px); box-shadow:0 1px 0 0 #151030, 0 1px 0 2px var(--ink); }
-  body.light-mode .preferences-toggle{ box-shadow:0 4px 0 0 #c9c3e3, 0 4px 0 2px var(--ink), var(--shine); }
-  .preferences-toggle.open{ background:var(--brand-gradient); color:var(--ink); }
+  body.light-mode .preferences-toggle{ box-shadow:0 4px 0 0 var(--soft-edge, #c9c3e3), 0 4px 0 2px var(--ink), var(--shine); }
+  .preferences-toggle.open{ background:var(--brand-gradient); color:var(--on-bright); }
 
   /* ---------- Prestige and Limited Shop, side by side ---------- */
   .shop-special-row{
@@ -8148,12 +8148,12 @@
     background:var(--card-hover);
   }
   /* Bright greens and yellows are hard to read on white: use deeper shades and drop the dark shadows. */
-  body.light-mode .daily-reward-amount{ color:#15803d; text-shadow:none; }
-  body.light-mode .daily-day.done{ color:#15803d; }
+  body.light-mode .daily-reward-amount{ color:var(--moneys-green); text-shadow:none; }
+  body.light-mode .daily-day.done{ color:var(--moneys-green); }
   body.light-mode .loading-title{ filter:brightness(0.72) saturate(1.4); }
   /* Panels that were always dark: flip them so their (now dark) text shows up. */
   body.light-mode .loading-screen.special .loading-content{
-    background:rgba(255,255,255,0.92);
+    background:var(--card);
     box-shadow:0 6px 0 #0b0818;
   }
   body.light-mode .bulk-buy-panel{
@@ -11047,6 +11047,8 @@
   }
 
   function applyBackground(file){
+    // THEMES: body.picked-bg means "the player picked a picture", so the theme's page color does not cover it.
+    document.body.classList.toggle('picked-bg', file !== 'default');
     if (file === 'default') {
       // "Color" choice: use the picture for the account's favorite color
       applyColorBackground(currentThemeColor);
@@ -11483,15 +11485,40 @@
     return UI_THEMES.find(t => t.id === saved) || UI_THEMES[0];
   }
 
+  // A theme value is safe when it is plain text with none of the characters that could break out of the rule.
+  function themeValueOk(value){
+    return typeof value === 'string' && value.trim() && value.length < 400 && !/[;{}<>\\]/.test(value);
+  }
+
   // Turns { "card": "#fff" } into "--card:#fff;". Skips anything that is not a plain color name and value.
+  // Special names (not CSS variables):
+  //   accent       = the button color. Wins over the account's favorite color.
+  //   page         = handled in themePageCss()
+  //   color-scheme = "light" or "dark", tells the browser how to draw scrollbars and dropdowns
   function themeVarsCss(vars){
     return Object.keys(vars || {})
-      .filter(name => /^[a-z0-9-]{1,40}$/i.test(name) && typeof vars[name] === 'string' && !/[;{}<>]/.test(vars[name]))
-      .map(name => `--${name}:${vars[name].trim()};`)
+      .filter(name => /^[a-z0-9-]{1,40}$/i.test(name) && themeValueOk(vars[name]))
+      .map(name => {
+        const value = vars[name].trim();
+        if (name === 'page') return '';
+        if (name === 'color-scheme') return `color-scheme:${value};`;
+        // !important is needed here: the account color is written straight onto <html> by applyAccountTheme().
+        if (name === 'accent') return `--melon:${value} !important;--melon-light:${value} !important;--tab-color:${value} !important;--btn-text:var(--on-bright) !important;`;
+        return `--${name}:${value};`;
+      })
       .join('');
   }
 
+  // "page": the page background for a theme (a color or a gradient). It replaces the favorite color
+  // picture, but not a picture the player picked in the Background Switcher (body.picked-bg).
+  function themePageCss(selector, vars){
+    if (!vars || !themeValueOk(vars.page)) return '';
+    return `${selector} body:not(.picked-bg){background:${vars.page.trim()} !important;background-attachment:fixed !important;}\n`;
+  }
+
   // Writes the picked theme's colors into a <style> tag at the end of <head>.
+  // Optional extras on a theme: "font" (a font list for the whole UI, skipped when the
+  // player picked a font in the Font Manager), "square": true (no rounded corners) and "compactTabs": true.
   function applyUiTheme(){
     const theme = getUiTheme();
     let styleEl = document.getElementById('settings-theme-style');
@@ -11500,7 +11527,16 @@
       styleEl.id = 'settings-theme-style';
       document.head.appendChild(styleEl);
     }
-    styleEl.textContent = `:root{${themeVarsCss(theme.dark)}}\nhtml.light-mode{${themeVarsCss(theme.light)}}`;
+    let css = `:root{${themeVarsCss(theme.dark)}}\nhtml.light-mode{${themeVarsCss(theme.light)}}\n`;
+    css += themePageCss('html', theme.dark) + themePageCss('html.light-mode', theme.light);
+    if (themeValueOk(theme.font)) {
+      // Code boxes keep their own font so mod code still lines up.
+      css += `body:not([class*="ui-font-"]) *:not(code):not(pre):not(textarea):not([class*="cgc-code"]):not([class*="cgc-hl"]){font-family:${theme.font.trim()} !important;}\n`;
+    }
+    if (theme.square === true) css += `*,*::before,*::after{border-radius:0 !important;}\n`;
+    // "compactTabs": true is for wide fonts (like typewriter fonts): smaller tab text so all five tabs still fit.
+    if (theme.compactTabs === true) css += `@media (min-width:481px){.tabs .tab-btn{font-size:10px;padding-left:3px;padding-right:3px;gap:3px;letter-spacing:-0.3px;}}\n`;
+    styleEl.textContent = css;
   }
 
   // Shows the light or dark colors. The class goes on <html> (for the colors) and
@@ -11528,14 +11564,14 @@
     }
   }
 
-  // themes.json entries: { id, label, dark: { name: color }, light: { name: color } }
+  // themes.json entries: { id, label, dark: { name: color }, light: { name: color }, font?, square?, compactTabs? }
   function applySettingsThemes(fileList){
     const themes = (Array.isArray(fileList) ? fileList : []).filter(t =>
       t && /^[a-z0-9_-]{1,30}$/i.test(String(t.id || '')) && typeof t.label === 'string' && t.label.trim()
       && t.dark && typeof t.dark === 'object' && t.light && typeof t.light === 'object');
     if (!themes.length) return;
     UI_THEMES.length = 0;
-    themes.forEach(t => UI_THEMES.push({ id: String(t.id), label: t.label.trim(), dark: t.dark, light: t.light }));
+    themes.forEach(t => UI_THEMES.push({ id: String(t.id), label: t.label.trim(), dark: t.dark, light: t.light, font: t.font, square: t.square === true, compactTabs: t.compactTabs === true }));
     applyUiTheme();
     if (activeTab === 'settings' && document.querySelector('.theme-picker')) renderSettings(); // refresh the theme list if Settings is open
   }

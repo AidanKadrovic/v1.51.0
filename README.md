@@ -106,7 +106,15 @@ Built-in lists live in the `settings/` folder, so they can be changed without ed
 - `dark` and `light`: color names and values. A name is a CSS variable without the `--`, so `"card": "#ffffff"` sets `--card`. The main ones are `night` (page), `card`, `card-hover`, `ink` (outlines), `rind` (text), `muted` (quiet text), `line`, `zap-text` (yellow text) and `on-bright` (text on bright buttons).
 - The first theme in the list is the default. With 2 or more themes, a theme list shows up next to the buttons in Settings.
 - The Settings tab has three buttons: light, dark and system (the default, it follows the device). The pick is saved on the device in `localStorage` (`fgd_color_mode`, and `fgd_ui_theme` for the theme), not on the account.
-- The account color (`--melon`) is not part of a theme.
+- The account color (`--melon`) is not part of the Original theme, so players keep their favorite color there. A theme can take over the button color with `"accent"`.
+- Special names inside `dark` and `light` (these are not CSS variables):
+  - `"accent"`: the button color. It wins over the account's favorite color.
+  - `"page"`: the page background, a color or a gradient. It replaces the favorite color picture, but never a picture the player picked in the Background Switcher.
+  - `"color-scheme"`: `"light"` or `"dark"`, for scrollbars and dropdowns. Use `"dark"` when a theme's light side is really dark (like Terminal).
+- Extra names: `on-bright` is the text on accent buttons, `zap` is the second color of the button gradient, `counter-bg` and `counter-text` color the score pill, `melon-text` is the accent color used as text, `btn-edge` and `soft-edge` are the sides under buttons.
+- Optional, next to `id` and `label`: `"font"` (a font list for the whole UI, skipped if the player picked a font in the Font Manager), `"square": true` (no rounded corners), `"compactTabs": true` (smaller tab text, for wide fonts).
+- Themes in the file: Original, Terminal (light is green, dark is purple), Windows 98, Macintosh 1984, Web 1.0, Nature, Reddit, Rec Room, Synthwave, Ocean, Game Boy.
+- After adding a theme, check that text can be read on cards and that button text can be read on the accent color (aim for a contrast of 4.5 or more).
 - Light mode fixes for single spots live in the `LIGHT MODE FIXES` block at the end of the `<style>` in `index.html`.
 
 **credits.json:** a list of `{ "name", "position", "username" }`. `username` is optional: with it, tapping the row opens that player's profile. Names show in the order they are written.
@@ -121,8 +129,8 @@ Rules:
 Near the top of `index.html`:
 
 ```html
-<!-- Game version: 1.35.0 | Deployment: 210 | Update both on every release, see README.md -->
-<meta name="game-version" content="1.35.0">
+<!-- Game version: 1.36.0 | Deployment: 210 | Update both on every release, see README.md -->
+<meta name="game-version" content="1.36.0">
 ```
 
 Bump both the version comment and the `game-version` meta tag on every release. The deployment number is an internal counter for tracking Apps Script/Sheet deployments - increment it whenever the backend Web App is redeployed, even if the game version string doesn't change.
