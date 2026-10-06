@@ -113,7 +113,8 @@ Built-in lists live in the `settings/` folder, so they can be changed without ed
   - `"color-scheme"`: `"light"` or `"dark"`, for scrollbars and dropdowns. Use `"dark"` when a theme's light side is really dark (like Terminal).
 - Extra names: `on-bright` is the text on accent buttons, `zap` is the second color of the button gradient, `counter-bg` and `counter-text` color the score pill, `melon-text` is the accent color used as text, `btn-edge` and `soft-edge` are the sides under buttons.
 - Optional, next to `id` and `label`: `"font"` (a font list for the whole UI, skipped if the player picked a font in the Font Manager), `"square": true` (no rounded corners), `"compactTabs": true` (smaller tab text, for wide fonts).
-- Themes in the file: Original, Terminal (light is green, dark is purple), Windows 98, Macintosh 1984, Web 1.0, Nature, Reddit, Rec Room, Synthwave, Ocean, Game Boy.
+- Themes in the file: Original, Terminal (light is green, dark is purple), Windows 98, Macintosh 1984, Nature, Reddit, Rec Room (the colors of the rec.net site), Synthwave, Ocean, Game Boy.
+- None of the themes in the file sets a `"font"`, so the game font stays the same in every theme.
 - After adding a theme, check that text can be read on cards and that button text can be read on the accent color (aim for a contrast of 4.5 or more).
 - Light mode fixes for single spots live in the `LIGHT MODE FIXES` block at the end of the `<style>` in `index.html`.
 
@@ -129,8 +130,8 @@ Rules:
 Near the top of `index.html`:
 
 ```html
-<!-- Game version: 1.36.0 | Deployment: 210 | Update both on every release, see README.md -->
-<meta name="game-version" content="1.36.0">
+<!-- Game version: 1.36.1 | Deployment: 210 | Update both on every release, see README.md -->
+<meta name="game-version" content="1.36.1">
 ```
 
 Bump both the version comment and the `game-version` meta tag on every release. The deployment number is an internal counter for tracking Apps Script/Sheet deployments - increment it whenever the backend Web App is redeployed, even if the game version string doesn't change.
