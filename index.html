@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<!-- Game version: 1.44.0 | Deployment: 211 | Update both on every release, see README.md -->
-<meta name="game-version" content="1.44.0">
+<!-- Game version: 1.45.0 | Deployment: 212 | Update both on every release, see README.md -->
+<meta name="game-version" content="1.45.0">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>The Clicker Game!</title>
 <link rel="icon" type="image/x-icon" href="images/ui/maksy.ico" id="favicon-link">
@@ -2332,6 +2332,24 @@
   }
   .limited-preview.block{
     color:var(--rarity);
+  }
+  /* LIMITED SHOP MOD (1.45.0): the Workshop mod that is 70% off this week. */
+  .limited-preview.mod{
+    overflow:hidden;
+    font-family:'Fredoka One', cursive;
+    color:#fff;
+    background:hsl(var(--mod-hue, 320) 60% 32%);
+  }
+  .limited-preview.mod img{ width:100%; height:100%; object-fit:cover; display:block; }
+  .limited-mod-card{ cursor:default; }
+  .limited-mod-card .shop-info h3 .limited-mod-name{ cursor:pointer; }
+  .limited-mod-card .shop-info h3 .limited-mod-name:hover{ text-decoration:underline; }
+  .rarity-pill.sale-pill{ background:#ff5da0; }
+  .limited-old-price{
+    text-decoration:line-through;
+    opacity:0.65;
+    margin-right:5px;
+    font-size:0.85em;
   }
   .limited-preview.block svg{ width:28px; height:28px; display:block; }
   .limited-preview.none{ font-size:22px; color:var(--muted); border-color:var(--ink); }
@@ -10861,6 +10879,150 @@
   const LIMITED_EPOCH = Date.UTC(2024, 0, 3); // a Wednesday, 00:00 UTC (every 7 days after this is also a Wednesday)
   const LIMITED_SHUFFLE_SEED = 1130;
 
+  /* ---------- LIMITED SHOP MOD (1.45.0) ----------
+     Every week one random Workshop mod that costs Gems is LIMITED_MOD_DISCOUNT
+     (70%) off, but ONLY here in the Limited Shop. In the Workshop it still costs
+     its normal price. The "market" function picks the mod and takes the Gems
+     (see limitedDeal() and buyMod in supabase/functions/market/index.ts), so the
+     game can't be tricked into a cheaper price. If the function is old or can't
+     be reached, the card just does not show. */
+  const LIMITED_MOD_DISCOUNT = 0.7;          // only used for the "70% OFF" label. The real number comes from the server.
+  const LIMITED_MOD_RETRY_MS = 60 * 1000;    // after a failed load, wait this long before trying again
+  let limitedModDeal = null;                 // { week, id, price, salePrice, discount, item } or null
+  let limitedModLoading = false;
+  let limitedModTriedAt = 0;                 // when the last load started (milliseconds)
+  let limitedModTriedWeek = -1;              // the week the last load was for
+  let limitedModBuying = false;
+
+  // This week's mod deal, or null if there is none (or it is not loaded yet).
+  function currentLimitedModDeal(){
+    return limitedModDeal && limitedModDeal.week === limitedWeekIndex() ? limitedModDeal : null;
+  }
+
+  // Asks the server which mod is on sale, then finds that mod in the Workshop.
+  // force = true skips the wait after a failed try (used after a buy went wrong).
+  async function loadLimitedModDeal(force){
+    const week = limitedWeekIndex();
+    if (limitedModLoading || offlineMode) return;
+    if (!force) {
+      if (currentLimitedModDeal()) return;
+      if (limitedModTriedWeek === week && Date.now() - limitedModTriedAt < LIMITED_MOD_RETRY_MS) return;
+    }
+    limitedModLoading = true;
+    limitedModTriedAt = Date.now();
+    limitedModTriedWeek = week;
+    let deal = null;
+    try {
+      const [market, workshop] = await Promise.all([
+        marketRequest({ action: 'get' }),
+        sheetRequest({ action: 'getWorkshop', username: currentUsername })
+      ]);
+      const pick = market && market.success ? market.limitedMod : null;
+      const items = workshop && Array.isArray(workshop.items) ? workshop.items : [];
+      const item = pick ? items.find(m => m && String(m.id) === String(pick.id)) : null;
+      if (pick && item && Number(pick.salePrice) > 0) {
+        deal = {
+          week: Number(pick.week), id: String(pick.id),
+          price: Number(pick.price) || 0, salePrice: Number(pick.salePrice),
+          discount: Number(pick.discount) || LIMITED_MOD_DISCOUNT, item
+        };
+      }
+    } catch (e) {
+      deal = null; // no internet or an old server: the shop just shows no mod deal
+    }
+    limitedModLoading = false;
+    limitedModDeal = deal;
+    if (activeTab === 'shop' && shopCategory === 'limited' && !luckyOpening) renderShop();
+  }
+
+  // The card for the mod on sale. Returns '' when there is nothing to show.
+  function limitedModCardHTML(gems){
+    const deal = currentLimitedModDeal();
+    if (!deal) {
+      // Not loaded yet (or a new week started): load it after this render is done.
+      setTimeout(() => loadLimitedModDeal(false), 0);
+      return '';
+    }
+    const item = deal.item;
+    // Mature mods stay hidden unless the player turned them on in the Workshop.
+    if (modIsNsfw(item) && !workshopShowMature) return '';
+    const esc = escapeChatHtml;
+    const installed = !!findInstalledMod(item.id);
+    const mine = isMyWorkshopItem(item);
+    const percent = Math.round(deal.discount * 100);
+    const letter = esc(String(item.name || '?').trim().charAt(0).toUpperCase() || '?');
+    const preview = item.iconUrl
+      ? `<img src="${esc(item.iconUrl)}" alt="" loading="lazy">`
+      : letter;
+    let desc = String(item.description || '').replace(/\s+/g, ' ').trim();
+    if (desc.length > 90) desc = desc.slice(0, 90).trim() + '...';
+    const author = item.authorAnonymous && !mine ? 'Anonymous' : (item.author || 'Unknown');
+    let btnLabel = `<span class="limited-old-price">${deal.price.toLocaleString()}</span>${deal.salePrice.toLocaleString()} Gems`;
+    let disabled = gems < deal.salePrice;
+    if (installed) { btnLabel = 'Installed'; disabled = true; }
+    else if (mine) { btnLabel = 'Your mod'; disabled = true; }
+    else if (!currentUsername) { btnLabel = 'Log in to buy'; disabled = true; }
+    return `
+      <div class="shop-card limited-card limited-mod-card" style="--rarity:#ff5da0;">
+        <div class="limited-preview mod" style="--rarity:#ff5da0;--mod-hue:${modCoverHue(item.name)};">${preview}</div>
+        <div class="shop-info">
+          <h3><span class="limited-mod-name" data-limited-mod-open="${esc(item.id)}" title="Open in the Workshop">${esc(item.name || 'Mod')}</span> <span class="rarity-pill sale-pill">${percent}% off</span></h3>
+          <p><span class="owned">Workshop Mod</span> By ${esc(author)}. ${esc(desc)} ${percent}% off this week, only in the Limited Shop.</p>
+        </div>
+        <button class="buy-btn" data-limited-mod-buy="${esc(item.id)}" ${disabled ? 'disabled' : ''}>${btnLabel}</button>
+      </div>`;
+  }
+
+  // Buys this week's mod at the sale price and installs it.
+  async function buyLimitedMod(btn){
+    const deal = currentLimitedModDeal();
+    if (!deal || limitedModBuying) return;
+    const item = deal.item;
+    if (findInstalledMod(item.id) || isMyWorkshopItem(item) || !currentUsername) return;
+    if ((game.gems || 0) < deal.salePrice) return;
+    limitedModBuying = true;
+    if (btn) { btn.disabled = true; btn.textContent = 'Buying...'; }
+    try {
+      // limited: true asks the server for the sale price. expect is the price on the button,
+      // so if the price changed nothing is taken and the new price comes back.
+      const reply = await marketRequest({ action: 'buyMod', modId: item.id, limited: true, expect: deal.salePrice });
+      if (reply && reply.success) {
+        playSound('audio/sfx/money.mp3');
+        item.downloads = reply.downloads;
+        if (reply.gemsRemaining !== undefined) game.gems = reply.gemsRemaining;
+        // Same install steps as downloadMod() in the Workshop.
+        if (!game.installedMods) game.installedMods = [];
+        if (!game.installedMods.some(m => m && m.id === item.id)) {
+          game.installedMods.push(installedModEntry(item));
+          saveGame();
+          syncToSheet();
+          cgcStartMod(findInstalledMod(item.id)); // CGC
+          refreshModThemes(); // MOD THEMES
+          showWorkshopRefreshBanner();
+        } else {
+          saveGame();
+        }
+        updateWorkshopGemsDisplay();
+        showBanner(`You got ${item.name} for ${deal.salePrice.toLocaleString()} Gems! Refresh the page to load it.`);
+      } else if (reply && (reply.error === 'pricechanged' || reply.error === 'notlimited' || reply.error === 'notfound')) {
+        // The deal on screen is old. Nothing was charged, so load the real one.
+        showBanner('That deal just changed. Nothing was charged. Take another look!');
+        limitedModBuying = false;
+        limitedModDeal = null;
+        loadLimitedModDeal(true);
+        return;
+      } else if (reply && reply.error === 'nofunction') {
+        showBanner('The mod deal is not turned on yet.');
+      } else {
+        showBanner(marketErrorText(reply && reply.error, reply));
+      }
+    } catch (e) {
+      showBanner("Couldn't reach the server. Nothing was charged.");
+    }
+    limitedModBuying = false;
+    if (activeTab === 'shop') renderShop();
+  }
+
   function cleanCosmeticList(list){
     if (!Array.isArray(list)) return [];
     return Array.from(new Set(list.map(String))).filter(id => LIMITED_BY_ID[id] && LIMITED_BY_ID[id].type !== 'block');
@@ -11049,6 +11211,7 @@
           </button>
         </div>
       </div>
+      ${limitedModCardHTML(gems)}
       ${cardsHtml}
       ${collectionHtml}
     `;
@@ -11062,6 +11225,16 @@
     });
     list.querySelectorAll('[data-limited-equip]').forEach(btn => {
       btn.addEventListener('click', () => equipCosmetic(btn.dataset.limitedEquip, btn.dataset.id));
+    });
+    // LIMITED SHOP MOD (1.45.0): the buy button, and the name opens the mod's Workshop page.
+    list.querySelectorAll('[data-limited-mod-buy]').forEach(btn => {
+      btn.addEventListener('click', () => buyLimitedMod(btn));
+    });
+    list.querySelectorAll('[data-limited-mod-open]').forEach(el => {
+      el.addEventListener('click', async () => {
+        await openWorkshop();
+        openWorkshopModPage(el.dataset.limitedModOpen);
+      });
     });
   }
 
@@ -15495,6 +15668,7 @@
       badplan: 'Pick one of the boost lengths.',
       unpaid: "That server is offline, so it can't be boosted.",
       nofunction: 'The market is not turned on yet. The "market" function has to be deployed to Supabase first (see README.md).',
+      notlimited: 'That mod is not the Limited Shop deal any more.',
       notable: 'The market tables are missing. Run the SQL at the top of supabase/functions/market/index.ts once.'
     };
     return messages[code] || 'Something went wrong. Try again.';

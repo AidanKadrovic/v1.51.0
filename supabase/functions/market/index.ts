@@ -1,5 +1,5 @@
 // =====================================================================
-// The Clicker Game! MARKET (mod sales, mod packs, mod boosts)   1.42.0
+// The Clicker Game! MARKET (mod sales, mod packs, mod boosts)   1.45.0
 // =====================================================================
 // A SEPARATE Supabase Edge Function from "api", so the main backend is
 // never touched. The game calls it at the api link with /api swapped
@@ -17,6 +17,11 @@
 //   BOOSTS    A maker pays Gems to boost one of their mods to the top of
 //             the Workshop for a number of days (BOOST_PLANS). Longer costs
 //             more. Boosting again adds time.
+//   LIMITED   (1.45.0) Every week one random paid mod is the Limited Shop
+//             deal: LIMITED_MOD_DISCOUNT (70%) off, but only when it is
+//             bought from the Limited Shop (buyMod with limited: true).
+//             In the Workshop the same mod still costs its normal price.
+//             The week flips on Wednesday 00:00 UTC, like the Limited Shop.
 //
 // HOW GEMS REACH PEOPLE
 //   The buyer's Gems are taken with the same safe "adjust_balance" step
@@ -93,6 +98,10 @@ const MAX_DESC_CHARS = 300;
 const BOOST_PLANS: Record<string, number> = { "1": 500, "3": 1200, "7": 2500, "30": 9000 };
 const DAY_MS = 24 * 60 * 60 * 1000;
 const PAYER_NAME = "Workshop";          // shows as "Gift from Workshop" in the game
+// LIMITED SHOP MOD (1.45.0). Keep these three in sync with the LIMITED_ constants in index.html.
+const LIMITED_MOD_DISCOUNT = 0.7;       // 0.7 = 70% off, so the buyer pays 30%
+const LIMITED_WEEK_MS = 7 * DAY_MS;
+const LIMITED_EPOCH = Date.UTC(2024, 0, 3); // a Wednesday, 00:00 UTC (same as LIMITED_EPOCH in the game)
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
@@ -229,6 +238,12 @@ const store = {
     const { data } = await db.from("workshop").select("id,name,author,price,downloads").in("id", modIds);
     return data || [];
   },
+  // The id and price of every mod that costs Gems (for picking the Limited Shop deal).
+  async listPaidMods() {
+    const { data } = await db.from("workshop").select("id,price").limit(5000);
+    return (data || []).filter((m: any) => (Number(m.price) || 0) > 0)
+      .map((m: any) => ({ id: String(m.id), price: Math.floor(Number(m.price)) }));
+  },
   // Counts one more download for a mod and returns the new number.
   async bumpDownloads(modId: string) {
     const { data } = await db.rpc("bump_downloads", { p_id: modId });
@@ -356,9 +371,64 @@ async function checkPackMods(modIds: unknown, authorLower: string) {
   return { ids };
 }
 
+// ---------------------------------------------------------------------
+// LIMITED SHOP MOD (1.45.0)
+// One paid mod per week is on sale in the Limited Shop.
+// ---------------------------------------------------------------------
+
+// Which Limited Shop week it is. The game works this out the same way.
+function limitedWeek(now = Date.now()) {
+  return Math.floor((now - LIMITED_EPOCH) / LIMITED_WEEK_MS);
+}
+
+// Turns text into a number that looks random but is always the same for the same text (FNV-1a).
+function hashText(text: string) {
+  let h = 0x811c9dc5;
+  for (let i = 0; i < text.length; i++) {
+    h ^= text.charCodeAt(i);
+    h = Math.imul(h, 0x01000193);
+  }
+  return h >>> 0;
+}
+
+// What the buyer pays for a mod on sale. Never less than 1 Gem.
+function limitedSalePrice(price: number) {
+  return Math.max(1, Math.round(price * (1 - LIMITED_MOD_DISCOUNT)));
+}
+
+// This week's deal: { week, id, price, salePrice, endsAt }, or null if no mod costs Gems.
+// Every paid mod gets a "ticket number" made from the week and its id. The lowest ticket wins.
+// That way everyone gets the same mod all week, and deleting other mods does not change it.
+let limitedCache: { at: number; deal: any } | null = null;
+async function limitedDeal() {
+  const now = Date.now();
+  const week = limitedWeek(now);
+  // Remembered for 30 seconds so opening the shop does not read the whole Workshop every time.
+  if (limitedCache && now - limitedCache.at < 30000 && (!limitedCache.deal || limitedCache.deal.week === week)) {
+    return limitedCache.deal;
+  }
+  const mods = await store.listPaidMods();
+  let best: any = null;
+  let bestTicket = Infinity;
+  for (const m of mods) {
+    const ticket = hashText(week + ":" + m.id);
+    if (ticket < bestTicket || (ticket === bestTicket && best && m.id < best.id)) {
+      best = m;
+      bestTicket = ticket;
+    }
+  }
+  const deal = best
+    ? { week, id: best.id, price: best.price, salePrice: limitedSalePrice(best.price), discount: LIMITED_MOD_DISCOUNT,
+        endsAt: LIMITED_EPOCH + (week + 1) * LIMITED_WEEK_MS }
+    : null;
+  limitedCache = { at: now, deal };
+  return deal;
+}
+
 // ---- get: everything the Workshop needs to draw packs and boosts ----
 async function get(p: any) {
-  const [packs, boosts] = await Promise.all([store.listPacks(), store.listBoosts()]);
+  // limitedMod (1.45.0) is this week's Limited Shop deal. A problem with it never breaks the rest.
+  const [packs, boosts, limitedMod] = await Promise.all([store.listPacks(), store.listBoosts(), limitedDeal().catch(() => null)]);
   if (packs.error) return { error: packs.error };
   if (boosts.error) return { error: boosts.error };
   // Anonymous makers: players see "Anonymous" on their packs, like on their mods. The maker and staff see the real name.
@@ -378,18 +448,28 @@ async function get(p: any) {
     success: true,
     packs: packList,
     boosts: live,
+    limitedMod,
     packCost: PACK_COST, packDiscount: PACK_DISCOUNT, boostPlans: BOOST_PLANS, authorShare: AUTHOR_SHARE,
   };
 }
 
 // ---- buyMod: buy one paid mod, with the sale shared out ----
 // Free mods (and your own mods) cost nothing and only count a download.
+// limited: true (1.45.0) means it was bought in the Limited Shop. If the mod really is
+// this week's deal the buyer pays the sale price. "expect" is the price the game showed,
+// so nobody is ever charged a number they did not see.
 async function buyMod(p: any) {
   const mod = await store.getMod(p.modId);
   if (!mod) return { error: "notfound" };
   const buyer = await store.getAccount(p.username);
   if (!buyer) return { error: "invalid" };
-  const price = Number(mod.price) || 0;
+  let price = Number(mod.price) || 0;
+  if (p.limited) {
+    const deal = await limitedDeal();
+    if (!deal || deal.id !== String(mod.id)) return { error: "notlimited" };
+    if (p.expect !== undefined && Math.floor(Number(p.expect)) !== deal.salePrice) return { error: "pricechanged", price: deal.salePrice };
+    price = deal.salePrice;
+  }
   const result: any = {};
   if (price > 0 && lower(buyer.username) !== lower(mod.author)) {
     const left = await store.adjustGems(buyer.player_id, -price);

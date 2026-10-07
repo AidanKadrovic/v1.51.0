@@ -137,8 +137,8 @@ Rules:
 Near the top of `index.html`:
 
 ```html
-<!-- Game version: 1.44.0 | Deployment: 211 | Update both on every release, see README.md -->
-<meta name="game-version" content="1.44.0">
+<!-- Game version: 1.45.0 | Deployment: 212 | Update both on every release, see README.md -->
+<meta name="game-version" content="1.45.0">
 ```
 
 Bump both the version comment and the `game-version` meta tag on every release. The deployment number is an internal counter for tracking Apps Script/Sheet deployments - increment it whenever the backend Web App is redeployed, even if the game version string doesn't change.
@@ -226,6 +226,8 @@ Rules for changing CGC:
 **Mod boosts.** A maker pays to list one of their mods first in the Workshop, with a Boosted tag, for 1, 3, 7 or 30 days (`BOOST_PLANS`: 500, 1,200, 2,500, 9,000 Gems). Boosting again adds the days on. Boost Gems are not paid to anyone.
 
 **Server boosts.** Any player can boost any server from Browse Servers or from Room Stats, with the same menu and prices. A boosted server is listed first. This lives in the `rooms` function (`boost` action, `meta.boostUntil`).
+
+**Limited Shop mod deal (1.45.0).** Every week the Limited Shop shows one random Workshop mod that costs Gems at 70% off (`LIMITED_MOD_DISCOUNT`). The sale price only counts in the Limited Shop. In the Workshop the same mod still costs its normal price. The `market` function picks the mod (`limitedDeal()`: every paid mod gets a ticket number made from the week and its id, the lowest wins, so everyone sees the same mod all week) and sends it in the `get` reply as `limitedMod`. The game buys it with `buyMod` plus `limited: true` and `expect` (the price on the button), so the server decides the price and nobody is charged a number they did not see. The sale Gems are split the normal way (60% maker, 40% staff). The week flips Wednesday 00:00 UTC with the rest of the Limited Shop. Game side: `limitedModCardHTML()`, `loadLimitedModDeal()` and `buyLimitedMod()` in the `LIMITED SHOP` section. Mature mods stay hidden unless the player turned them on. **The `market` function changed, so paste `supabase/functions/market/index.ts` into Supabase and deploy it again.** Until then the card simply does not show.
 
 **Turn it on (once):** Supabase dashboard > Edge Functions > Deploy a new function > Via editor, name it exactly `market`, paste `supabase/functions/market/index.ts`, turn OFF "Verify JWT" (same as `api`), Deploy. It makes its own tables (`mod_packs`, `market_boosts`, `market_state`). For server boosts, paste the new `supabase/functions/rooms/index.ts` over the old `rooms` function. Until `market` is deployed, mods are bought the old way (all Gems to the maker) and packs and boosts are hidden.
 
