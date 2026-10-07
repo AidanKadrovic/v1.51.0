@@ -82,7 +82,7 @@ Missing assets won't crash the game, but will show as broken images or silent au
 
 ## Settings files
 
-Built-in lists live in the `settings/` folder, so they can be changed without editing `index.html`. The game loads them when the page opens. If a file is missing or has a JSON mistake, the game falls back to the copy written inside `index.html`. Songs, cursors and backgrounds added by mods or uploads always appear after the built-in ones.
+Built-in lists live in the `settings/` folder, so they can be changed without editing `index.html`. A comma left after the last item of a list is forgiven (1.43.4), but any other JSON mistake still makes the game use its backup copy. The game loads them when the page opens. If a file is missing or has a JSON mistake, the game falls back to the copy written inside `index.html`. Songs, cursors and backgrounds added by mods or uploads always appear after the built-in ones.
 
 | File | What it controls |
 |---|---|
@@ -137,8 +137,8 @@ Rules:
 Near the top of `index.html`:
 
 ```html
-<!-- Game version: 1.43.3 | Deployment: 211 | Update both on every release, see README.md -->
-<meta name="game-version" content="1.43.3">
+<!-- Game version: 1.43.4 | Deployment: 211 | Update both on every release, see README.md -->
+<meta name="game-version" content="1.43.4">
 ```
 
 Bump both the version comment and the `game-version` meta tag on every release. The deployment number is an internal counter for tracking Apps Script/Sheet deployments - increment it whenever the backend Web App is redeployed, even if the game version string doesn't change.

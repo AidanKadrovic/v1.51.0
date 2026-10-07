@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<!-- Game version: 1.43.3 | Deployment: 211 | Update both on every release, see README.md -->
-<meta name="game-version" content="1.43.3">
+<!-- Game version: 1.43.4 | Deployment: 211 | Update both on every release, see README.md -->
+<meta name="game-version" content="1.43.4">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>The Clicker Game!</title>
 <link rel="icon" type="image/x-icon" href="images/ui/maksy.ico" id="favicon-link">
@@ -12150,10 +12150,24 @@
   let cursorsBuiltinCount = CURSORS.length;
   let backgroundsBuiltinCount = BACKGROUNDS.length;
 
+  // Loads one file from the settings folder and reads it as JSON.
+  // FORGIVING (1.43.4): a comma after the last item, like
+  //     { "name": "GitHub", "position": "Hosting" },
+  //   ]
+  // is the easiest mistake to make when adding a line by hand, and strict JSON refuses the
+  // whole file over it (credits.json did this and the Credits menu fell back to its backup
+  // list). So if the normal read fails, the file is read once more with those commas removed.
   function fetchSettingsJson(name){
     return fetch(SETTINGS_FOLDER + name, { cache: 'no-cache' }).then(r => {
       if (!r.ok) throw new Error(name);
-      return r.json();
+      return r.text();
+    }).then(text => {
+      try {
+        return JSON.parse(text);
+      } catch (e) {
+        // A comma followed only by spaces or new lines and then ] or } is a trailing comma.
+        return JSON.parse(text.replace(/,(\s*[\]}])/g, '$1'));
+      }
     });
   }
 
@@ -25343,7 +25357,26 @@ ${hasCode
      Optional "username": the person's account name. With it, tapping the row opens their profile.
      The list below is only a backup used if the file is missing or broken. */
   const CREDITS = [
-    { name: 'FallGameDev', position: 'Owner', username: 'FallGameDev' }
+    { name: "Aidan Kadrovic", position: "Owner", username: "FallGameDev" },
+    { name: "Omar Kadrovic", position: "Co-Owner and Subscription Manager", username: "Omizio" },
+    { name: "Calvin Walker", position: "Head Admin", username: "Jfor" },
+    { name: "Mighty Gorilla (hidden name)", position: "Admin", username: "miggy" },
+    { name: "Andrew Sen", position: "Admin", username: "Ragequitshadow" },
+    { name: "Claude AI", position: "Code" },
+    { name: "Robert (Toby) Fox", position: "Background Music" },
+    { name: "Ssebvy", position: "Tutorial Music" },
+    { name: "Stunshine", position: "Login Screen Music" },
+    { name: "Charlie Green (CG5)", position: "Music" },
+    { name: "Horror Skunx", position: "Music" },
+    { name: "Dion Timmer", position: "Music" },
+    { name: "MrKoolTrix", position: "Music" },
+    { name: "slayr", position: "Music" },
+    { name: "Dope Cat", position: "Music" },
+    { name: "Antony Kos", position: "Music" },
+    { name: "Kane Parsons (Pixels)", position: "Background" },
+    { name: "Google", position: "Fonts" },
+    { name: "GitHub", position: "Hosting" },
+    { name: "Supabase", position: "Database" }
   ];
 
   // Keeps only entries with a name and a position.
