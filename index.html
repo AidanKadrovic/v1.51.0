@@ -2,13 +2,13 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<!-- Game version: 1.43.0 | Deployment: 211 | Update both on every release, see README.md -->
-<meta name="game-version" content="1.43.0">
+<!-- Game version: 1.43.1 | Deployment: 211 | Update both on every release, see README.md -->
+<meta name="game-version" content="1.43.1">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>The Clicker Game!</title>
 <link rel="icon" type="image/x-icon" href="images/ui/maksy.ico" id="favicon-link">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Poppins:wght@400;500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Poppins:wght@400;500;600&family=Inter:wght@400;500;600&family=Roboto:ital,wght@1,700&display=swap" rel="stylesheet">
 <style>
   @font-face{
     font-family:'PusabFont';
@@ -2665,48 +2665,48 @@
        2. it lands, squashes flat into a streak, and the streak shoots across
        3. the letters H E R E pop out of the streak, with a typing cursor after them
        4. the cursor types STUDIOS, then keeps blinking
+     Here Studios colors are black and white, and its font is Roboto Bold Italic (1.43.1).
+     They are fixed here on purpose: the stamp looks the same in every theme and account color.
      Every step is one @keyframes below. The numbers after "animation:" are how long it
      takes and how long it waits first, so the steps play in order.
      To change the speed, change those numbers (they are in seconds). */
   .hs-stamp{
+    --hs-black:#000000;
+    --hs-white:#ffffff;
     position:absolute;
     left:50%;
     bottom:26px;
     transform:translateX(-50%);
     display:flex;
     align-items:center;
-    gap:7px;
-    padding:9px 16px 9px 14px;
-    background:var(--card);
-    border:2px solid var(--ink);
+    gap:5px;
+    padding:8px 16px 8px 14px;
+    background:var(--hs-white);
+    border:2px solid var(--hs-black);
     border-radius:14px;
-    box-shadow:var(--pop-sm);
+    box-shadow:3px 3px 0 var(--hs-black);
     white-space:nowrap;
+    font-family:'Roboto', 'Helvetica Neue', Arial, sans-serif;
+    font-weight:700;
+    font-style:italic;
+    font-size:22px;
+    line-height:26px;
+    color:var(--hs-black);
     animation:hs-stamp-in .45s cubic-bezier(.34,1.56,.64,1) both;
   }
   @keyframes hs-stamp-in{
     from{ opacity:0; transform:translateX(-50%) translateY(14px) scale(.9); }
     to{ opacity:1; transform:translateX(-50%) translateY(0) scale(1); }
   }
-  /* The word HERE: four drawn letters, leaning like italics. */
+  /* The word HERE: four letters that pop in one after another. */
   .hs-here{
     position:relative;
     display:flex;
-    align-items:flex-end;
-    gap:3px;
-    height:22px;
-    transform:skewX(-12deg);
+    align-items:baseline;
   }
   .hs-letter{
-    height:22px;
-    width:auto;
-    fill:var(--melon, #79cf67);
-    stroke:var(--ink);
-    stroke-width:7;
-    stroke-linejoin:round;
-    paint-order:stroke;          /* the outline is drawn behind the letter, so it stays chunky */
-    overflow:visible;
-    filter:drop-shadow(2px 2px 0 var(--ink));
+    display:inline-block;
+    transform-origin:50% 100%;
     opacity:0;
     animation:hs-letter-pop .42s cubic-bezier(.34,1.56,.64,1) forwards;
   }
@@ -2715,15 +2715,15 @@
   .hs-letter:nth-child(3){ animation-delay:1.16s; }
   .hs-letter:nth-child(4){ animation-delay:1.23s; }
   @keyframes hs-letter-pop{
-    0%{ opacity:0; transform:translateY(7px) scale(.2, .05); }
-    60%{ opacity:1; transform:translateY(-3px) scale(1.08, 1.15); }
+    0%{ opacity:0; transform:translateY(4px) scale(.2, .05); }
+    60%{ opacity:1; transform:translateY(-2px) scale(1.08, 1.15); }
     100%{ opacity:1; transform:translateY(0) scale(1); }
   }
   /* The arrow that flies in. .hs-marker moves it along its path, the <svg> inside flips it. */
   .hs-marker{
     position:absolute;
     left:-6px;
-    top:-4px;
+    top:-2px;
     width:20px;
     height:30px;
     pointer-events:none;
@@ -2734,9 +2734,9 @@
     width:100%;
     height:100%;
     overflow:visible;
-    fill:var(--zap, #ffcb3d);
-    stroke:var(--ink);
-    stroke-width:5;
+    fill:var(--hs-black);
+    stroke:var(--hs-white);      /* a thin white edge, so the black arrow still shows over the dark page */
+    stroke-width:4;
     stroke-linejoin:round;
     paint-order:stroke;
     animation:hs-marker-flip 1.12s linear .1s forwards;
@@ -2760,12 +2760,7 @@
      and gets pushed along as the letters appear. */
   .hs-studios{
     display:flex;
-    align-items:center;
-    font-family:'Fredoka One', cursive;
-    font-size:15px;
-    letter-spacing:1.5px;
-    color:var(--rind);
-    line-height:22px;
+    align-items:baseline;
   }
   .hs-studios span{
     display:inline-block;
@@ -2787,9 +2782,9 @@
   /* The typing cursor. It shows up with the letters, holds still while typing, then blinks. */
   .hs-caret{
     width:3px;
-    height:20px;
-    border-radius:2px;
-    background:var(--rind);
+    height:22px;
+    background:var(--hs-black);
+    transform:skewX(-12deg);     /* leans the same way as the italic letters */
     opacity:0;
     animation:hs-caret-in .01s linear 1.3s forwards, hs-caret-blink 1s steps(1, end) 2.5s infinite;
   }
@@ -8745,14 +8740,7 @@
   <!-- HERE STUDIOS STAMP (1.43.0): the studio intro. The moves are in the CSS (search "HERE STUDIOS STAMP"). -->
   <div class="hs-stamp" role="img" aria-label="Here Studios">
     <div class="hs-here" aria-hidden="true">
-      <!-- H -->
-      <svg class="hs-letter" viewBox="0 0 78 100"><path d="M0 0H22V39H56V0H78V100H56V61H22V100H0Z"/></svg>
-      <!-- E -->
-      <svg class="hs-letter" viewBox="0 0 64 100"><path d="M0 0H64V22H22V39H58V61H22V78H64V100H0Z"/></svg>
-      <!-- R: the stem and bowl (with its hole), then the leg -->
-      <svg class="hs-letter" viewBox="0 0 78 100"><path fill-rule="evenodd" d="M0 0H46A30 30 0 0 1 62 55L78 100H54L40 60H22V100H0Z M22 22V38H44A8 8 0 0 0 44 22Z"/></svg>
-      <!-- E -->
-      <svg class="hs-letter" viewBox="0 0 64 100"><path d="M0 0H64V22H22V39H58V61H22V78H64V100H0Z"/></svg>
+      <span class="hs-letter">H</span><span class="hs-letter">E</span><span class="hs-letter">R</span><span class="hs-letter">E</span>
       <!-- the arrow that flies in and turns into the letters -->
       <div class="hs-marker"><svg viewBox="0 0 40 60"><path d="M15 0H25V22H38L20 58L2 22H15Z"/></svg></div>
     </div>
