@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<!-- Game version: 1.45.0 | Deployment: 212 | Update both on every release, see README.md -->
-<meta name="game-version" content="1.45.0">
+<!-- Game version: 1.46.0 | Deployment: 212 | Update both on every release, see README.md -->
+<meta name="game-version" content="1.46.0">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>The Clicker Game!</title>
 <link rel="icon" type="image/x-icon" href="images/ui/maksy.ico" id="favicon-link">
@@ -3868,6 +3868,225 @@
     text-align:center;
     margin:0 0 8px;
   }
+  /* ---------- THE VAULT (1.46.0) ----------
+     A secret code room. A see-through button sits in the bottom right
+     corner of your Workshop profile. Clicking it opens a full screen
+     with the keeper in the middle and a box to type a code into.
+     The JavaScript is under "THE VAULT" further down. */
+
+  /* The secret button. Mostly see-through until you hover it. */
+  .vault-secret-btn{
+    position:fixed;
+    right:14px;
+    bottom:14px;
+    width:46px;
+    height:46px;
+    padding:0;
+    border:none;
+    background:transparent;
+    cursor:pointer;
+    opacity:.22;
+    z-index:5;
+    transition:opacity .15s ease, transform .15s ease;
+  }
+  .vault-secret-btn:hover,
+  .vault-secret-btn:focus-visible{
+    opacity:.95;
+    transform:scale(1.12) rotate(-6deg);
+  }
+  .vault-secret-btn img{
+    width:100%;
+    height:100%;
+    object-fit:contain;
+    display:block;
+    pointer-events:none;
+  }
+
+  /* The full screen vault. It is always dark, even on the light theme. */
+  .vault-overlay{
+    position:fixed;
+    inset:0;
+    z-index:4990;
+    display:none;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    gap:14px;
+    padding:20px;
+    overflow:hidden;
+    color:#faf3df;
+    background:
+      radial-gradient(circle at 50% 58%, rgba(124,92,255,.30), transparent 55%),
+      radial-gradient(1.5px 1.5px at 12% 18%, #fff, transparent 60%),
+      radial-gradient(1.5px 1.5px at 81% 12%, #fff, transparent 60%),
+      radial-gradient(1px 1px at 33% 71%, #fff, transparent 60%),
+      radial-gradient(2px 2px at 68% 83%, #fff, transparent 60%),
+      radial-gradient(1px 1px at 91% 55%, #fff, transparent 60%),
+      radial-gradient(1.5px 1.5px at 7% 88%, #fff, transparent 60%),
+      radial-gradient(1px 1px at 52% 9%, #fff, transparent 60%),
+      linear-gradient(180deg, #0d0a1c, #1a1238 60%, #0d0a1c);
+  }
+  .vault-overlay.visible{
+    display:flex;
+  }
+  .vault-back{
+    position:absolute;
+    top:16px;
+    left:16px;
+    font-family:'Fredoka One', cursive;
+    font-size:14px;
+    color:#faf3df;
+    background:#221c38;
+    border:3px solid #100c1f;
+    border-radius:12px;
+    padding:8px 14px;
+    cursor:pointer;
+    box-shadow:4px 4px 0 #100c1f;
+    z-index:3;
+  }
+  .vault-back:active{
+    transform:translate(2px,2px);
+    box-shadow:2px 2px 0 #100c1f;
+  }
+  .vault-title{
+    font-family:'Fredoka One', cursive;
+    font-size:30px;
+    margin:0;
+    color:#ffcb3d;
+    text-shadow:3px 3px 0 #100c1f;
+    letter-spacing:1px;
+    z-index:2;
+  }
+  /* What the keeper says. The color changes for fail and success. */
+  .vault-say{
+    font-family:'Fredoka One', cursive;
+    font-size:16px;
+    min-height:44px;
+    max-width:520px;
+    margin:0;
+    text-align:center;
+    color:#8fe3ff;
+    text-shadow:2px 2px 0 #100c1f;
+    z-index:2;
+  }
+  .vault-say.fail{ color:#ff6b6b; }
+  .vault-say.win{ color:#7dff8a; }
+  .vault-input{
+    width:min(340px, 86vw);
+    font-family:'Fredoka One', cursive;
+    font-size:18px;
+    text-align:center;
+    color:#faf3df;
+    background:#181428;
+    border:3px solid #100c1f;
+    border-radius:14px;
+    padding:12px 14px;
+    box-shadow:5px 5px 0 #100c1f;
+    outline:none;
+    z-index:2;
+  }
+  .vault-input:focus{ border-color:#ffcb3d; }
+  .vault-input:disabled{ opacity:.6; }
+
+  /* The keeper. Clicking it sends the code, like the lock in the GD vault. */
+  .vault-keeper{
+    position:relative;
+    width:min(230px, 56vw);
+    height:min(230px, 56vw);
+    padding:0;
+    border:none;
+    background:transparent;
+    cursor:pointer;
+    z-index:2;
+    transition:transform .12s ease;
+  }
+  .vault-keeper:hover{ transform:scale(1.04); }
+  .vault-keeper:active{ transform:scale(.95); }
+  .vault-keeper:disabled{ cursor:default; transform:none; }
+  .vault-keeper img{
+    width:100%;
+    height:100%;
+    object-fit:contain;
+    display:block;
+    pointer-events:none;
+    filter:drop-shadow(6px 6px 0 #100c1f);
+  }
+  /* Wrong code: the keeper shakes. */
+  .vault-keeper.shake{ animation:vault-shake .45s linear; }
+  @keyframes vault-shake{
+    0%,100%{ transform:translateX(0) rotate(0); }
+    15%{ transform:translateX(-14px) rotate(-5deg); }
+    30%{ transform:translateX(13px) rotate(5deg); }
+    45%{ transform:translateX(-10px) rotate(-3deg); }
+    60%{ transform:translateX(9px) rotate(3deg); }
+    80%{ transform:translateX(-4px) rotate(-1deg); }
+  }
+  /* Right code: the keeper glows and pops. */
+  .vault-keeper.zap img{
+    animation:vault-zap .9s ease-out;
+  }
+  @keyframes vault-zap{
+    0%{ filter:brightness(4) drop-shadow(0 0 30px #fff36b); transform:scale(1.25); }
+    40%{ filter:brightness(1.8) drop-shadow(0 0 22px #ffcb3d); transform:scale(.94); }
+    100%{ filter:brightness(1) drop-shadow(6px 6px 0 #100c1f); transform:scale(1); }
+  }
+  /* The loading ring that spins around the keeper while it "checks" the code. */
+  .vault-spinner{
+    position:absolute;
+    inset:-16px;
+    border-radius:50%;
+    border:8px solid rgba(255,255,255,.14);
+    border-top-color:#ffcb3d;
+    border-right-color:#ff9f43;
+    display:none;
+    pointer-events:none;
+    animation:vault-spin .7s linear infinite;
+  }
+  .vault-keeper.loading .vault-spinner{ display:block; }
+  .vault-keeper.loading img{ opacity:.55; }
+  @keyframes vault-spin{ to{ transform:rotate(360deg); } }
+
+  /* Lightning. JavaScript draws the bolts into this SVG. */
+  .vault-fx{
+    position:absolute;
+    inset:0;
+    width:100%;
+    height:100%;
+    pointer-events:none;
+    z-index:1;
+  }
+  .vault-fx polyline{
+    fill:none;
+    stroke-linecap:round;
+    stroke-linejoin:round;
+    stroke-dasharray:1;
+    stroke-dashoffset:1;
+    animation:vault-bolt .7s ease-out forwards;
+  }
+  /* Each bolt draws itself outward, then fades. */
+  @keyframes vault-bolt{
+    0%{ stroke-dashoffset:1; opacity:1; }
+    30%{ stroke-dashoffset:0; opacity:1; }
+    70%{ stroke-dashoffset:0; opacity:1; }
+    100%{ stroke-dashoffset:0; opacity:0; }
+  }
+  /* The white flash that covers the screen for a moment. */
+  .vault-flash{
+    position:absolute;
+    inset:0;
+    background:#fff;
+    opacity:0;
+    pointer-events:none;
+    z-index:4;
+  }
+  .vault-flash.go{ animation:vault-flash .55s ease-out; }
+  @keyframes vault-flash{
+    0%{ opacity:.95; }
+    20%{ opacity:.15; }
+    35%{ opacity:.7; }
+    100%{ opacity:0; }
+  }
+
   .workshop-body{
     flex:1;
     overflow-y:auto;
@@ -9029,6 +9248,20 @@
       <div class="empty-state loading-state">Loading...</div>
     </div>
   </div>
+</div>
+
+<!-- THE VAULT (1.46.0): secret code room, opened from the Workshop profile -->
+<div class="vault-overlay" id="vault-overlay" aria-hidden="true">
+  <button class="vault-back" id="vault-back" type="button">&larr; Back</button>
+  <svg class="vault-fx" id="vault-fx" aria-hidden="true"></svg>
+  <h1 class="vault-title" id="vault-title">The Vault</h1>
+  <p class="vault-say" id="vault-say" aria-live="polite"></p>
+  <input class="vault-input" id="vault-input" type="text" maxlength="40" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Type a code" aria-label="Vault code">
+  <button class="vault-keeper" id="vault-keeper" type="button" title="Enter the code">
+    <img id="vault-keeper-img" src="images/misc/vault-keeper.png" alt="The vault keeper">
+    <span class="vault-spinner"></span>
+  </button>
+  <div class="vault-flash" id="vault-flash"></div>
 </div>
 
 <div class="chat-overlay" id="chat-overlay">
@@ -16680,7 +16913,12 @@
       `).join('');
     }
 
+    // THE VAULT (1.46.0): the see-through secret button in the bottom right corner.
+    // It lives inside the profile HTML, so it goes away when you leave the profile.
+    html += `<button class="vault-secret-btn" id="vault-secret-btn" type="button" aria-label="???"><img src="${VAULT_IMG_NORMAL}" alt=""></button>`;
+
     workshopBody.innerHTML = html;
+    document.getElementById('vault-secret-btn').addEventListener('click', openVault);
     const backBtn = document.getElementById('workshop-tab-back');
     if (backBtn) backBtn.addEventListener('click', () => { workshopView = 'browse'; renderWorkshopBody(); });
     // MARKET: pack chips and the Make a Mod Pack button
@@ -16744,6 +16982,251 @@
       if (s3) s3.textContent = "Couldn't save. Try again.";
     }
   }
+
+  /* ---------- THE VAULT (1.46.0) ----------
+     A secret code room, like the Vault in Geometry Dash.
+     How it works:
+       1. A see-through button sits in the corner of the Workshop profile.
+       2. It opens a screen with the keeper and a box to type a code.
+       3. Press Enter or click the keeper. A loading ring spins.
+       4. Right code: lightning shoots out of the keeper.
+          Wrong code: the keeper changes to the "spoop" face and shakes.
+
+     TO CHANGE WHAT IT SAYS: edit VAULT_LINES and VAULT_CODES right below.
+     Nothing else needs to change. */
+
+  // The two keeper pictures.
+  const VAULT_IMG_NORMAL = 'images/misc/vault-keeper.png';       // normal face (also the secret button)
+  const VAULT_IMG_SPOOP  = 'images/misc/vault-keeper-spoop.png'; // wrong code face
+
+  // How long the loading ring spins, in milliseconds (1000 = 1 second).
+  const VAULT_LOADING_MS = 1600;
+  // How long the spoop face stays after a wrong code.
+  const VAULT_SPOOP_MS = 1800;
+
+  // What the keeper says. PLACEHOLDER TEXT: swap these for the real lines.
+  const VAULT_LINES = {
+    title: 'The Vault',
+    // Said one after another when you click the keeper with an empty box.
+    idle: [
+      '...',
+      'Type a code.',
+      'The box is empty.',
+      'Still empty.'
+    ],
+    // Said while the loading ring spins.
+    loading: 'Checking...',
+    // One of these is picked at random for a wrong code.
+    fail: [
+      'Nope.',
+      'Wrong.',
+      'Not even close.'
+    ],
+    // Said when you type a code you already used this visit.
+    used: 'You already used that one.'
+  };
+
+  // The secret codes. Capital letters and extra spaces do not matter.
+  //   code:   what the player types
+  //   say:    what the keeper says when it works
+  //   reward: optional. A function that runs when the code works,
+  //           for example () => { game.gems = (game.gems || 0) + 50; saveGame(); }
+  // PLACEHOLDER CODE: "spoopy" is only here to test the lightning. Swap it out.
+  const VAULT_CODES = [
+    { code: 'spoopy', say: 'How did you know that?', reward: null }
+  ];
+
+  const vaultOverlay   = document.getElementById('vault-overlay');
+  const vaultInput     = document.getElementById('vault-input');
+  const vaultKeeper    = document.getElementById('vault-keeper');
+  const vaultKeeperImg = document.getElementById('vault-keeper-img');
+  const vaultSay       = document.getElementById('vault-say');
+  const vaultFx        = document.getElementById('vault-fx');
+  const vaultFlash     = document.getElementById('vault-flash');
+
+  let vaultBusy = false;        // true while the loading ring spins
+  let vaultIdleIndex = 0;       // which idle line comes next
+  let vaultTimers = [];         // every setTimeout, so closing can cancel them
+  const vaultUsedCodes = new Set(); // codes already entered this visit
+
+  // setTimeout that remembers itself, so closeVault() can stop it.
+  function vaultLater(fn, ms){
+    const id = setTimeout(fn, ms);
+    vaultTimers.push(id);
+    return id;
+  }
+
+  // Makes the keeper say something. kind is '', 'fail' or 'win' (sets the color).
+  function vaultSpeak(text, kind){
+    vaultSay.textContent = text;
+    vaultSay.classList.toggle('fail', kind === 'fail');
+    vaultSay.classList.toggle('win', kind === 'win');
+  }
+
+  // Makes typed text easy to compare: no capitals, no spaces on the ends.
+  function vaultClean(text){
+    return String(text || '').trim().toLowerCase();
+  }
+
+  function openVault(){
+    // Load the spoop face early so it shows right away on a wrong code.
+    new Image().src = VAULT_IMG_SPOOP;
+    document.getElementById('vault-title').textContent = VAULT_LINES.title;
+    vaultBusy = false;
+    vaultIdleIndex = 0;
+    vaultInput.value = '';
+    vaultInput.disabled = false;
+    vaultKeeper.disabled = false;
+    vaultKeeper.classList.remove('loading', 'shake', 'zap');
+    vaultKeeperImg.src = VAULT_IMG_NORMAL;
+    vaultFx.innerHTML = '';
+    vaultFlash.classList.remove('go'); // so an old flash does not replay when the vault reopens
+    vaultSpeak(VAULT_LINES.idle[0] || '', '');
+    vaultOverlay.classList.add('visible');
+    vaultOverlay.setAttribute('aria-hidden', 'false');
+    vaultInput.focus();
+  }
+
+  function closeVault(){
+    vaultTimers.forEach(clearTimeout);
+    vaultTimers = [];
+    vaultBusy = false;
+    vaultOverlay.classList.remove('visible');
+    vaultOverlay.setAttribute('aria-hidden', 'true');
+  }
+
+  // Runs when you press Enter or click the keeper.
+  function vaultSubmit(){
+    if (vaultBusy) return;
+    const typed = vaultClean(vaultInput.value);
+
+    // Empty box: the keeper just says its next idle line.
+    if (!typed) {
+      vaultIdleIndex = (vaultIdleIndex + 1) % VAULT_LINES.idle.length;
+      vaultSpeak(VAULT_LINES.idle[vaultIdleIndex], '');
+      return;
+    }
+
+    // Start the loading ring and lock everything.
+    vaultBusy = true;
+    vaultInput.disabled = true;
+    vaultKeeper.disabled = true;
+    vaultKeeper.classList.remove('shake', 'zap');
+    vaultKeeper.classList.add('loading');
+    vaultKeeperImg.src = VAULT_IMG_NORMAL;
+    vaultSpeak(VAULT_LINES.loading, '');
+
+    vaultLater(() => {
+      vaultKeeper.classList.remove('loading');
+      const match = VAULT_CODES.find(entry => vaultClean(entry.code) === typed);
+
+      if (match && vaultUsedCodes.has(typed)) {
+        // Right code, but already used this visit.
+        vaultFail(VAULT_LINES.used);
+      } else if (match) {
+        vaultUsedCodes.add(typed);
+        vaultWin(match);
+      } else {
+        vaultFail(VAULT_LINES.fail[Math.floor(Math.random() * VAULT_LINES.fail.length)]);
+      }
+
+      // Unlock so the player can try again.
+      vaultBusy = false;
+      vaultInput.disabled = false;
+      vaultKeeper.disabled = false;
+      vaultInput.value = '';
+      vaultInput.focus();
+    }, VAULT_LOADING_MS);
+  }
+
+  // Wrong code: spoop face, shake, then back to normal.
+  function vaultFail(line){
+    vaultKeeperImg.src = VAULT_IMG_SPOOP;
+    vaultKeeper.classList.add('shake');
+    vaultSpeak(line, 'fail');
+    vaultLater(() => {
+      vaultKeeper.classList.remove('shake');
+      vaultKeeperImg.src = VAULT_IMG_NORMAL;
+    }, VAULT_SPOOP_MS);
+  }
+
+  // Right code: lightning, flash, the line, and the reward if there is one.
+  function vaultWin(entry){
+    vaultSpeak(entry.say || '', 'win');
+    vaultKeeper.classList.add('zap');
+    vaultLightning();
+    vaultLater(() => vaultKeeper.classList.remove('zap'), 950);
+    if (typeof entry.reward === 'function') {
+      try { entry.reward(); } catch (e) {}
+    }
+  }
+
+  // Draws jagged lightning bolts shooting out of the keeper in every direction.
+  function vaultLightning(){
+    const SVG_NS = 'http://www.w3.org/2000/svg';
+    const box = vaultOverlay.getBoundingClientRect();
+    const k = vaultKeeper.getBoundingClientRect();
+    // The middle of the keeper, measured from the corner of the vault screen.
+    const cx = k.left - box.left + k.width / 2;
+    const cy = k.top - box.top + k.height / 2;
+    // Bolts reach far enough to leave the screen.
+    const reach = Math.max(box.width, box.height) * 0.75;
+
+    vaultFx.setAttribute('viewBox', `0 0 ${box.width} ${box.height}`);
+    vaultFx.innerHTML = '';
+
+    const BOLTS = 10;     // how many bolts
+    const STEPS = 8;      // how many zigzags in each bolt
+    for (let i = 0; i < BOLTS; i++) {
+      // Spread the bolts around a circle, with a little randomness.
+      const angle = (i / BOLTS) * Math.PI * 2 + (Math.random() - 0.5) * 0.4;
+      const dirX = Math.cos(angle), dirY = Math.sin(angle);
+      // A direction that points sideways from the bolt, used for the zigzag.
+      const sideX = -dirY, sideY = dirX;
+
+      const points = [];
+      for (let s = 0; s <= STEPS; s++) {
+        // Start at the edge of the keeper, not its middle.
+        const dist = k.width * 0.3 + (reach * s) / STEPS;
+        // The first point does not wiggle, so every bolt starts on the keeper.
+        const wiggle = s === 0 ? 0 : (Math.random() - 0.5) * 70;
+        const x = cx + dirX * dist + sideX * wiggle;
+        const y = cy + dirY * dist + sideY * wiggle;
+        points.push(x.toFixed(1) + ',' + y.toFixed(1));
+      }
+
+      // Each bolt is three lines stacked: dark outline, yellow, white middle.
+      const layers = [
+        { color: '#100c1f', width: 16 },
+        { color: '#ffcb3d', width: 9 },
+        { color: '#ffffff', width: 3 }
+      ];
+      layers.forEach(layer => {
+        const line = document.createElementNS(SVG_NS, 'polyline');
+        line.setAttribute('points', points.join(' '));
+        line.setAttribute('pathLength', '1'); // lets the CSS draw it from 0 to 1
+        line.setAttribute('stroke', layer.color);
+        line.setAttribute('stroke-width', layer.width);
+        line.style.animationDelay = (i % 3) * 0.06 + 's'; // bolts fire in 3 quick waves
+        vaultFx.appendChild(line);
+      });
+    }
+
+    // The white screen flash. Removing and adding the class restarts it.
+    vaultFlash.classList.remove('go');
+    void vaultFlash.offsetWidth;
+    vaultFlash.classList.add('go');
+
+    // Clean the bolts up after they fade.
+    vaultLater(() => { vaultFx.innerHTML = ''; }, 1100);
+  }
+
+  document.getElementById('vault-back').addEventListener('click', closeVault);
+  vaultKeeper.addEventListener('click', vaultSubmit);
+  vaultInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') { e.preventDefault(); vaultSubmit(); }
+    if (e.key === 'Escape') { e.preventDefault(); closeVault(); }
+  });
 
   // "New Mod" dialog. Only the built-in editor is offered now; the GitHub
   // Upload tab was removed in 1.13.0. Mods already uploaded from GitHub still

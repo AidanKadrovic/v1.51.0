@@ -66,7 +66,7 @@ Since 1.23.1 every file lives in a folder. Only `index.html` and `README.md` sit
 | `images/ui/` | Game art: `profile.png`, `appearchar.png`, `tutorial-guide.png`, `biggie.png`, `arrow.png`, `money.png`, `heart.png`, `gems.png` and `maksy.ico` (favicon). |
 | `images/badges/` | Account badges: `admin.png`, `dev.png`, `mod.png`, `owner.png`, `director.png`, `fam.png`, `cc.png`, `ver.png`. |
 | `images/cursors/` | Built-in cursors for the Cursor Picker. |
-| `images/misc/` | Spare pictures the game does not use yet. |
+| `images/misc/` | Spare pictures the game does not use yet, plus the Vault keeper: `vault-keeper.png` (normal face) and `vault-keeper-spoop.png` (wrong code face). |
 | `images/songs/` | Small song pictures (96 by 96) for the Now Playing banner. |
 | `backgrounds/` | Favorite color pictures (`bg_<color>.png`) and the Background Switcher pictures. |
 | `profiles/` | Starter profile pictures. Accounts save these paths, so do not rename this folder. |
@@ -137,8 +137,8 @@ Rules:
 Near the top of `index.html`:
 
 ```html
-<!-- Game version: 1.45.0 | Deployment: 212 | Update both on every release, see README.md -->
-<meta name="game-version" content="1.45.0">
+<!-- Game version: 1.46.0 | Deployment: 212 | Update both on every release, see README.md -->
+<meta name="game-version" content="1.46.0">
 ```
 
 Bump both the version comment and the `game-version` meta tag on every release. The deployment number is an internal counter for tracking Apps Script/Sheet deployments - increment it whenever the backend Web App is redeployed, even if the game version string doesn't change.
@@ -156,6 +156,17 @@ All the code lives in one file, `index.html`:
 - The main nav is data-driven - add/remove a tab by editing the `TABS` array and adding a matching branch in `renderActiveTab()`. Give it an entry in `TAB_ICONS` too, so it gets a circular icon on phone widths.
 - Low performance mode and the phone/tablet/PC responsive layout are independent systems - low-perf mode simplifies visuals and is opt-in/detected by device, while responsive layout is purely CSS media queries plus the icon-vs-label swap on `.tab-btn`.
 - The Debug Mode page-ratio preview works by loading `index.html` again in an iframe with `?debugPreview=1`, so real `@media` queries apply inside it. That query flag also mutes audio inside the preview frame to avoid a second copy of the music playing.
+
+## The Vault (1.46.0)
+
+A secret code room, like the Vault in Geometry Dash. A see-through button sits in the bottom right corner of your Workshop profile (Workshop, then your profile button). It opens a full screen with the keeper and a box to type a code. Press Enter or click the keeper: a loading ring spins, then a right code shoots lightning out of the keeper and a wrong code swaps in the spoop face and shakes it.
+
+Search `THE VAULT` in `index.html`. To change what it says, edit two lists and nothing else:
+
+- `VAULT_LINES`: the title, the idle lines (said when the box is empty), the loading line, the wrong code lines and the already used line.
+- `VAULT_CODES`: one entry for each code, with `code`, `say` and an optional `reward` function that runs when the code works.
+
+Codes are checked in the browser, so anyone who reads `index.html` can find them. Move the check to the backend before a code gives out anything valuable. `VAULT_LOADING_MS` sets how long the ring spins.
 
 ## CGC (Clicker Game Code), 1.21.0+
 
