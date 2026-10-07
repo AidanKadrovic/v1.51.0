@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<!-- Game version: 1.43.5 | Deployment: 211 | Update both on every release, see README.md -->
-<meta name="game-version" content="1.43.5">
+<!-- Game version: 1.44.0 | Deployment: 211 | Update both on every release, see README.md -->
+<meta name="game-version" content="1.44.0">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>The Clicker Game!</title>
 <link rel="icon" type="image/x-icon" href="images/ui/maksy.ico" id="favicon-link">
@@ -8892,6 +8892,12 @@
           <span class="edit-toggle-label">Mod updates</span>
           <button class="edit-toggle-btn" id="edit-notif-mods-btn" type="button" data-on="true">On</button>
         </div>
+        <!-- 1.44.0: pops up one notification right now, to check the browser and the computer allow it -->
+        <div class="edit-toggle-row">
+          <span class="edit-toggle-label">Check they work</span>
+          <button class="edit-toggle-btn" id="edit-notif-test-btn" type="button">Test</button>
+        </div>
+        <p class="edit-toggle-hint" id="edit-notif-test-hint"></p>
       </div>
       <!-- SOCIAL (1.41.0): privacy switches. Saved on the account when you press Save Changes. -->
       <div class="edit-toggle-row">
@@ -23906,14 +23912,26 @@ ${hasCode
     return prefs.on && siteNotifPermission() === 'granted' && (!kind || prefs[kind]);
   }
 
-  // Pops up a browser notification. kind = 'messages', 'requests' or 'mods'.
-  // Nothing pops up while the player is looking at the game (the badges already show it), unless force is true.
-  // Returns true if a notification was shown.
+  // Tells the player about something. kind = 'messages', 'requests' or 'mods'.
+  //   The game is in the background  ->  a notification from the browser pops up.
+  //   The player is looking at the game  ->  a banner inside the game (1.44.0). Before this,
+  //     nothing showed at all in that case, which looked like notifications were broken.
+  //   force = true always uses a browser notification (the Test button).
+  // Returns true if the player was told one way or the other.
+  let siteNotifCount = 0; // makes every notification's tag different, see below
   function sendSiteNotification(kind, title, body, force){
     if (!siteNotifActive(kind)) return false;
-    if (!force && !document.hidden && document.hasFocus()) return false;
+    if (!force && !document.hidden && document.hasFocus()) {
+      showBanner(title + ': ' + body);
+      return true;
+    }
     try {
-      const note = new Notification(title, { body, icon: 'images/ui/appearchar.png', tag: 'clicker-' + (kind || 'info') });
+      // BUG FIX (1.44.0): every notification used to share one tag per kind ("clicker-requests").
+      // A browser treats a second notification with the same tag as an edit of the first one and
+      // swaps the words quietly, with no pop-up and no sound. So only the very first friend
+      // request or message ever popped up. Each one gets its own tag now.
+      siteNotifCount += 1;
+      const note = new Notification(title, { body, icon: 'images/ui/appearchar.png', tag: 'clicker-' + (kind || 'info') + '-' + Date.now() + '-' + siteNotifCount });
       note.onclick = () => { window.focus(); note.close(); };
       return true;
     } catch (e) {
@@ -24048,6 +24066,23 @@ ${hasCode
       saveSiteNotifPrefs(prefs);
       renderSiteNotifUi();
     });
+  });
+
+  // The Test button (1.44.0). It asks the browser for a notification right now and says what happened.
+  // A browser can say "yes" while the computer itself still hides notifications from that browser,
+  // and a web page has no way to see that. So the hint tells the player where to look.
+  document.getElementById('edit-notif-test-btn').addEventListener('click', () => {
+    const hint = document.getElementById('edit-notif-test-hint');
+    const shown = sendSiteNotification('', 'Test from The Clicker Game!', 'If you can see this, notifications work.', true);
+    if (!shown) {
+      hint.textContent = "This browser refused to show a notification. It may only allow them from installed apps.";
+      return;
+    }
+    const mac = /Mac/i.test(navigator.platform || navigator.userAgent || '');
+    hint.textContent = 'A test was sent. Nothing popped up? Your computer is hiding notifications from this browser. '
+      + (mac
+        ? 'On a Mac: System Settings > Notifications > pick this browser > turn on Allow notifications. Also check that Focus or Do Not Disturb is off.'
+        : 'On Windows: Settings > System > Notifications > turn this browser on. Also check that Do Not Disturb is off.');
   });
 
   [editNoMessagesBtn, editNoRequestsBtn].forEach(btn => {

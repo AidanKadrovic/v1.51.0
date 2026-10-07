@@ -137,8 +137,8 @@ Rules:
 Near the top of `index.html`:
 
 ```html
-<!-- Game version: 1.43.5 | Deployment: 211 | Update both on every release, see README.md -->
-<meta name="game-version" content="1.43.5">
+<!-- Game version: 1.44.0 | Deployment: 211 | Update both on every release, see README.md -->
+<meta name="game-version" content="1.44.0">
 ```
 
 Bump both the version comment and the `game-version` meta tag on every release. The deployment number is an internal counter for tracking Apps Script/Sheet deployments - increment it whenever the backend Web App is redeployed, even if the game version string doesn't change.
@@ -245,7 +245,7 @@ How it is built:
 - **Disable messages:** friends can't pick you for a new chat or message you one on one, and your own Messages tab is turned off.
 - **Disable friend requests:** your profile shows "Not taking friend requests", and any request that still arrives is declined by your game.
 
-**Notifications** (Edit Profile > Advanced Settings, saved on the device, no Save needed): the switch asks the browser for permission. If the player says no, the browser never asks again, so the switch is locked (the hint under it says how to unlock it in the browser settings). When it is on, three more switches show: Messages, Friend requests, Mod updates. A notification only pops up while the game is in the background, because the badges already cover it while you are playing. Mod updates are checked every `MOD_UPDATE_CHECK_MS` (30 minutes) and each new version is announced once.
+**Notifications** (Edit Profile > Advanced Settings, saved on the device, no Save needed): the switch asks the browser for permission. If the player says no, the browser never asks again, so the switch is locked (the hint under it says how to unlock it in the browser settings). When it is on, three more switches show: Messages, Friend requests, Mod updates. While the game is in the background a browser notification pops up. While you are looking at the game the same news shows as a banner inside the game instead (1.44.0). A `Test` button under the switches sends one notification right away and says where to look if the computer is hiding them (a browser can allow notifications while macOS or Windows still blocks that browser, and a web page can't see that). Every notification gets its own tag: with a shared tag, browsers quietly replace the old one with no pop-up, so only the first one ever showed (fixed in 1.44.0). Mod updates are checked every `MOD_UPDATE_CHECK_MS` (30 minutes) and each new version is announced once.
 
 **Turn it on (once):** Supabase dashboard > Edge Functions > Deploy a new function > Via editor, name it exactly `social`, paste `supabase/functions/social/index.ts`, turn OFF "Verify JWT" (same as `api`), Deploy. The function makes its own `social` table. Until it is deployed, statuses are hidden and the two privacy switches can't be saved. Notifications work without it.
 
