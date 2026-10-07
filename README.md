@@ -66,7 +66,7 @@ Since 1.23.1 every file lives in a folder. Only `index.html` and `README.md` sit
 | `images/ui/` | Game art: `profile.png`, `appearchar.png`, `tutorial-guide.png`, `biggie.png`, `arrow.png`, `money.png`, `heart.png`, `gems.png` and `maksy.ico` (favicon). |
 | `images/badges/` | Account badges: `admin.png`, `dev.png`, `mod.png`, `owner.png`, `director.png`, `fam.png`, `cc.png`, `ver.png`. |
 | `images/cursors/` | Built-in cursors for the Cursor Picker. |
-| `images/misc/` | Spare pictures the game does not use yet, plus the Vault keeper: `vault-keeper.png` (normal face) and `vault-keeper-spoop.png` (wrong code face). |
+| `images/misc/` | Spare pictures the game does not use yet, plus the Keeper's pictures (the `vault-...` files) and `spoopy.png`, the Keeper's face with no lock. |
 | `images/songs/` | Small song pictures (96 by 96) for the Now Playing banner. |
 | `backgrounds/` | Favorite color pictures (`bg_<color>.png`) and the Background Switcher pictures. |
 | `profiles/` | Starter profile pictures. Accounts save these paths, so do not rename this folder. |
@@ -137,8 +137,8 @@ Rules:
 Near the top of `index.html`:
 
 ```html
-<!-- Game version: 1.47.0 | Deployment: 212 | Update both on every release, see README.md -->
-<meta name="game-version" content="1.47.0">
+<!-- Game version: 1.48.0 | Deployment: 212 | Update both on every release, see README.md -->
+<meta name="game-version" content="1.48.0">
 ```
 
 Bump both the version comment and the `game-version` meta tag on every release. The deployment number is an internal counter for tracking Apps Script/Sheet deployments - increment it whenever the backend Web App is redeployed, even if the game version string doesn't change.
@@ -166,7 +166,7 @@ Search `THE KEEPER` in `index.html`. The function and class names still start wi
 - `VAULT_LINES`: the title, the idle lines (said when the box is empty), the loading line, the wrong code lines, and the lines for a used code, a locked code and being inside a room.
 - `VAULT_CODES`: one entry for each code, with `id`, `codes` (every word that works), `say`, and the optional `needs`, `note` and `reward`.
 
-The codes in 1.47.0. Each one works once for each account:
+The first codes (1.47.0). Each one works once for each account:
 
 | Code | Gives |
 |---|---|
@@ -177,6 +177,33 @@ The codes in 1.47.0. Each one works once for each account:
 | `gd`, `geo` or `gdash` | The GD Frame, already put on |
 | `huyhuj` | 1 Huj (secret currency) |
 | `key` | 1 Key. Only works if you own 1 Huj. The Huj is not taken away. |
+
+More codes (1.48.0). Words on the same line count as the same code:
+
+| Code | Gives |
+|---|---|
+| `amogus`, `sus`, `amongus` | 500 Moneys |
+| `dvd` | 1000 Moneys |
+| `noob` | 1 Money |
+| `banana`, `nana`, `banan` | 250 Moneys |
+| `duck` | 222 Moneys |
+| `rick`, `rickroll` | 1 Gem |
+| `baldi` | 4 Moneys |
+| `egg` | 12 Moneys |
+| `maksy` | 3 Gems |
+| `here`, `herestudios` | 100 Moneys |
+| `wildcard` | 5 Gems |
+| `clicker`, `theclickergame` | 1000 Moneys |
+| `biggie` | 2 Gems |
+| `spoopy`, `spoop` | 31 Moneys and a note that says boo |
+| `optimus`, `princeps` | 7 Moneys |
+| `67`, `sixseven` | 67 Moneys |
+| `keeper`, `thekeeper` | 10 Moneys |
+| `vault`, `wraith` | 2 Moneys |
+| `lightning`, `zap` | 2500 Moneys |
+| `rose` | 14 Moneys |
+
+**The lock (1.48.0).** While you own a Key, the Keeper's lock is yellow and can be clicked. The yellow pictures were colored by hand: `vault-keeper-key.png`, `vault-keeper-spoop-key.png` and `vault-lock-key.png` (just the lock, used for the two broken halves) in `images/misc/`. Clicking the lock (`vaultBreakLock()`) uses up the Key, breaks the lock in two, turns the Keeper into `spoopy.png`, and after `VAULT_FREE_MS` it fades away. It leaves a note that says "I will be back." signed by a glitchy `huyhuj` (`.vault-glitch` in the CSS), with a list of every code you have not used yet. The note can't be closed and the Keeper stays gone for that account (`storage.gone` in its save). Codes can still be typed while it is gone, and each one drops off the note once it is used.
 
 - **GD Frame:** a secret profile frame (`SECRET_FRAMES`, id `frame_gd`). It makes the profile picture square and blocky. The blocky look comes from two SVG filters in the HTML, `pf-pixel-big` and `pf-pixel-small`. Secret frames can be equipped in Your Collection like any frame, but they never show in the Limited Shop and never drop from a Lucky Block.
 - **Huj, Keys and used codes** are saved inside `game.modData` under the name `__keeper`, so they go to the API in the `mod_data` column, stay after a Prestige and come back on login. Never change a code's `id` after release, or players could use it again.

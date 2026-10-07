@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<!-- Game version: 1.47.0 | Deployment: 212 | Update both on every release, see README.md -->
-<meta name="game-version" content="1.47.0">
+<!-- Game version: 1.48.0 | Deployment: 212 | Update both on every release, see README.md -->
+<meta name="game-version" content="1.48.0">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>The Clicker Game!</title>
 <link rel="icon" type="image/x-icon" href="images/ui/maksy.ico" id="favicon-link">
@@ -4002,7 +4002,9 @@
   body .vault-overlay .vault-title,
   body .vault-overlay .vault-say,
   body .vault-overlay .vault-note,
-  body .vault-overlay .vault-note *{
+  body .vault-overlay .vault-note *,
+  body .vault-overlay .vault-gone-note,
+  body .vault-overlay .vault-gone-note *{
     font-family:'KeeperFont', 'Fredoka One', serif !important;
   }
   body .vault-overlay .vault-say{ font-size:20px; letter-spacing:.5px; }
@@ -4082,15 +4084,21 @@
   .vault-input:disabled{ opacity:.6; }
 
   /* The keeper. Clicking it sends the code, like the lock in the GD vault. */
-  .vault-keeper{
+  /* The box that holds the Keeper, the lock hotspot and the broken lock pieces. */
+  .vault-keeper-wrap{
     position:relative;
     width:min(230px, 56vw);
     height:min(230px, 56vw);
+    z-index:2;
+  }
+  .vault-keeper{
+    position:relative;
+    width:100%;
+    height:100%;
     padding:0;
     border:none;
     background:transparent;
     cursor:pointer;
-    z-index:2;
     transition:transform .12s ease;
   }
   .vault-keeper:hover{ transform:scale(1.04); }
@@ -4138,6 +4146,197 @@
   .vault-keeper.loading .vault-spinner{ display:block; }
   .vault-keeper.loading img{ opacity:.55; }
   @keyframes vault-spin{ to{ transform:rotate(360deg); } }
+
+  /* ---- THE LOCK (1.48.0) ----
+     When you own a Key, the Keeper picture swaps to one with a yellow lock
+     and this see-through button sits right on top of the lock.
+     The numbers are where the lock is inside the picture, in percent. */
+  .vault-lock-hit{
+    position:absolute;
+    left:23%;
+    top:64%;
+    width:51%;
+    height:35%;
+    padding:0;
+    border:none;
+    border-radius:14px;
+    background:radial-gradient(ellipse at center, rgba(255,246,150,.75), rgba(255,214,10,0) 70%);
+    cursor:pointer;
+    display:none;
+    z-index:3;
+    animation:vault-lock-pulse 1.1s ease-in-out infinite alternate;
+  }
+  .vault-lock-hit.visible{ display:block; }
+  /* A soft shine that fades in and out so the lock looks clickable. */
+  @keyframes vault-lock-pulse{
+    from{ opacity:0; }
+    to{ opacity:.85; }
+  }
+  /* The two halves of the broken lock. Both show the same lock picture,
+     and clip-path cuts each one down to its side of a zigzag crack. */
+  .vault-lock-pieces{
+    position:absolute;
+    inset:0;
+    display:none;
+    pointer-events:none;
+    z-index:4;
+  }
+  .vault-lock-pieces.go{ display:block; }
+  .vault-lock-piece{
+    position:absolute;
+    inset:0;
+    background:url('images/misc/vault-lock-key.png') center / contain no-repeat;
+  }
+  .vault-lock-piece.left{
+    clip-path:polygon(0 0, 50% 0, 50% 62%, 46% 70%, 54% 78%, 45% 86%, 52% 93%, 48% 100%, 0 100%);
+  }
+  .vault-lock-piece.right{
+    clip-path:polygon(100% 0, 50% 0, 50% 62%, 46% 70%, 54% 78%, 45% 86%, 52% 93%, 48% 100%, 100% 100%);
+  }
+  .vault-lock-pieces.go .left{ animation:vault-lock-left .95s cubic-bezier(.3,0,.8,.5) forwards; }
+  .vault-lock-pieces.go .right{ animation:vault-lock-right .95s cubic-bezier(.3,0,.8,.5) forwards; }
+  /* Each half hops up a little, then spins and falls off its side. */
+  @keyframes vault-lock-left{
+    0%{ transform:translate(0,0) rotate(0); opacity:1; }
+    25%{ transform:translate(-12%,-8%) rotate(-12deg); opacity:1; }
+    100%{ transform:translate(-65%,85%) rotate(-70deg); opacity:0; }
+  }
+  @keyframes vault-lock-right{
+    0%{ transform:translate(0,0) rotate(0); opacity:1; }
+    25%{ transform:translate(12%,-8%) rotate(12deg); opacity:1; }
+    100%{ transform:translate(65%,85%) rotate(70deg); opacity:0; }
+  }
+  /* After the lock breaks the picture changes to spoopy.png (just the face).
+     That picture has a bigger face that sits lower, so this moves and shrinks
+     it to land exactly where the Keeper's face was. */
+  .vault-keeper.freed{ cursor:default; }
+  .vault-keeper.freed img{
+    transform:translateY(-20.6%) scale(.83);
+  }
+  /* A few seconds later the face floats up and fades away.
+     The transition is only here, so the face snaps into place when the lock
+     breaks and only moves slowly when it leaves. */
+  .vault-keeper.freed.vanish img{
+    transform:translateY(-60%) scale(.55);
+    opacity:0;
+    transition:transform 1.1s ease-in, opacity 1.1s ease-in;
+  }
+
+  /* The note the Keeper leaves behind. It can't be clicked away. */
+  .vault-gone-note{
+    display:none;
+    width:min(340px, 86vw);
+    max-height:46vh;
+    overflow-y:auto;
+    padding:20px 18px 16px;
+    color:#2a2118;
+    background:#fff6d6;
+    border:4px solid #100c1f;
+    border-radius:6px;
+    box-shadow:8px 8px 0 #100c1f;
+    text-align:center;
+    transform:rotate(-2deg);
+    z-index:2;
+  }
+  .vault-gone-note.visible{
+    display:block;
+    animation:vault-gone-in .5s cubic-bezier(.2,1.4,.4,1);
+  }
+  @keyframes vault-gone-in{
+    0%{ transform:translateY(-40px) rotate(8deg); opacity:0; }
+    100%{ transform:translateY(0) rotate(-2deg); opacity:1; }
+  }
+  .vault-gone-note p{ margin:0 0 4px; font-size:28px; line-height:1.15; }
+  .vault-gone-note small{ display:block; font-size:16px; margin-bottom:14px; }
+
+  /* GLITCHY NAME (1.48.0): the name the note is signed with.
+     The real word jitters, and two ghost copies of it (one red, one cyan)
+     sit on top. Each ghost only shows a thin strip that keeps jumping
+     up and down, which is what makes it look broken. */
+  .vault-glitch{
+    position:relative;
+    display:inline-block;
+    font-size:24px;
+    letter-spacing:1px;
+    color:#100c1f;
+    animation:vault-glitch-shake 1.7s steps(1) infinite;
+  }
+  .vault-glitch::before,
+  .vault-glitch::after{
+    content:attr(data-text); /* the same word, taken from data-text */
+    position:absolute;
+    left:0;
+    top:0;
+    width:100%;
+    pointer-events:none;
+  }
+  .vault-glitch::before{
+    color:#ff0055;
+    transform:translateX(-3px);
+    animation:vault-glitch-cut-a .9s steps(1) infinite;
+  }
+  .vault-glitch::after{
+    color:#00c8ff;
+    transform:translateX(3px);
+    animation:vault-glitch-cut-b 1.3s steps(1) infinite;
+  }
+  /* steps(1) makes every change snap instead of slide. */
+  @keyframes vault-glitch-shake{
+    0%, 100%{ transform:none; opacity:1; }
+    8%{ transform:translate(-2px,1px) skewX(-18deg); }
+    10%{ transform:translate(3px,-1px) skewX(14deg); }
+    12%{ transform:none; }
+    46%{ transform:translate(2px,0) scaleX(1.12); opacity:.55; }
+    48%{ transform:none; opacity:1; }
+    71%{ transform:translate(-4px,1px) skewX(25deg); }
+    73%{ transform:translate(1px,-2px); letter-spacing:4px; }
+    75%{ transform:none; letter-spacing:1px; }
+    90%{ opacity:.2; }
+    91%{ opacity:1; }
+  }
+  /* inset(top 0 bottom 0) keeps only a strip of the ghost between top and bottom. */
+  @keyframes vault-glitch-cut-a{
+    0%{ clip-path:inset(10% 0 65% 0); transform:translateX(-3px); }
+    20%{ clip-path:inset(70% 0 5% 0); transform:translateX(4px); }
+    40%{ clip-path:inset(35% 0 40% 0); transform:translateX(-5px); }
+    60%{ clip-path:inset(0 0 85% 0); transform:translateX(2px); }
+    80%{ clip-path:inset(55% 0 20% 0); transform:translateX(-2px); }
+    100%{ clip-path:inset(10% 0 65% 0); transform:translateX(-3px); }
+  }
+  @keyframes vault-glitch-cut-b{
+    0%{ clip-path:inset(60% 0 10% 0); transform:translateX(3px); }
+    17%{ clip-path:inset(5% 0 75% 0); transform:translateX(-4px); }
+    34%{ clip-path:inset(80% 0 0 0); transform:translateX(5px); }
+    51%{ clip-path:inset(25% 0 50% 0); transform:translateX(-2px); }
+    68%{ clip-path:inset(45% 0 30% 0); transform:translateX(6px); }
+    85%{ clip-path:inset(15% 0 60% 0); transform:translateX(-3px); }
+    100%{ clip-path:inset(60% 0 10% 0); transform:translateX(3px); }
+  }
+  /* Low Performance Mode: no moving, but the red and cyan ghosts stay. */
+  body.low-perf .vault-glitch,
+  body.low-perf .vault-glitch::before,
+  body.low-perf .vault-glitch::after{ animation:none; }
+  body.low-perf .vault-glitch::before{ clip-path:inset(10% 0 55% 0); }
+  body.low-perf .vault-glitch::after{ clip-path:inset(55% 0 10% 0); }
+  .vault-gone-note h4{
+    margin:0 0 8px;
+    padding-top:12px;
+    border-top:2px dashed rgba(42,33,24,.35);
+    font-size:15px;
+    font-weight:normal;
+  }
+  /* The unused codes, in two columns. */
+  .vault-gone-note ul{
+    list-style:none;
+    margin:0;
+    padding:0;
+    columns:2;
+    column-gap:14px;
+    font-size:16px;
+    line-height:1.5;
+  }
+  /* While the Keeper is gone its box is hidden and the note takes its place. */
+  .vault-overlay.keeper-gone .vault-keeper-wrap{ display:none; }
 
   /* Lightning. JavaScript draws the bolts into this SVG. */
   .vault-fx{
@@ -9375,10 +9574,25 @@
   <h1 class="vault-title" id="vault-title">The Keeper</h1>
   <p class="vault-say" id="vault-say" aria-live="polite"></p>
   <input class="vault-input" id="vault-input" type="text" maxlength="40" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Type a code" aria-label="Code for the Keeper">
-  <button class="vault-keeper" id="vault-keeper" type="button" title="Enter the code">
-    <img id="vault-keeper-img" src="images/misc/vault-keeper.png" alt="The Keeper">
-    <span class="vault-spinner"></span>
-  </button>
+  <div class="vault-keeper-wrap" id="vault-keeper-wrap">
+    <button class="vault-keeper" id="vault-keeper" type="button" title="Enter the code">
+      <img id="vault-keeper-img" src="images/misc/vault-keeper.png" alt="The Keeper">
+      <span class="vault-spinner"></span>
+    </button>
+    <!-- THE LOCK (1.48.0): only clickable while you own a Key -->
+    <button class="vault-lock-hit" id="vault-lock-hit" type="button" aria-label="The lock"></button>
+    <div class="vault-lock-pieces" id="vault-lock-pieces" aria-hidden="true">
+      <div class="vault-lock-piece left"></div>
+      <div class="vault-lock-piece right"></div>
+    </div>
+  </div>
+  <!-- The note left behind after the lock is opened. JavaScript fills it in. -->
+  <div class="vault-gone-note" id="vault-gone-note">
+    <p id="vault-gone-text"></p>
+    <small id="vault-gone-from"></small>
+    <h4 id="vault-gone-heading"></h4>
+    <ul id="vault-gone-list"></ul>
+  </div>
   <div class="vault-flash" id="vault-flash"></div>
   <div class="vault-note" id="vault-note" role="button" tabindex="0">
     <p id="vault-note-text"></p>
@@ -17134,6 +17348,14 @@
   // The two Keeper pictures.
   const VAULT_IMG_NORMAL = 'images/misc/vault-keeper.png';       // normal face (also the secret button)
   const VAULT_IMG_SPOOP  = 'images/misc/vault-keeper-spoop.png'; // wrong code face
+  // THE LOCK (1.48.0): the same two faces with the lock colored yellow by hand.
+  // They are shown while you own a Key.
+  const VAULT_IMG_NORMAL_KEY = 'images/misc/vault-keeper-key.png';
+  const VAULT_IMG_SPOOP_KEY  = 'images/misc/vault-keeper-spoop-key.png';
+  // The face with no lock, shown after the lock breaks.
+  const VAULT_IMG_FREE = 'images/misc/spoopy.png';
+  // How long the free face stays before it fades away, in milliseconds.
+  const VAULT_FREE_MS = 3000;
 
   // How long the loading ring spins, in milliseconds (1000 = 1 second).
   const VAULT_LOADING_MS = 1600;
@@ -17163,7 +17385,14 @@
     // Said when a code needs something you do not have (see "needs" below).
     locked: 'You are missing something.',
     // Said inside a room or server, where the save is shared with other players.
-    room: 'Not in here. Leave the room first.'
+    room: 'Not in here. Leave the room first.',
+    // Said the moment the lock breaks.
+    unlocked: 'You let me out.',
+    // The note left behind once the Keeper is gone.
+    goneNote: 'I will be back.',
+    goneFrom: 'huyhuj', // who signed the note. This word is drawn glitchy (see .vault-glitch)
+    goneUnused: 'Codes you did not use:',
+    goneAllUsed: 'You used every code.'
   };
 
   /* The secret codes. Capital letters and extra spaces do not matter.
@@ -17203,13 +17432,42 @@
 
     // Only works once you own 1 Huj.
     { id: 'key', codes: ['key'], needs: { huj: 1 }, say: 'One Key. Guard it.',
-      reward: () => { keeperAdd('keys', 1); } }
+      reward: () => { keeperAdd('keys', 1); } },
+
+    // ---- MORE CODES (1.48.0) ----
+    // moneys(n) and gems(n) are tiny helpers defined right under this list.
+    { id: 'amogus',   codes: ['amogus', 'sus', 'amongus'], say: 'Kinda sus.',                reward: () => moneys(500) },
+    { id: 'dvd',      codes: ['dvd'],                      say: 'It hit the corner.',        reward: () => moneys(1000) },
+    { id: 'noob',     codes: ['noob'],                     say: 'Oof.',                      reward: () => moneys(1) },
+    { id: 'banana',   codes: ['banana', 'nana', 'banan'],  say: 'Slippery.',                 reward: () => moneys(250) },
+    { id: 'duck',     codes: ['duck'],                     say: 'Quack.',                    reward: () => moneys(222) },
+    { id: 'rick',     codes: ['rick', 'rickroll'],         say: 'You got rolled.',           reward: () => gems(1) },
+    { id: 'baldi',    codes: ['baldi'],                    say: 'Time for math. 2 + 2.',     reward: () => moneys(4) },
+    { id: 'egg',      codes: ['egg'],                      say: 'A dozen.',                  reward: () => moneys(12) },
+    { id: 'maksy',    codes: ['maksy'],                    say: 'Not masky. Maksy.',         reward: () => gems(3) },
+    { id: 'here',     codes: ['here', 'herestudios'],      say: 'Here.',                     reward: () => moneys(100) },
+    { id: 'wildcard', codes: ['wildcard'],                 say: 'A wild card appears.',      reward: () => gems(5) },
+    { id: 'clicker',  codes: ['clicker', 'theclickergame'], say: 'Click. Click. Click.',     reward: () => moneys(1000) },
+    { id: 'biggie',   codes: ['biggie'],                   say: 'Big.',                      reward: () => gems(2) },
+    { id: 'spoopy',   codes: ['spoopy', 'spoop'],          say: 'That is my other face.',
+      note: { text: 'boo.', from: 'The Keeper' },                                            reward: () => moneys(31) },
+    { id: 'optimus',  codes: ['optimus', 'princeps'],      say: 'You like my font?',         reward: () => moneys(7) },
+    { id: 'sixseven', codes: ['67', 'sixseven'],           say: 'Six seven.',                reward: () => moneys(67) },
+    { id: 'keeper',   codes: ['keeper', 'thekeeper'],      say: 'That is my name.',          reward: () => moneys(10) },
+    { id: 'vault',    codes: ['vault', 'wraith'],          say: 'Wrong game.',               reward: () => moneys(2) },
+    { id: 'zap',      codes: ['lightning', 'zap'],         say: 'Zap.',                      reward: () => moneys(2500) },
+    { id: 'rose',     codes: ['rose'],                     say: 'For me?',                   reward: () => moneys(14) }
   ];
+
+  // Reward helpers: give Moneys or Gems.
+  function moneys(amount){ game.clicks += amount; }
+  function gems(amount){ game.gems = (game.gems || 0) + amount; }
 
   /* ---- The Keeper's save ----
      Huj, Keys and the list of used codes are stored inside game.modData under
      the name "__keeper", shaped like a mod's saved data:
-       { currency: { huj, keys }, storage: { used: ['verity', ...] } }
+       { currency: { huj, keys }, storage: { used: ['verity', ...], gone: true or false } }
+     "gone" turns true once the lock is opened and the Keeper leaves.
      modData already goes to the API (the mod_data column), stays after a
      Prestige and comes back on login, so this follows the account with no
      new columns. No real mod can use this name, mod ids never look like it. */
@@ -17248,6 +17506,11 @@
     document.getElementById('vault-wallet').classList.toggle('visible', huj > 0 || keys > 0);
   }
 
+  // True once the lock was opened and the Keeper left.
+  function keeperIsGone(){ return !!keeperSave().storage.gone; }
+  // True while the lock should be yellow and clickable.
+  function keeperHasKey(){ return !keeperIsGone() && keeperGet('keys') > 0; }
+
   // True when the player owns everything in a code's "needs" list.
   function keeperHasNeeds(entry){
     const needs = entry.needs || {};
@@ -17262,6 +17525,9 @@
   const vaultFx        = document.getElementById('vault-fx');
   const vaultFlash     = document.getElementById('vault-flash');
   const vaultNote      = document.getElementById('vault-note');
+  const vaultLockHit   = document.getElementById('vault-lock-hit');
+  const vaultLockPieces = document.getElementById('vault-lock-pieces');
+  const vaultGoneNote  = document.getElementById('vault-gone-note');
 
   let vaultBusy = false;        // true while the loading ring spins
   let vaultIdleIndex = 0;       // which idle line comes next
@@ -17286,22 +17552,112 @@
     return String(text || '').trim().toLowerCase();
   }
 
+  // Sets the Keeper's picture. face is 'normal' or 'spoop'.
+  // With a Key it picks the yellow lock version of that face.
+  function vaultFace(face){
+    const key = keeperHasKey();
+    if (face === 'spoop') vaultKeeperImg.src = key ? VAULT_IMG_SPOOP_KEY : VAULT_IMG_SPOOP;
+    else vaultKeeperImg.src = key ? VAULT_IMG_NORMAL_KEY : VAULT_IMG_NORMAL;
+    // The lock can only be clicked while it is yellow and nothing is loading.
+    vaultLockHit.classList.toggle('visible', key && !vaultBusy);
+  }
+
+  // Fills in the "I will be back" note and swaps it in for the Keeper.
+  // The list is rebuilt each time, so a code drops off it once you use it.
+  function vaultShowGone(){
+    const unused = VAULT_CODES.filter(entry => !keeperCodeUsed(entry.id));
+    document.getElementById('vault-gone-text').textContent = VAULT_LINES.goneNote;
+    // The name is put in its own <span> so only the name glitches, not the dash.
+    const from = document.getElementById('vault-gone-from');
+    from.textContent = '- ';
+    const glitch = document.createElement('span');
+    glitch.className = 'vault-glitch';
+    glitch.textContent = VAULT_LINES.goneFrom;
+    glitch.dataset.text = VAULT_LINES.goneFrom; // the CSS copies this into the two colored ghosts
+    from.appendChild(glitch);
+    document.getElementById('vault-gone-heading').textContent = unused.length ? VAULT_LINES.goneUnused : VAULT_LINES.goneAllUsed;
+    const list = document.getElementById('vault-gone-list');
+    list.innerHTML = '';
+    unused.forEach(entry => {
+      const li = document.createElement('li');
+      li.textContent = entry.codes[0]; // the first word is the one shown
+      list.appendChild(li);
+    });
+    vaultOverlay.classList.add('keeper-gone');
+    vaultGoneNote.classList.add('visible');
+  }
+
+  // Runs when the yellow lock is clicked: the Key is used up, the lock breaks,
+  // the Keeper turns into the free face, fades away, and leaves the note.
+  function vaultBreakLock(){
+    if (vaultBusy || !keeperHasKey()) return;
+    if (roomSession) { vaultFail(VAULT_LINES.room); return; } // ROOMS: shared save, so not in here
+
+    // Save it right away. If the player closes the screen halfway through,
+    // the Keeper is still gone next time.
+    keeperAdd('keys', -1);
+    keeperSave().storage.gone = true;
+    saveGame();
+    syncToSheet();
+    updateKeeperWallet();
+
+    vaultBusy = true;
+    vaultInput.disabled = true;
+    vaultKeeper.disabled = true;
+    vaultLockHit.classList.remove('visible');
+    vaultKeeper.classList.remove('shake', 'zap', 'loading');
+
+    // Swap to the face with no lock and throw the two lock halves.
+    vaultKeeperImg.src = VAULT_IMG_FREE;
+    vaultKeeper.classList.add('freed');
+    vaultLockPieces.classList.add('go');
+    vaultFlash.classList.remove('go');
+    void vaultFlash.offsetWidth; // restarts the flash
+    vaultFlash.classList.add('go');
+    playSound('audio/sfx/touch.mp3');
+    vaultSpeak(VAULT_LINES.unlocked, 'win');
+
+    // A few seconds later the face floats up and fades.
+    vaultLater(() => {
+      vaultKeeper.classList.add('vanish');
+      vaultSpeak('', '');
+    }, VAULT_FREE_MS);
+
+    // Then the note takes its place and codes can be typed again.
+    vaultLater(() => {
+      vaultLockPieces.classList.remove('go');
+      vaultShowGone();
+      vaultBusy = false;
+      vaultInput.disabled = false;
+      vaultInput.focus();
+    }, VAULT_FREE_MS + 1200);
+  }
+
   function openVault(){
-    // Load the spoop face early so it shows right away on a wrong code.
-    new Image().src = VAULT_IMG_SPOOP;
+    // Load the other faces early so they show right away.
+    [VAULT_IMG_SPOOP, VAULT_IMG_NORMAL_KEY, VAULT_IMG_SPOOP_KEY, VAULT_IMG_FREE].forEach(src => { new Image().src = src; });
     document.getElementById('vault-title').textContent = VAULT_LINES.title;
     vaultBusy = false;
     vaultIdleIndex = 0;
     vaultInput.value = '';
     vaultInput.disabled = false;
     vaultKeeper.disabled = false;
-    vaultKeeper.classList.remove('loading', 'shake', 'zap');
-    vaultKeeperImg.src = VAULT_IMG_NORMAL;
+    vaultKeeper.classList.remove('loading', 'shake', 'zap', 'freed', 'vanish');
+    vaultLockPieces.classList.remove('go');
+    vaultOverlay.classList.remove('keeper-gone');
+    vaultGoneNote.classList.remove('visible');
+    vaultFace('normal');
     vaultFx.innerHTML = '';
     vaultFlash.classList.remove('go'); // so an old flash does not replay when the vault reopens
     vaultNote.classList.remove('visible');
     updateKeeperWallet();
-    vaultSpeak(VAULT_LINES.idle[0] || '', '');
+    if (keeperIsGone()) {
+      // The Keeper already left: show the note and say nothing.
+      vaultShowGone();
+      vaultSpeak('', '');
+    } else {
+      vaultSpeak(VAULT_LINES.idle[0] || '', '');
+    }
     vaultOverlay.classList.add('visible');
     vaultOverlay.setAttribute('aria-hidden', 'false');
     vaultInput.focus();
@@ -17320,8 +17676,9 @@
     if (vaultBusy) return;
     const typed = vaultClean(vaultInput.value);
 
-    // Empty box: the keeper just says its next idle line.
+    // Empty box: the keeper just says its next idle line (nobody is there once it is gone).
     if (!typed) {
+      if (keeperIsGone()) return;
       vaultIdleIndex = (vaultIdleIndex + 1) % VAULT_LINES.idle.length;
       vaultSpeak(VAULT_LINES.idle[vaultIdleIndex], '');
       return;
@@ -17333,7 +17690,7 @@
     vaultKeeper.disabled = true;
     vaultKeeper.classList.remove('shake', 'zap');
     vaultKeeper.classList.add('loading');
-    vaultKeeperImg.src = VAULT_IMG_NORMAL;
+    vaultFace('normal'); // also hides the lock hotspot while loading
     vaultSpeak(VAULT_LINES.loading, '');
 
     vaultLater(() => {
@@ -17361,17 +17718,20 @@
       vaultKeeper.disabled = false;
       vaultInput.value = '';
       vaultInput.focus();
+      // Bring the lock hotspot back (or turn it on, if this code just gave a Key).
+      vaultLockHit.classList.toggle('visible', keeperHasKey());
     }, VAULT_LOADING_MS);
   }
 
   // Wrong code: spoop face, shake, then back to normal.
   function vaultFail(line){
-    vaultKeeperImg.src = VAULT_IMG_SPOOP;
-    vaultKeeper.classList.add('shake');
     vaultSpeak(line, 'fail');
+    if (keeperIsGone()) return; // no Keeper to make a face
+    vaultFace('spoop');
+    vaultKeeper.classList.add('shake');
     vaultLater(() => {
       vaultKeeper.classList.remove('shake');
-      vaultKeeperImg.src = VAULT_IMG_NORMAL;
+      if (!vaultBusy) vaultFace('normal'); // skip if the lock is breaking right now
     }, VAULT_SPOOP_MS);
   }
 
@@ -17396,6 +17756,8 @@
     updateWorkshopGemsDisplay();
     updateKeeperWallet();
     try { renderActiveTab(); } catch (e) {} // redraws the tab behind this screen (shop prices, stats)
+    if (keeperIsGone()) vaultShowGone(); // takes the code you just used off the note
+    else vaultFace('normal');            // the lock turns yellow right away if this gave a Key
 
     // The paper note, a moment after the lightning.
     if (entry.note) {
@@ -17411,7 +17773,8 @@
   function vaultLightning(){
     const SVG_NS = 'http://www.w3.org/2000/svg';
     const box = vaultOverlay.getBoundingClientRect();
-    const k = vaultKeeper.getBoundingClientRect();
+    // Lightning comes out of the Keeper, or out of its note once it is gone.
+    const k = (keeperIsGone() ? vaultGoneNote : vaultKeeper).getBoundingClientRect();
     // The middle of the keeper, measured from the corner of the vault screen.
     const cx = k.left - box.left + k.width / 2;
     const cy = k.top - box.top + k.height / 2;
@@ -17474,6 +17837,7 @@
   });
   document.getElementById('vault-back').addEventListener('click', closeVault);
   vaultKeeper.addEventListener('click', vaultSubmit);
+  vaultLockHit.addEventListener('click', vaultBreakLock);
   vaultInput.addEventListener('keydown', (e) => {
     if (e.key === 'Enter') { e.preventDefault(); vaultSubmit(); }
     if (e.key === 'Escape') { e.preventDefault(); closeVault(); }
