@@ -59,7 +59,8 @@ Since 1.23.1 every file lives in a folder. Only `index.html` and `README.md` sit
 
 | Folder | What goes in it |
 |---|---|
-| `audio/music/` | Songs: the Music Player tracks, the default background track, the tutorial track and the login screen track. |
+| `audio/music/` | Songs: the Music Player tracks, the tutorial track and the login screen track. |
+| `audio/music/colors/` | The background songs, one for each favorite color (1.39.0). The og song (green) lives here too. |
 | `audio/sfx/` | Short sound effects: `click.mp3`, `money.mp3`, `touch.mp3`, `mogus.mp3`, `goat.mp3`. |
 | `fonts/` | Font files (`.ttf`). `Pusab.ttf`, `pixelated.ttf` and `MeFont.ttf` are loaded with `@font-face`. The rest are account fonts. Google Fonts (Fredoka One, Poppins, Inter) load from the CDN. |
 | `images/ui/` | Game art: `profile.png`, `appearchar.png`, `tutorial-guide.png`, `biggie.png`, `arrow.png`, `money.png`, `heart.png`, `gems.png` and `maksy.ico` (favicon). |
@@ -124,6 +125,8 @@ Built-in lists live in the `settings/` folder, so they can be changed without ed
 Rules:
 - Valid JSON only: double quotes, commas between entries, no comma after the last one, no comments.
 - Players keep their picked song when songs are added or reordered (it is matched by file name).
+- **Color songs (1.39.0):** the background song follows the account's favorite color, like the `bg_<color>.png` pictures do. `COLOR_BG_SONGS` in `index.html` maps each color to a file in `audio/music/colors/`: red = Hammer of Justice, orange = Flower Castle, yellow = Running Sky, green = the og song, blue = The place where it rained, cyan = Welcome to the Green Room, purple = Another Medium, pink = Cutie Mew Mew Magic, black = KING OF ROLYPOLY, teal = A CYBER'S WORLD? (all by Toby Fox except the og song). `playColorBgSong()` starts the right one and `applyAccountTheme()` swaps it when the color changes. A color with no entry plays the og song. The tutorial and login songs are not changed.
+- **Theme picker groups (1.39.0):** the theme picker in Preferences has two groups: `Themes` (everything in `settings/themes.json`) and `Downloaded mods` (themes inside installed mods). A mod with one theme is listed by the mod's name, a mod with several is listed as `Mod name: Theme name`. A mod with no theme has nothing to show, so it is not listed.
 - Keep the lists inside `index.html` roughly in sync as a backup.
 
 ## Versioning
@@ -131,8 +134,8 @@ Rules:
 Near the top of `index.html`:
 
 ```html
-<!-- Game version: 1.38.0 | Deployment: 211 | Update both on every release, see README.md -->
-<meta name="game-version" content="1.38.0">
+<!-- Game version: 1.39.0 | Deployment: 211 | Update both on every release, see README.md -->
+<meta name="game-version" content="1.39.0">
 ```
 
 Bump both the version comment and the `game-version` meta tag on every release. The deployment number is an internal counter for tracking Apps Script/Sheet deployments - increment it whenever the backend Web App is redeployed, even if the game version string doesn't change.

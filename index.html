@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<!-- Game version: 1.38.0 | Deployment: 211 | Update both on every release, see README.md -->
-<meta name="game-version" content="1.38.0">
+<!-- Game version: 1.39.0 | Deployment: 211 | Update both on every release, see README.md -->
+<meta name="game-version" content="1.39.0">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>The Clicker Game!</title>
 <link rel="icon" type="image/x-icon" href="images/ui/maksy.ico" id="favicon-link">
@@ -8654,7 +8654,7 @@
     </div>
 
     <audio id="song-audio"></audio>
-    <audio id="default-bg-audio" src="audio/music/manthishotelreallysucksidontgetcoolmusicoranythingimjuststuckwithBAHABAHAHABAHABAHAB.mp3" loop></audio>
+    <audio id="default-bg-audio" src="audio/music/colors/manthishotelreallysucksidontgetcoolmusicoranythingimjuststuckwithBAHABAHAHABAHABAHAB.mp3" loop></audio>
 
     <div class="preferences-dropdown" id="preferences-dropdown">
       <button class="preferences-toggle" id="preferences-toggle">
@@ -10788,7 +10788,33 @@
   const loopBtn = document.getElementById('loop-btn');
   const defaultBgAudio = document.getElementById('default-bg-audio');
 
-  const DEFAULT_BG_SONG = 'audio/music/manthishotelreallysucksidontgetcoolmusicoranythingimjuststuckwithBAHABAHAHABAHABAHAB.mp3';
+  /* ---------- COLOR SONGS (1.39.0) ----------
+     Every favorite color has its own background song, the same way every color has its
+     own background picture. All of them live in audio/music/colors/.
+     To add a color: drop the mp3 in that folder and add a line to COLOR_BG_SONGS.
+     A color with no line here plays DEFAULT_BG_SONG (the og song). */
+  const COLOR_SONG_FOLDER = 'audio/music/colors/';
+  const DEFAULT_BG_SONG = COLOR_SONG_FOLDER + 'manthishotelreallysucksidontgetcoolmusicoranythingimjuststuckwithBAHABAHAHABAHABAHAB.mp3'; // the og song (green)
+  const COLOR_BG_SONGS = {
+    red:    'oldturtlemanwontstopswinginghishammeratmeandhonestlyimkindofintoitGAHAHAHAHAHA.mp3',      // Hammer of Justice
+    orange: 'whyisthiscastlemadeofflowersandwhydoesitslapthishardimallergicACHOOACHOOACHOO.mp3',      // Flower Castle
+    yellow: 'icantstoprunningandtheskywontstopfollowingmepleasesendsnacksNYOOOOOOOM.mp3',             // Running Sky
+    green:  'manthishotelreallysucksidontgetcoolmusicoranythingimjuststuckwithBAHABAHAHABAHABAHAB.mp3',                    // the og song
+    blue:   'itrainedhereonceandnowimsadandsoggyandmysocksarewetDRIPDRIPDRIPDRIP.mp3',                // The place where it rained
+    cyan:   'welcometothegreenroomwhichisconfusingbecauseimthecyansongWAITWHATWAITWHAT.mp3',          // Welcome to the Green Room
+    purple: 'thisisjustanothermediumwhereisthelargeiorderedalargeHELLOHELLOHELLO.mp3',                // Another Medium
+    pink:   'mewmewmagicmademesparklyagainstmywillandnowimacatgirlNYANYANYANYANYA.mp3',               // Cutie Mew Mew Magic
+    black:  'iamthekingofrolypolyandalliknowhowtodoisrollBONKBONKBONKBONK.mp3',                       // KING OF ROLYPOLY
+    teal:   'iliveinsideacomputernowandthewifiisactuallyprettygoodBEEPBOOPBEEPBOOP.mp3'               // A CYBER'S WORLD?
+  };
+  // True while the color song is the one that should be playing (not the tutorial or login song).
+  let colorBgSongActive = false;
+
+  // The song file for a favorite color. Unknown colors get the og song.
+  function colorBgSongFor(color){
+    const file = Object.prototype.hasOwnProperty.call(COLOR_BG_SONGS, color) ? COLOR_BG_SONGS[color] : '';
+    return file ? COLOR_SONG_FOLDER + file : DEFAULT_BG_SONG;
+  }
   const TUTORIAL_BG_SONG = 'audio/music/yourhired.mp3';
   const AUTH_BG_SONG = 'audio/music/go ahead, start crying.mp3';
 
@@ -10822,12 +10848,28 @@
 
   function switchBgSong(src){
     if (!defaultBgAudio) return;
+    colorBgSongActive = false; // COLOR SONGS: playColorBgSong() turns this back on
     defaultBgAudio.src = src;
     updateDefaultBgVolume();
     const playPromise = defaultBgAudio.play();
     if (playPromise && playPromise.catch) {
       playPromise.catch(() => armBgAudioResumeOnInteraction());
     }
+  }
+
+  // COLOR SONGS: plays the song that matches the account's favorite color.
+  // If that song is already playing it keeps going, so it never restarts for no reason.
+  function playColorBgSong(){
+    if (!defaultBgAudio) return;
+    const src = colorBgSongFor(currentThemeColor);
+    const alreadyOn = colorBgSongActive && defaultBgAudio.getAttribute('src') === src;
+    if (!alreadyOn) switchBgSong(src);
+    colorBgSongActive = true;
+  }
+
+  // COLOR SONGS: the favorite color changed. Swap songs only if a color song is the one playing.
+  function refreshColorBgSong(){
+    if (colorBgSongActive) playColorBgSong();
   }
 
   function renderSongOption(song, index){
@@ -11865,12 +11907,22 @@
     placeholder.textContent = 'Choose a theme';
     placeholder.disabled = true;
     themeSelect.appendChild(placeholder);
-    allUiThemes().forEach(t => {
-      const opt = document.createElement('option');
-      opt.value = t.id;
-      opt.textContent = t.label;
-      themeSelect.appendChild(opt);
-    });
+    // Two groups (1.39.0): the built-in themes from settings/themes.json, then the downloaded mods.
+    // A group with nothing in it is left out, so the list never shows an empty heading.
+    const addGroup = (title, themes) => {
+      if (!themes.length) return;
+      const group = document.createElement('optgroup');
+      group.label = title;
+      themes.forEach(t => {
+        const opt = document.createElement('option');
+        opt.value = t.id;
+        opt.textContent = t.label;
+        group.appendChild(opt);
+      });
+      themeSelect.appendChild(group);
+    };
+    addGroup('Themes', UI_THEMES);
+    addGroup('Downloaded mods', MOD_THEMES);
     themeSelect.value = allUiThemes().some(t => t.id === saved) ? saved : '';
   }
 
@@ -11978,10 +12030,18 @@
     MOD_THEMES.length = 0;
     (game.installedMods || []).forEach(mod => {
       const list = mod && mod.customFiles && Array.isArray(mod.customFiles.themes) ? mod.customFiles.themes : [];
+      // Read every theme first, so we know how many this mod really has. (i stays the theme's
+      // spot in the mod's own list, so a theme picked before this update is still picked.)
+      const found = [];
       list.forEach((entry, i) => {
         const theme = modThemeFromEntry(entry);
-        if (!theme) return;
-        MOD_THEMES.push({ id: `mod:${mod.id}:${i}`, label: `${theme.name} (${mod.name || 'mod'})`, light: modThemeVars(theme.light), dark: modThemeVars(theme.dark), corners: theme.corners });
+        if (theme) found.push({ theme, i });
+      });
+      const modName = String(mod.name || 'Mod');
+      found.forEach(({ theme, i }) => {
+        // One theme: the option is just the mod's name. More than one: "Mod name: Theme name".
+        const label = found.length === 1 ? modName : `${modName}: ${theme.name}`;
+        MOD_THEMES.push({ id: `mod:${mod.id}:${i}`, label, light: modThemeVars(theme.light), dark: modThemeVars(theme.dark), corners: theme.corners });
       });
     });
   }
@@ -22180,6 +22240,7 @@ ${hasCode
     document.documentElement.style.setProperty('--tab-color', brightenColor(color, 25, 15));
     document.documentElement.style.setProperty('--btn-text', COOL_COLORS.includes(color) ? '#ffffff' : 'var(--on-bright)');
     currentThemeColor = color; // remember it so the "Color" background choice knows which picture to use
+    refreshColorBgSong(); // COLOR SONGS: each favorite color has its own song
     // If the player picked a picture background (not "Color"), keep it.
     // Otherwise show the picture that matches their favorite color.
     if (game && game.bgChosen && game.selectedBg && game.selectedBg !== 'default') {
@@ -24310,7 +24371,7 @@ ${hasCode
       clearInterval(tutorialPollTimer);
       stopTutorialGuides();
       tutorialOverlay.classList.remove('visible');
-      switchBgSong(DEFAULT_BG_SONG);
+      playColorBgSong(); // COLOR SONGS
       return;
     }
     renderTutorialStep();
@@ -24320,7 +24381,7 @@ ${hasCode
     clearInterval(tutorialPollTimer);
     stopTutorialGuides();
     tutorialOverlay.classList.remove('visible');
-    switchBgSong(DEFAULT_BG_SONG);
+    playColorBgSong(); // COLOR SONGS
   });
 
   function maybeShowTutorial(force){
@@ -25327,7 +25388,7 @@ ${hasCode
     themeGateOn = true;    // THEME SWITCHER: from here on a theme needs the Shop item
     refreshModThemes();    // themes from installed mods join the picker
     applyLightMode();
-    switchBgSong(DEFAULT_BG_SONG);
+    playColorBgSong(); // COLOR SONGS
     updatePickerVisibility();
     if (game.musicPlayerOwned) showMusicPlayer();
     if (game.cursorsOwned) showCursorPicker();
