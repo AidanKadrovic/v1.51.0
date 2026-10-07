@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<!-- Game version: 1.48.0 | Deployment: 212 | Update both on every release, see README.md -->
-<meta name="game-version" content="1.48.0">
+<!-- Game version: 1.49.0 | Deployment: 212 | Update both on every release, see README.md -->
+<meta name="game-version" content="1.49.0">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>The Clicker Game!</title>
 <link rel="icon" type="image/x-icon" href="images/ui/maksy.ico" id="favicon-link">
@@ -17392,7 +17392,9 @@
     goneNote: 'I will be back.',
     goneFrom: 'huyhuj', // who signed the note. This word is drawn glitchy (see .vault-glitch)
     goneUnused: 'Codes you did not use:',
-    goneAllUsed: 'You used every code.'
+    goneAllUsed: 'You used every code.',
+    // The only answer the code box gives once the Keeper is gone.
+    crickets: '*crickets*'
   };
 
   /* The secret codes. Capital letters and extra spaces do not matter.
@@ -17463,26 +17465,65 @@
   function moneys(amount){ game.clicks += amount; }
   function gems(amount){ game.gems = (game.gems || 0) + amount; }
 
-  /* ---- The Keeper's save ----
-     Huj, Keys and the list of used codes are stored inside game.modData under
-     the name "__keeper", shaped like a mod's saved data:
-       { currency: { huj, keys }, storage: { used: ['verity', ...], gone: true or false } }
+  /* ---- The Keeper's save (moved to local storage in 1.49.0) ----
+     Huj, Keys, the list of used codes and whether the Keeper is gone are kept
+     in the browser's local storage, one entry for each account:
+       key:   "clickerKeeperSave:<username>"   (guests use "guest")
+       value: { currency: { huj, keys }, storage: { used: ['verity', ...], gone: true or false } }
      "gone" turns true once the lock is opened and the Keeper leaves.
-     modData already goes to the API (the mod_data column), stays after a
-     Prestige and comes back on login, so this follows the account with no
-     new columns. No real mod can use this name, mod ids never look like it. */
-  const KEEPER_SAVE_ID = '__keeper';
+     This is NOT sent to the API. It stays on this device and this browser,
+     and clearing the browser's site data wipes it.
+     In 1.47.0 and 1.48.0 it lived inside game.modData under "__keeper".
+     keeperSave() moves that old copy over the first time it runs. */
+  const KEEPER_STORAGE_PREFIX = 'clickerKeeperSave:';
+  const KEEPER_OLD_SAVE_ID = '__keeper'; // where it used to live inside game.modData
 
-  // Returns the Keeper's save, making an empty one the first time.
-  function keeperSave(){
-    if (!game.modData || typeof game.modData !== 'object') game.modData = {};
-    let data = game.modData[KEEPER_SAVE_ID];
-    if (!data || typeof data !== 'object') data = game.modData[KEEPER_SAVE_ID] = {};
+  let keeperCache = null;     // the save, once it has been read from local storage
+  let keeperCacheKey = '';    // which account that copy belongs to
+
+  // The local storage key for whoever is logged in right now.
+  function keeperStorageKey(){
+    return KEEPER_STORAGE_PREFIX + String(currentUsername || 'guest').toLowerCase();
+  }
+
+  // Fills in any part of a save that is missing, so the rest of the code can trust its shape.
+  function keeperTidy(data){
+    if (!data || typeof data !== 'object') data = {};
     if (!data.currency || typeof data.currency !== 'object') data.currency = {};
     if (!data.storage || typeof data.storage !== 'object') data.storage = {};
     if (!Array.isArray(data.storage.used)) data.storage.used = [];
     return data;
   }
+
+  // Returns the Keeper's save for this account, reading local storage the first time.
+  function keeperSave(){
+    const key = keeperStorageKey();
+    // Already read for this account: hand back the same copy.
+    if (keeperCache && keeperCacheKey === key) return keeperCache;
+
+    let data = null;
+    try { data = JSON.parse(localStorage.getItem(key)); } catch (e) {}
+
+    // Move the old modData copy over, then delete it so it stops going to the API.
+    // (Not inside a room: in there game.modData belongs to the room.)
+    const old = !roomSession && game.modData && game.modData[KEEPER_OLD_SAVE_ID];
+    if (old) {
+      if (!data) data = old;
+      delete game.modData[KEEPER_OLD_SAVE_ID];
+      saveGame();
+    }
+
+    keeperCache = keeperTidy(data);
+    keeperCacheKey = key;
+    if (old) keeperStore();
+    return keeperCache;
+  }
+
+  // Writes the Keeper's save to local storage. Call it after every change.
+  function keeperStore(){
+    try { localStorage.setItem(keeperCacheKey, JSON.stringify(keeperCache)); } catch (e) {}
+  }
+
   // How much of a secret currency you own. name is 'huj' or 'keys'.
   function keeperGet(name){
     return Number(keeperSave().currency[name]) || 0;
@@ -17490,9 +17531,20 @@
   // Gives (or with a minus number, takes) a secret currency.
   function keeperAdd(name, amount){
     keeperSave().currency[name] = Math.max(0, keeperGet(name) + amount);
+    keeperStore();
   }
   function keeperCodeUsed(id){ return keeperSave().storage.used.includes(id); }
-  function keeperMarkUsed(id){ if (!keeperCodeUsed(id)) keeperSave().storage.used.push(id); }
+  // Remembers that this account used a code.
+  function keeperMarkUsed(id){
+    if (keeperCodeUsed(id)) return;
+    keeperSave().storage.used.push(id);
+    keeperStore();
+  }
+  // Remembers that the Keeper left.
+  function keeperSetGone(){
+    keeperSave().storage.gone = true;
+    keeperStore();
+  }
 
   // Shows Huj and Keys in the corner. Each one stays hidden until you own it.
   function updateKeeperWallet(){
@@ -17563,7 +17615,7 @@
   }
 
   // Fills in the "I will be back" note and swaps it in for the Keeper.
-  // The list is rebuilt each time, so a code drops off it once you use it.
+  // The list is every code this account never used. They can't be used any more.
   function vaultShowGone(){
     const unused = VAULT_CODES.filter(entry => !keeperCodeUsed(entry.id));
     document.getElementById('vault-gone-text').textContent = VAULT_LINES.goneNote;
@@ -17596,9 +17648,7 @@
     // Save it right away. If the player closes the screen halfway through,
     // the Keeper is still gone next time.
     keeperAdd('keys', -1);
-    keeperSave().storage.gone = true;
-    saveGame();
-    syncToSheet();
+    keeperSetGone();
     updateKeeperWallet();
 
     vaultBusy = true;
@@ -17623,7 +17673,7 @@
       vaultSpeak('', '');
     }, VAULT_FREE_MS);
 
-    // Then the note takes its place and codes can be typed again.
+    // Then the note takes its place. The box works again, but only answers *crickets*.
     vaultLater(() => {
       vaultLockPieces.classList.remove('go');
       vaultShowGone();
@@ -17676,9 +17726,17 @@
     if (vaultBusy) return;
     const typed = vaultClean(vaultInput.value);
 
-    // Empty box: the keeper just says its next idle line (nobody is there once it is gone).
+    // CRICKETS (1.49.0): once the Keeper is gone nobody checks codes any more.
+    // Whatever you type, the only answer is *crickets*. No loading, no reward.
+    if (keeperIsGone()) {
+      if (!typed) return;
+      vaultInput.value = '';
+      vaultSpeak(VAULT_LINES.crickets, '');
+      return;
+    }
+
+    // Empty box: the keeper just says its next idle line.
     if (!typed) {
-      if (keeperIsGone()) return;
       vaultIdleIndex = (vaultIdleIndex + 1) % VAULT_LINES.idle.length;
       vaultSpeak(VAULT_LINES.idle[vaultIdleIndex], '');
       return;
@@ -17756,8 +17814,7 @@
     updateWorkshopGemsDisplay();
     updateKeeperWallet();
     try { renderActiveTab(); } catch (e) {} // redraws the tab behind this screen (shop prices, stats)
-    if (keeperIsGone()) vaultShowGone(); // takes the code you just used off the note
-    else vaultFace('normal');            // the lock turns yellow right away if this gave a Key
+    vaultFace('normal'); // the lock turns yellow right away if this gave a Key
 
     // The paper note, a moment after the lightning.
     if (entry.note) {

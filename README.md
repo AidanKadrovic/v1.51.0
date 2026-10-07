@@ -137,8 +137,8 @@ Rules:
 Near the top of `index.html`:
 
 ```html
-<!-- Game version: 1.48.0 | Deployment: 212 | Update both on every release, see README.md -->
-<meta name="game-version" content="1.48.0">
+<!-- Game version: 1.49.0 | Deployment: 212 | Update both on every release, see README.md -->
+<meta name="game-version" content="1.49.0">
 ```
 
 Bump both the version comment and the `game-version` meta tag on every release. The deployment number is an internal counter for tracking Apps Script/Sheet deployments - increment it whenever the backend Web App is redeployed, even if the game version string doesn't change.
@@ -203,10 +203,10 @@ More codes (1.48.0). Words on the same line count as the same code:
 | `lightning`, `zap` | 2500 Moneys |
 | `rose` | 14 Moneys |
 
-**The lock (1.48.0).** While you own a Key, the Keeper's lock is yellow and can be clicked. The yellow pictures were colored by hand: `vault-keeper-key.png`, `vault-keeper-spoop-key.png` and `vault-lock-key.png` (just the lock, used for the two broken halves) in `images/misc/`. Clicking the lock (`vaultBreakLock()`) uses up the Key, breaks the lock in two, turns the Keeper into `spoopy.png`, and after `VAULT_FREE_MS` it fades away. It leaves a note that says "I will be back." signed by a glitchy `huyhuj` (`.vault-glitch` in the CSS), with a list of every code you have not used yet. The note can't be closed and the Keeper stays gone for that account (`storage.gone` in its save). Codes can still be typed while it is gone, and each one drops off the note once it is used.
+**The lock (1.48.0).** While you own a Key, the Keeper's lock is yellow and can be clicked. The yellow pictures were colored by hand: `vault-keeper-key.png`, `vault-keeper-spoop-key.png` and `vault-lock-key.png` (just the lock, used for the two broken halves) in `images/misc/`. Clicking the lock (`vaultBreakLock()`) uses up the Key, breaks the lock in two, turns the Keeper into `spoopy.png`, and after `VAULT_FREE_MS` it fades away. It leaves a note that says "I will be back." signed by a glitchy `huyhuj` (`.vault-glitch` in the CSS), with a list of every code you have not used yet. The note can't be closed and the Keeper stays gone for that account (`storage.gone` in its save). Since 1.49.0 the code box only answers `*crickets*` once the Keeper is gone, whatever you type, so the codes on the note can't be used any more.
 
 - **GD Frame:** a secret profile frame (`SECRET_FRAMES`, id `frame_gd`). It makes the profile picture square and blocky. The blocky look comes from two SVG filters in the HTML, `pf-pixel-big` and `pf-pixel-small`. Secret frames can be equipped in Your Collection like any frame, but they never show in the Limited Shop and never drop from a Lucky Block.
-- **Huj, Keys and used codes** are saved inside `game.modData` under the name `__keeper`, so they go to the API in the `mod_data` column, stay after a Prestige and come back on login. Never change a code's `id` after release, or players could use it again.
+- **Huj, Keys, used codes and whether the Keeper is gone** are saved in the browser's local storage since 1.49.0, under `clickerKeeperSave:<username>` (guests use `guest`). They are not sent to the API, so they stay on one device and one browser, and clearing the site data wipes them (the codes can then be used again). Saves from 1.47.0 and 1.48.0, which lived in `game.modData` under `__keeper`, are moved over by `keeperSave()` the first time it runs. Never change a code's `id` after release, or players could use it again.
 - Codes do not work inside a room or server, because the save in there is shared.
 - Codes are checked in the browser, so anyone who reads `index.html` can find them. Move the check to the backend before a code gives out anything big. `VAULT_LOADING_MS` sets how long the ring spins.
 
