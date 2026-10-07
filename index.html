@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<!-- Game version: 1.46.0 | Deployment: 212 | Update both on every release, see README.md -->
-<meta name="game-version" content="1.46.0">
+<!-- Game version: 1.47.0 | Deployment: 212 | Update both on every release, see README.md -->
+<meta name="game-version" content="1.47.0">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>The Clicker Game!</title>
 <link rel="icon" type="image/x-icon" href="images/ui/maksy.ico" id="favicon-link">
@@ -21,6 +21,12 @@
   @font-face{
     font-family:'MeFontCustom';
     src:url('fonts/MeFont.ttf') format('truetype');
+  }
+  /* THE KEEPER (1.47.0): the font the Keeper talks in. */
+  @font-face{
+    font-family:'KeeperFont';
+    src:url('fonts/OptimusPrinceps.ttf') format('truetype');
+    font-display:swap;
   }
 
   body.ui-font-fredoka *{ font-family:'Fredoka One', cursive !important; }
@@ -2486,6 +2492,24 @@
     50%{ border-color:#1f0505; box-shadow:0 0 0 2px #7f1d1d, 0 0 24px rgba(220,38,38,0.95), inset 0 0 14px #000; }
   }
   body.low-perf .pf-frame{ animation:none !important; }
+  /* GD FRAME (1.47.0): a secret frame from the Keeper. It turns the round
+     profile picture into a square and makes the picture blocky.
+     The blocky look comes from the two SVG filters named pf-pixel-big and
+     pf-pixel-small (search for them in the HTML). Big pictures use big
+     blocks and small pictures use small blocks, so both look about the same. */
+  .pf-frame-frame_gd{
+    border-radius:0 !important;
+    border-color:#7dff00 !important;
+    box-shadow:0 0 0 3px #100c1f !important;
+  }
+  .pf-frame-frame_gd img{
+    border-radius:0 !important;
+    filter:url(#pf-pixel-big);
+  }
+  .leaderboard-avatar.pf-frame-frame_gd img,
+  .pf-preview.pf-frame-frame_gd img{
+    filter:url(#pf-pixel-small);
+  }
 
   /* ---------- LUCKY BLOCK OVERLAY ---------- */
   .lucky-overlay{
@@ -3868,11 +3892,12 @@
     text-align:center;
     margin:0 0 8px;
   }
-  /* ---------- THE VAULT (1.46.0) ----------
+  /* ---------- THE KEEPER (1.46.0, renamed from The Vault in 1.47.0) ----------
      A secret code room. A see-through button sits in the bottom right
      corner of your Workshop profile. Clicking it opens a full screen
      with the keeper in the middle and a box to type a code into.
-     The JavaScript is under "THE VAULT" further down. */
+     The JavaScript is under "THE KEEPER" further down.
+     The class names still start with "vault-". That is fine, they are just names. */
 
   /* The secret button. Mostly see-through until you hover it. */
   .vault-secret-btn{
@@ -3971,6 +3996,74 @@
   }
   .vault-say.fail{ color:#ff6b6b; }
   .vault-say.win{ color:#7dff8a; }
+  /* The Keeper's own font, for its name and everything it says.
+     "body .vault-overlay" and !important are needed so the Font Manager
+     (the body.ui-font-... rules at the top) can't swap it out. */
+  body .vault-overlay .vault-title,
+  body .vault-overlay .vault-say,
+  body .vault-overlay .vault-note,
+  body .vault-overlay .vault-note *{
+    font-family:'KeeperFont', 'Fredoka One', serif !important;
+  }
+  body .vault-overlay .vault-say{ font-size:20px; letter-spacing:.5px; }
+  body .vault-overlay .vault-title{ font-size:36px; }
+
+  /* The secret currencies (Huj and Keys). Hidden until you own one. */
+  .vault-wallet{
+    position:absolute;
+    top:16px;
+    right:16px;
+    display:none;
+    gap:8px;
+    z-index:3;
+  }
+  .vault-wallet.visible{ display:flex; }
+  .vault-wallet span{
+    font-family:'Fredoka One', cursive;
+    font-size:13px;
+    color:#faf3df;
+    background:#221c38;
+    border:3px solid #100c1f;
+    border-radius:12px;
+    padding:6px 12px;
+    box-shadow:4px 4px 0 #100c1f;
+  }
+  .vault-wallet span[hidden]{ display:none; }
+
+  /* The paper note that drops in for some codes. Click it to put it away. */
+  .vault-note{
+    position:absolute;
+    left:50%;
+    top:50%;
+    width:min(280px, 78vw);
+    padding:22px 20px 18px;
+    color:#2a2118;
+    background:#fff6d6;
+    border:4px solid #100c1f;
+    border-radius:6px;
+    box-shadow:8px 8px 0 #100c1f;
+    text-align:center;
+    cursor:pointer;
+    display:none;
+    z-index:5;
+    transform:translate(-50%,-50%) rotate(-4deg);
+  }
+  .vault-note.visible{
+    display:block;
+    animation:vault-note-in .45s cubic-bezier(.2,1.4,.4,1);
+  }
+  .vault-note p{ margin:0 0 10px; font-size:26px; line-height:1.2; }
+  .vault-note small{ display:block; font-size:14px; opacity:.75; }
+  .vault-note .vault-note-hint{
+    margin-top:12px;
+    font-family:'Fredoka One', cursive !important;
+    font-size:10px;
+    opacity:.5;
+  }
+  @keyframes vault-note-in{
+    0%{ transform:translate(-50%,-160%) rotate(14deg); opacity:0; }
+    100%{ transform:translate(-50%,-50%) rotate(-4deg); opacity:1; }
+  }
   .vault-input{
     width:min(340px, 86vw);
     font-family:'Fredoka One', cursive;
@@ -9250,18 +9343,48 @@
   </div>
 </div>
 
-<!-- THE VAULT (1.46.0): secret code room, opened from the Workshop profile -->
+<!-- GD FRAME (1.47.0): two filters that turn a picture into big square blocks.
+     Each one works in 4 steps: paint one dot, repeat that dot as a grid,
+     keep only the picture's color under each dot, then grow every dot until
+     it fills its square. "big" makes 7 pixel blocks, "small" makes 3 pixel blocks. -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <filter id="pf-pixel-big" x="0" y="0" width="1" height="1" color-interpolation-filters="sRGB">
+    <feFlood x="3" y="3" width="1" height="1"/>
+    <feComposite width="7" height="7"/>
+    <feTile result="dots"/>
+    <feComposite in="SourceGraphic" in2="dots" operator="in"/>
+    <feMorphology operator="dilate" radius="3"/>
+  </filter>
+  <filter id="pf-pixel-small" x="0" y="0" width="1" height="1" color-interpolation-filters="sRGB">
+    <feFlood x="1" y="1" width="1" height="1"/>
+    <feComposite width="3" height="3"/>
+    <feTile result="dots"/>
+    <feComposite in="SourceGraphic" in2="dots" operator="in"/>
+    <feMorphology operator="dilate" radius="1"/>
+  </filter>
+</svg>
+
+<!-- THE KEEPER (1.46.0): secret code room, opened from the Workshop profile -->
 <div class="vault-overlay" id="vault-overlay" aria-hidden="true">
   <button class="vault-back" id="vault-back" type="button">&larr; Back</button>
+  <div class="vault-wallet" id="vault-wallet">
+    <span id="vault-wallet-huj" hidden></span>
+    <span id="vault-wallet-keys" hidden></span>
+  </div>
   <svg class="vault-fx" id="vault-fx" aria-hidden="true"></svg>
-  <h1 class="vault-title" id="vault-title">The Vault</h1>
+  <h1 class="vault-title" id="vault-title">The Keeper</h1>
   <p class="vault-say" id="vault-say" aria-live="polite"></p>
-  <input class="vault-input" id="vault-input" type="text" maxlength="40" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Type a code" aria-label="Vault code">
+  <input class="vault-input" id="vault-input" type="text" maxlength="40" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Type a code" aria-label="Code for the Keeper">
   <button class="vault-keeper" id="vault-keeper" type="button" title="Enter the code">
-    <img id="vault-keeper-img" src="images/misc/vault-keeper.png" alt="The vault keeper">
+    <img id="vault-keeper-img" src="images/misc/vault-keeper.png" alt="The Keeper">
     <span class="vault-spinner"></span>
   </button>
   <div class="vault-flash" id="vault-flash"></div>
+  <div class="vault-note" id="vault-note" role="button" tabindex="0">
+    <p id="vault-note-text"></p>
+    <small id="vault-note-from"></small>
+    <div class="vault-note-hint">click to put away</div>
+  </div>
 </div>
 
 <div class="chat-overlay" id="chat-overlay">
@@ -11107,6 +11230,16 @@
   const LIMITED_BY_ID = {};
   LIMITED_ALL.forEach(item => { LIMITED_BY_ID[item.id] = item; });
 
+  // SECRET FRAMES (1.47.0): frames you can't buy. The Keeper gives them out.
+  // They are added to LIMITED_BY_ID so owning and equipping works like any
+  // other frame, but NOT to LIMITED_ALL or LIMITED_COSMETICS, so they never
+  // show up in the Limited Shop and never drop from a Lucky Block.
+  // A new one also needs a .pf-frame-<id> CSS rule.
+  const SECRET_FRAMES = [
+    { id:'frame_gd', name:'GD Frame', rarity:'Legendary' }
+  ];
+  SECRET_FRAMES.forEach(f => { LIMITED_BY_ID[f.id] = Object.assign({ type:'frame', secret:true }, f); });
+
   const LIMITED_SLOTS = 6;
   const LIMITED_WEEK_MS = 7 * 24 * 60 * 60 * 1000;
   const LIMITED_EPOCH = Date.UTC(2024, 0, 3); // a Wednesday, 00:00 UTC (every 7 days after this is also a Wednesday)
@@ -11352,7 +11485,7 @@
       if (family) el.style.fontFamily = `'${family}'`;
     });
   }
-  const PF_FRAME_CLASSES = ['pf-frame'].concat(LIMITED_FRAMES.map(f => 'pf-frame-' + f.id));
+  const PF_FRAME_CLASSES = ['pf-frame'].concat(LIMITED_FRAMES.concat(SECRET_FRAMES).map(f => 'pf-frame-' + f.id));
   function applyProfileFrame(el, frameId){
     if (!el) return;
     el.classList.remove(...PF_FRAME_CLASSES);
@@ -11406,6 +11539,8 @@
 
     const ownedFonts = LIMITED_FONTS.filter(f => isOwnedCosmetic(f.id));
     const ownedFrames = LIMITED_FRAMES.filter(f => isOwnedCosmetic(f.id));
+    // SECRET FRAMES: shown in Your Collection once owned, but not counted in "Frames x / y".
+    const ownedSecretFrames = SECRET_FRAMES.filter(f => isOwnedCosmetic(f.id));
     const chip = (item, slot) => {
       const equipped = (slot === 'font' ? game.equippedFont : game.equippedFrame) === item.id;
       return `<button class="limited-chip${equipped ? ' equipped' : ''}" data-limited-equip="${slot}" data-id="${item.id}" style="--rarity:${LIMITED_RARITIES[item.rarity].color};">
@@ -11429,7 +11564,7 @@
         <h4 class="limited-sub-title">Profile Fonts</h4>
         <div class="limited-chip-grid">${noneChip('font')}${ownedFonts.map(f => chip(f, 'font')).join('')}</div>
         <h4 class="limited-sub-title">Profile Frames</h4>
-        <div class="limited-chip-grid">${noneChip('frame')}${ownedFrames.map(f => chip(f, 'frame')).join('')}</div>
+        <div class="limited-chip-grid">${noneChip('frame')}${ownedFrames.concat(ownedSecretFrames).map(f => chip(f, 'frame')).join('')}</div>
       </div>`;
 
     return `
@@ -16913,7 +17048,7 @@
       `).join('');
     }
 
-    // THE VAULT (1.46.0): the see-through secret button in the bottom right corner.
+    // THE KEEPER (1.46.0): the see-through secret button in the bottom right corner.
     // It lives inside the profile HTML, so it goes away when you leave the profile.
     html += `<button class="vault-secret-btn" id="vault-secret-btn" type="button" aria-label="???"><img src="${VAULT_IMG_NORMAL}" alt=""></button>`;
 
@@ -16983,19 +17118,20 @@
     }
   }
 
-  /* ---------- THE VAULT (1.46.0) ----------
+  /* ---------- THE KEEPER (1.46.0, renamed from The Vault in 1.47.0) ----------
      A secret code room, like the Vault in Geometry Dash.
      How it works:
        1. A see-through button sits in the corner of the Workshop profile.
-       2. It opens a screen with the keeper and a box to type a code.
-       3. Press Enter or click the keeper. A loading ring spins.
-       4. Right code: lightning shoots out of the keeper.
-          Wrong code: the keeper changes to the "spoop" face and shakes.
+       2. It opens a screen with the Keeper and a box to type a code.
+       3. Press Enter or click the Keeper. A loading ring spins.
+       4. Right code: lightning shoots out of the Keeper and you get the reward.
+          Wrong code: the Keeper changes to the "spoop" face and shakes.
+       5. Every code works once for each account.
 
-     TO CHANGE WHAT IT SAYS: edit VAULT_LINES and VAULT_CODES right below.
-     Nothing else needs to change. */
+     TO CHANGE WHAT IT SAYS OR GIVES: edit VAULT_LINES and VAULT_CODES right below.
+     The function and class names still say "vault". They are just names. */
 
-  // The two keeper pictures.
+  // The two Keeper pictures.
   const VAULT_IMG_NORMAL = 'images/misc/vault-keeper.png';       // normal face (also the secret button)
   const VAULT_IMG_SPOOP  = 'images/misc/vault-keeper-spoop.png'; // wrong code face
 
@@ -17004,10 +17140,10 @@
   // How long the spoop face stays after a wrong code.
   const VAULT_SPOOP_MS = 1800;
 
-  // What the keeper says. PLACEHOLDER TEXT: swap these for the real lines.
+  // What the Keeper says.
   const VAULT_LINES = {
-    title: 'The Vault',
-    // Said one after another when you click the keeper with an empty box.
+    title: 'The Keeper',
+    // Said one after another when you click the Keeper with an empty box.
     idle: [
       '...',
       'Type a code.',
@@ -17022,19 +17158,101 @@
       'Wrong.',
       'Not even close.'
     ],
-    // Said when you type a code you already used this visit.
-    used: 'You already used that one.'
+    // Said when this account already used the code.
+    used: 'You already used that one.',
+    // Said when a code needs something you do not have (see "needs" below).
+    locked: 'You are missing something.',
+    // Said inside a room or server, where the save is shared with other players.
+    room: 'Not in here. Leave the room first.'
   };
 
-  // The secret codes. Capital letters and extra spaces do not matter.
-  //   code:   what the player types
-  //   say:    what the keeper says when it works
-  //   reward: optional. A function that runs when the code works,
-  //           for example () => { game.gems = (game.gems || 0) + 50; saveGame(); }
-  // PLACEHOLDER CODE: "spoopy" is only here to test the lightning. Swap it out.
+  /* The secret codes. Capital letters and extra spaces do not matter.
+       id:     a short name saved to the account once the code is used. NEVER change
+               an id after release, or players could use that code a second time.
+       codes:  every word that works for this entry (they all count as the same code)
+       say:    what the Keeper says when it works
+       needs:  optional. A secret currency you must own first, like { huj: 1 }.
+               It is only checked, it is not taken away.
+       note:   optional. A paper note that drops in: { text, from }
+       reward: optional. A function that runs when the code works.
+     Helpers for rewards: keeperAdd('huj', 1) and keeperAdd('keys', 1) give
+     secret currencies. Moneys are game.clicks, Gems are game.gems. */
   const VAULT_CODES = [
-    { code: 'spoopy', say: 'How did you know that?', reward: null }
+    { id: 'verity', codes: ['verity'], say: 'One Prestige. Do not waste it.',
+      reward: () => { game.prestige = (game.prestige || 0) + 1; } },
+
+    { id: 'jfor', codes: ['jfor'], say: 'Four Gems. Exactly four.',
+      reward: () => { game.gems = (game.gems || 0) + 4; } },
+
+    { id: 'masky', codes: ['masky', 'fallgamedev'], say: 'He left this for you.',
+      note: { text: "i'm sorry.", from: 'FallGameDev' },
+      reward: () => { game.clicks += 67; } },
+
+    { id: 'afton', codes: ['afton'], say: 'I always come back.',
+      reward: () => { game.clicks += 1987; } },
+
+    // Gives the secret GD Frame (see SECRET_FRAMES) and puts it on.
+    { id: 'gd', codes: ['gd', 'geo', 'gdash'], say: 'A frame for a square.',
+      reward: () => {
+        game.cosmeticsOwned = cleanCosmeticList((game.cosmeticsOwned || []).concat('frame_gd'));
+        game.equippedFrame = 'frame_gd';
+      } },
+
+    { id: 'huyhuj', codes: ['huyhuj'], say: 'One Huj. Keep it secret.',
+      reward: () => { keeperAdd('huj', 1); } },
+
+    // Only works once you own 1 Huj.
+    { id: 'key', codes: ['key'], needs: { huj: 1 }, say: 'One Key. Guard it.',
+      reward: () => { keeperAdd('keys', 1); } }
   ];
+
+  /* ---- The Keeper's save ----
+     Huj, Keys and the list of used codes are stored inside game.modData under
+     the name "__keeper", shaped like a mod's saved data:
+       { currency: { huj, keys }, storage: { used: ['verity', ...] } }
+     modData already goes to the API (the mod_data column), stays after a
+     Prestige and comes back on login, so this follows the account with no
+     new columns. No real mod can use this name, mod ids never look like it. */
+  const KEEPER_SAVE_ID = '__keeper';
+
+  // Returns the Keeper's save, making an empty one the first time.
+  function keeperSave(){
+    if (!game.modData || typeof game.modData !== 'object') game.modData = {};
+    let data = game.modData[KEEPER_SAVE_ID];
+    if (!data || typeof data !== 'object') data = game.modData[KEEPER_SAVE_ID] = {};
+    if (!data.currency || typeof data.currency !== 'object') data.currency = {};
+    if (!data.storage || typeof data.storage !== 'object') data.storage = {};
+    if (!Array.isArray(data.storage.used)) data.storage.used = [];
+    return data;
+  }
+  // How much of a secret currency you own. name is 'huj' or 'keys'.
+  function keeperGet(name){
+    return Number(keeperSave().currency[name]) || 0;
+  }
+  // Gives (or with a minus number, takes) a secret currency.
+  function keeperAdd(name, amount){
+    keeperSave().currency[name] = Math.max(0, keeperGet(name) + amount);
+  }
+  function keeperCodeUsed(id){ return keeperSave().storage.used.includes(id); }
+  function keeperMarkUsed(id){ if (!keeperCodeUsed(id)) keeperSave().storage.used.push(id); }
+
+  // Shows Huj and Keys in the corner. Each one stays hidden until you own it.
+  function updateKeeperWallet(){
+    const huj = keeperGet('huj'), keys = keeperGet('keys');
+    const hujEl = document.getElementById('vault-wallet-huj');
+    const keysEl = document.getElementById('vault-wallet-keys');
+    hujEl.hidden = huj < 1;
+    keysEl.hidden = keys < 1;
+    hujEl.textContent = 'Huj: ' + huj.toLocaleString();
+    keysEl.textContent = 'Keys: ' + keys.toLocaleString();
+    document.getElementById('vault-wallet').classList.toggle('visible', huj > 0 || keys > 0);
+  }
+
+  // True when the player owns everything in a code's "needs" list.
+  function keeperHasNeeds(entry){
+    const needs = entry.needs || {};
+    return Object.keys(needs).every(name => keeperGet(name) >= needs[name]);
+  }
 
   const vaultOverlay   = document.getElementById('vault-overlay');
   const vaultInput     = document.getElementById('vault-input');
@@ -17043,11 +17261,11 @@
   const vaultSay       = document.getElementById('vault-say');
   const vaultFx        = document.getElementById('vault-fx');
   const vaultFlash     = document.getElementById('vault-flash');
+  const vaultNote      = document.getElementById('vault-note');
 
   let vaultBusy = false;        // true while the loading ring spins
   let vaultIdleIndex = 0;       // which idle line comes next
   let vaultTimers = [];         // every setTimeout, so closing can cancel them
-  const vaultUsedCodes = new Set(); // codes already entered this visit
 
   // setTimeout that remembers itself, so closeVault() can stop it.
   function vaultLater(fn, ms){
@@ -17081,6 +17299,8 @@
     vaultKeeperImg.src = VAULT_IMG_NORMAL;
     vaultFx.innerHTML = '';
     vaultFlash.classList.remove('go'); // so an old flash does not replay when the vault reopens
+    vaultNote.classList.remove('visible');
+    updateKeeperWallet();
     vaultSpeak(VAULT_LINES.idle[0] || '', '');
     vaultOverlay.classList.add('visible');
     vaultOverlay.setAttribute('aria-hidden', 'false');
@@ -17118,13 +17338,18 @@
 
     vaultLater(() => {
       vaultKeeper.classList.remove('loading');
-      const match = VAULT_CODES.find(entry => vaultClean(entry.code) === typed);
+      const match = VAULT_CODES.find(entry => entry.codes.some(code => vaultClean(code) === typed));
 
-      if (match && vaultUsedCodes.has(typed)) {
-        // Right code, but already used this visit.
+      if (match && roomSession) {
+        // ROOMS: inside a room `game` is the shared room save, so no rewards here.
+        vaultFail(VAULT_LINES.room);
+      } else if (match && keeperCodeUsed(match.id)) {
+        // Right code, but this account already used it.
         vaultFail(VAULT_LINES.used);
+      } else if (match && !keeperHasNeeds(match)) {
+        // Right code, but you do not own what it needs yet. It is not used up.
+        vaultFail(VAULT_LINES.locked);
       } else if (match) {
-        vaultUsedCodes.add(typed);
         vaultWin(match);
       } else {
         vaultFail(VAULT_LINES.fail[Math.floor(Math.random() * VAULT_LINES.fail.length)]);
@@ -17156,8 +17381,29 @@
     vaultKeeper.classList.add('zap');
     vaultLightning();
     vaultLater(() => vaultKeeper.classList.remove('zap'), 950);
+
+    // Mark the code as used first, so it can never pay out twice.
+    keeperMarkUsed(entry.id);
     if (typeof entry.reward === 'function') {
       try { entry.reward(); } catch (e) {}
+    }
+    playSound('audio/sfx/money.mp3');
+
+    // Save, send it to the API, and refresh every number that may have changed.
+    saveGame();
+    syncToSheet();
+    updateCounter();
+    updateWorkshopGemsDisplay();
+    updateKeeperWallet();
+    try { renderActiveTab(); } catch (e) {} // redraws the tab behind this screen (shop prices, stats)
+
+    // The paper note, a moment after the lightning.
+    if (entry.note) {
+      vaultLater(() => {
+        document.getElementById('vault-note-text').textContent = entry.note.text || '';
+        document.getElementById('vault-note-from').textContent = entry.note.from ? '- ' + entry.note.from : '';
+        vaultNote.classList.add('visible');
+      }, 900);
     }
   }
 
@@ -17221,6 +17467,11 @@
     vaultLater(() => { vaultFx.innerHTML = ''; }, 1100);
   }
 
+  // Clicking the note (or pressing Enter on it) puts it away.
+  vaultNote.addEventListener('click', () => vaultNote.classList.remove('visible'));
+  vaultNote.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); vaultNote.classList.remove('visible'); }
+  });
   document.getElementById('vault-back').addEventListener('click', closeVault);
   vaultKeeper.addEventListener('click', vaultSubmit);
   vaultInput.addEventListener('keydown', (e) => {

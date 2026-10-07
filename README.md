@@ -62,7 +62,7 @@ Since 1.23.1 every file lives in a folder. Only `index.html` and `README.md` sit
 | `audio/music/` | Songs: the Music Player tracks, the tutorial track and the login screen track. |
 | `audio/music/colors/` | The background songs, one for each favorite color (1.39.0). The og song (green) lives here too. |
 | `audio/sfx/` | Short sound effects: `click.mp3`, `money.mp3`, `touch.mp3`, `mogus.mp3`, `goat.mp3`. |
-| `fonts/` | Font files (`.ttf`). `Pusab.ttf`, `pixelated.ttf` and `MeFont.ttf` are loaded with `@font-face`. The rest are account fonts. Google Fonts (Fredoka One, Poppins, Inter) load from the CDN. |
+| `fonts/` | Font files (`.ttf`). `Pusab.ttf`, `pixelated.ttf` and `MeFont.ttf` are loaded with `@font-face`. `OptimusPrinceps.ttf` is the Keeper's font. The rest are account fonts. Google Fonts (Fredoka One, Poppins, Inter) load from the CDN. |
 | `images/ui/` | Game art: `profile.png`, `appearchar.png`, `tutorial-guide.png`, `biggie.png`, `arrow.png`, `money.png`, `heart.png`, `gems.png` and `maksy.ico` (favicon). |
 | `images/badges/` | Account badges: `admin.png`, `dev.png`, `mod.png`, `owner.png`, `director.png`, `fam.png`, `cc.png`, `ver.png`. |
 | `images/cursors/` | Built-in cursors for the Cursor Picker. |
@@ -137,8 +137,8 @@ Rules:
 Near the top of `index.html`:
 
 ```html
-<!-- Game version: 1.46.0 | Deployment: 212 | Update both on every release, see README.md -->
-<meta name="game-version" content="1.46.0">
+<!-- Game version: 1.47.0 | Deployment: 212 | Update both on every release, see README.md -->
+<meta name="game-version" content="1.47.0">
 ```
 
 Bump both the version comment and the `game-version` meta tag on every release. The deployment number is an internal counter for tracking Apps Script/Sheet deployments - increment it whenever the backend Web App is redeployed, even if the game version string doesn't change.
@@ -157,16 +157,31 @@ All the code lives in one file, `index.html`:
 - Low performance mode and the phone/tablet/PC responsive layout are independent systems - low-perf mode simplifies visuals and is opt-in/detected by device, while responsive layout is purely CSS media queries plus the icon-vs-label swap on `.tab-btn`.
 - The Debug Mode page-ratio preview works by loading `index.html` again in an iframe with `?debugPreview=1`, so real `@media` queries apply inside it. That query flag also mutes audio inside the preview frame to avoid a second copy of the music playing.
 
-## The Vault (1.46.0)
+## The Keeper (1.46.0, renamed from The Vault in 1.47.0)
 
-A secret code room, like the Vault in Geometry Dash. A see-through button sits in the bottom right corner of your Workshop profile (Workshop, then your profile button). It opens a full screen with the keeper and a box to type a code. Press Enter or click the keeper: a loading ring spins, then a right code shoots lightning out of the keeper and a wrong code swaps in the spoop face and shakes it.
+A secret code room, like the Vault in Geometry Dash. A see-through button sits in the bottom right corner of your Workshop profile (Workshop, then your profile button). It opens a full screen with the Keeper and a box to type a code. Press Enter or click the Keeper: a loading ring spins, then a right code shoots lightning out of the Keeper and a wrong code swaps in the spoop face and shakes it. The Keeper talks in the OptimusPrinceps font (`fonts/OptimusPrinceps.ttf`, loaded as `KeeperFont`).
 
-Search `THE VAULT` in `index.html`. To change what it says, edit two lists and nothing else:
+Search `THE KEEPER` in `index.html`. The function and class names still start with `vault`. To change what it says or gives, edit two lists and nothing else:
 
-- `VAULT_LINES`: the title, the idle lines (said when the box is empty), the loading line, the wrong code lines and the already used line.
-- `VAULT_CODES`: one entry for each code, with `code`, `say` and an optional `reward` function that runs when the code works.
+- `VAULT_LINES`: the title, the idle lines (said when the box is empty), the loading line, the wrong code lines, and the lines for a used code, a locked code and being inside a room.
+- `VAULT_CODES`: one entry for each code, with `id`, `codes` (every word that works), `say`, and the optional `needs`, `note` and `reward`.
 
-Codes are checked in the browser, so anyone who reads `index.html` can find them. Move the check to the backend before a code gives out anything valuable. `VAULT_LOADING_MS` sets how long the ring spins.
+The codes in 1.47.0. Each one works once for each account:
+
+| Code | Gives |
+|---|---|
+| `verity` | 1 Prestige |
+| `jfor` | 4 Gems |
+| `masky` or `fallgamedev` | 67 Moneys and a paper note that says sorry |
+| `afton` | 1987 Moneys |
+| `gd`, `geo` or `gdash` | The GD Frame, already put on |
+| `huyhuj` | 1 Huj (secret currency) |
+| `key` | 1 Key. Only works if you own 1 Huj. The Huj is not taken away. |
+
+- **GD Frame:** a secret profile frame (`SECRET_FRAMES`, id `frame_gd`). It makes the profile picture square and blocky. The blocky look comes from two SVG filters in the HTML, `pf-pixel-big` and `pf-pixel-small`. Secret frames can be equipped in Your Collection like any frame, but they never show in the Limited Shop and never drop from a Lucky Block.
+- **Huj, Keys and used codes** are saved inside `game.modData` under the name `__keeper`, so they go to the API in the `mod_data` column, stay after a Prestige and come back on login. Never change a code's `id` after release, or players could use it again.
+- Codes do not work inside a room or server, because the save in there is shared.
+- Codes are checked in the browser, so anyone who reads `index.html` can find them. Move the check to the backend before a code gives out anything big. `VAULT_LOADING_MS` sets how long the ring spins.
 
 ## CGC (Clicker Game Code), 1.21.0+
 
