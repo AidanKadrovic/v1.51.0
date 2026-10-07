@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<!-- Game version: 1.40.0 | Deployment: 211 | Update both on every release, see README.md -->
-<meta name="game-version" content="1.40.0">
+<!-- Game version: 1.41.0 | Deployment: 211 | Update both on every release, see README.md -->
+<meta name="game-version" content="1.41.0">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>The Clicker Game!</title>
 <link rel="icon" type="image/x-icon" href="images/ui/maksy.ico" id="favicon-link">
@@ -2848,6 +2848,73 @@
     color:var(--on-bright);
     border-color:var(--ink);
   }
+  /* SOCIAL (1.41.0): a locked switch (notifications were refused in the browser) */
+  .edit-toggle-btn:disabled{
+    opacity:.45;
+    cursor:not-allowed;
+  }
+  /* The three notification choices sit a little inset under the main switch. */
+  .edit-notif-options{
+    display:none;
+    flex-direction:column;
+    margin-left:14px;
+    padding-left:10px;
+    border-left:3px solid var(--line);
+  }
+  .edit-notif-options.open{ display:flex; }
+  .edit-toggle-hint{
+    font-family:'Poppins', sans-serif;
+    font-size:11px;
+    color:var(--muted);
+    text-align:left;
+    margin:-6px 2px 12px;
+  }
+  .edit-toggle-hint:empty{ display:none; }
+
+  /* ---------- ONLINE STATUS (1.41.0) ----------
+     A colored dot and a few words: green = online, red = busy,
+     purple = custom, grey = offline. Used on profiles and the friends list. */
+  .status-dot{
+    display:inline-block;
+    width:10px;
+    height:10px;
+    border-radius:50%;
+    border:2px solid var(--ink);
+    background:#8b8b99;
+    vertical-align:middle;
+    margin-right:5px;
+    flex-shrink:0;
+  }
+  .status-dot.status-online{ background:#4ade80; }
+  .status-dot.status-busy{ background:#ff5d5d; }
+  .status-dot.status-custom{ background:#b68cff; }
+  .status-label{ vertical-align:middle; }
+  .friend-name-col{
+    flex:1;
+    min-width:0;
+    display:flex;
+    flex-direction:column;
+    gap:2px;
+    text-align:left;
+  }
+  .friend-name-col .leaderboard-name{ flex:none; }
+  .friend-status{
+    font-family:'Poppins', sans-serif;
+    font-size:11px;
+    color:var(--muted);
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+  }
+  .friend-status:empty{ display:none; }
+  .public-profile-status{
+    font-family:'Poppins', sans-serif;
+    font-size:12px;
+    color:var(--muted);
+    margin:-4px 0 10px;
+  }
+  .public-profile-status:empty{ display:none; }
+  .friend-picker-row.messages-off{ opacity:.55; cursor:not-allowed; }
   .auth-error{
     color:#ff6b6b;
     font-family:'Poppins', sans-serif;
@@ -8470,6 +8537,17 @@
     <input type="file" id="edit-icon-upload-input" accept="image/*" style="display:none">
     <input type="text" id="edit-username-input" class="auth-input" placeholder="Username" autocomplete="off" style="margin-top:16px;">
     <textarea id="edit-description-input" class="auth-input edit-description" placeholder="Account description..." maxlength="280" rows="3"></textarea>
+    <!-- ONLINE STATUS (1.41.0): shows on your profile and in your friends' lists -->
+    <div class="edit-featured-row">
+      <label class="edit-featured-label" for="edit-status-select">Status</label>
+      <select id="edit-status-select" class="auth-input edit-featured-select" title="What other players see next to your name.">
+        <option value="online">Online (automatic, Offline when you are away)</option>
+        <option value="busy">Busy</option>
+        <option value="offline">Appear offline</option>
+        <option value="custom">Custom</option>
+      </select>
+    </div>
+    <input type="text" id="edit-status-custom-input" class="auth-input" placeholder="Your custom status" maxlength="40" autocomplete="off" style="display:none;">
     <div class="edit-featured-row">
       <label class="edit-featured-label" for="edit-featured-select">Featured achievement</label>
       <select id="edit-featured-select" class="auth-input edit-featured-select" title="Shown on your public profile. You can only pick achievements you have unlocked."></select>
@@ -8479,6 +8557,35 @@
       <div class="edit-toggle-row">
         <span class="edit-toggle-label">I HATE BIRTHDAYS</span>
         <button class="edit-toggle-btn" id="edit-hide-birthday-btn" type="button" data-on="false">Off</button>
+      </div>
+      <!-- SOCIAL (1.41.0): site notifications. Saved on this device, they work right away (no need to press Save). -->
+      <div class="edit-toggle-row">
+        <span class="edit-toggle-label">Notifications</span>
+        <button class="edit-toggle-btn" id="edit-notif-btn" type="button" data-on="false">Off</button>
+      </div>
+      <p class="edit-toggle-hint" id="edit-notif-hint"></p>
+      <div class="edit-notif-options" id="edit-notif-options">
+        <div class="edit-toggle-row">
+          <span class="edit-toggle-label">Messages</span>
+          <button class="edit-toggle-btn" id="edit-notif-messages-btn" type="button" data-on="true">On</button>
+        </div>
+        <div class="edit-toggle-row">
+          <span class="edit-toggle-label">Friend requests</span>
+          <button class="edit-toggle-btn" id="edit-notif-requests-btn" type="button" data-on="true">On</button>
+        </div>
+        <div class="edit-toggle-row">
+          <span class="edit-toggle-label">Mod updates</span>
+          <button class="edit-toggle-btn" id="edit-notif-mods-btn" type="button" data-on="true">On</button>
+        </div>
+      </div>
+      <!-- SOCIAL (1.41.0): privacy switches. Saved on the account when you press Save Changes. -->
+      <div class="edit-toggle-row">
+        <span class="edit-toggle-label">Disable messages</span>
+        <button class="edit-toggle-btn" id="edit-no-messages-btn" type="button" data-on="false">Off</button>
+      </div>
+      <div class="edit-toggle-row">
+        <span class="edit-toggle-label">Disable friend requests</span>
+        <button class="edit-toggle-btn" id="edit-no-requests-btn" type="button" data-on="false">Off</button>
       </div>
       <input type="text" id="edit-youtube-input" class="auth-input" placeholder="YouTube username" autocomplete="off">
       <input type="text" id="edit-tiktok-input" class="auth-input" placeholder="TikTok username" autocomplete="off">
@@ -8513,6 +8620,7 @@
     </div>
     <div class="public-profile-body">
       <h2 id="public-profile-name"></h2>
+      <p class="public-profile-status" id="public-profile-status"></p>
       <p class="public-profile-detail" id="public-profile-birthday"></p>
       <p class="public-profile-detail" id="public-profile-description"></p>
       <div class="public-profile-featured" id="public-profile-featured">
@@ -10286,6 +10394,8 @@
   }
 
   function setNotifCount(type, value){
+    // SOCIAL (1.41.0): a turned off feature never shows a badge.
+    if ((type === 'messages' && socialMe.noMessages) || (type === 'requests' && socialMe.noRequests)) value = 0;
     const n = Math.max(0, Number(value) || 0);
     if (notifCounts[type] === n) return;
     notifCounts[type] = n;
@@ -10321,15 +10431,24 @@
 
   let notifPollBusy = false;
   async function refreshNotificationCounts(){
-    if (notifPollBusy || !currentUsername || document.hidden) return;
+    if (notifPollBusy || !currentUsername) return;
+    // In the background the check only keeps going if it could turn into a notification (1.41.0).
+    if (document.hidden && !(siteNotifActive('messages') || siteNotifActive('requests'))) return;
     notifPollBusy = true;
     try {
       const [reqResult, chatResult] = await Promise.all([
         sheetRequest({ action: 'getFriendRequests', username: currentUsername }).catch(() => null),
         sheetRequest({ action: 'getChats', username: currentUsername }).catch(() => null)
       ]);
-      if (reqResult && reqResult.success) setNotifCount('requests', (reqResult.requests || []).length);
-      if (chatResult && chatResult.success && Array.isArray(chatResult.chats)) setNotifCount('messages', countUnreadMessages(chatResult.chats));
+      if (reqResult && reqResult.success) {
+        const requests = socialFilterRequests(reqResult.requests || []); // SOCIAL: declined if requests are disabled
+        notifyNewRequests(requests);
+        setNotifCount('requests', requests.length);
+      }
+      if (chatResult && chatResult.success && Array.isArray(chatResult.chats)) {
+        notifyNewMessages(chatResult.chats);
+        setNotifCount('messages', countUnreadMessages(chatResult.chats));
+      }
     } finally {
       notifPollBusy = false;
     }
@@ -13539,6 +13658,7 @@
     document.getElementById('gems-plus-btn').addEventListener('click', openGemsConvertDialog);
     document.getElementById('open-workshop-btn').addEventListener('click', openWorkshop);
     document.getElementById('new-chat-btn').addEventListener('click', openNewChatPicker);
+    applyMessagesOffState(); // SOCIAL: "Disable messages" turns this tab off
 
     document.querySelectorAll('.stats-subtab-btn').forEach(btn => {
       btn.addEventListener('click', () => switchStatsSubtab(btn.dataset.subtab));
@@ -13759,6 +13879,22 @@
           <span class="leaderboard-name" style="color:${authColor(f.auth)}">${escapeChatHtml(f.username)}${authBadge(f.auth)}</span>
         </label>
       `).join('');
+      // SOCIAL (1.41.0): friends who disabled messages can't be picked.
+      socialLookup(friendPickerFriendsCache.map(f => f.username)).then(() => {
+        listEl.querySelectorAll('.friend-picker-row').forEach(row => {
+          const box = row.querySelector('input[type="checkbox"]');
+          const info = box && socialInfo(box.value);
+          if (!info || !info.noMessages) return;
+          box.checked = false;
+          box.disabled = true;
+          row.classList.add('messages-off');
+          row.title = box.value + ' has messages turned off.';
+          const tag = document.createElement('span');
+          tag.className = 'friend-status';
+          tag.textContent = 'messages off';
+          row.appendChild(tag);
+        });
+      });
     } catch (e) {
       listEl.innerHTML = '<div class="empty-state">Couldn\'t reach the database.</div>';
     }
@@ -13996,6 +14132,8 @@
     activeChatParticipants = (result.chat && result.chat.participants) || activeChatParticipants;
     if (result.chat && Array.isArray(result.chat.members)) activeChatMembers = result.chat.members;
     activeChatMessages = result.messages || [];
+    // SOCIAL: in a chat with one other person, find out if they turned messages off.
+    if (activeChatParticipants.length === 2) socialLookup(activeChatParticipants);
   }
 
   async function openChat(chatId){
@@ -14188,6 +14326,13 @@
     const input = document.getElementById('chat-message-input');
     const text = input.value.trim();
     if (!text || !activeChatId) return;
+    // SOCIAL (1.41.0): messages can be disabled, by me or by the one other person in this chat.
+    if (socialMe.noMessages) { showBanner('You turned messages off. Turn them back on in Edit Profile > Advanced Settings.'); return; }
+    const others = activeChatParticipants.filter(u => !sameUser(u, currentUsername));
+    if (others.length === 1 && socialInfo(others[0]) && socialInfo(others[0]).noMessages) {
+      showBanner(others[0] + ' has messages turned off.');
+      return;
+    }
     input.value = '';
 
     const tempId = 'temp-' + Date.now() + '-' + Math.random().toString(36).slice(2);
@@ -14330,7 +14475,7 @@
 
     try {
       const result = await sheetRequest({ action: 'getFriendRequests', username: currentUsername });
-      const requests = (result.success && result.requests) ? result.requests : [];
+      const requests = socialFilterRequests((result.success && result.requests) ? result.requests : []); // SOCIAL: declined if requests are disabled
       if (result.success) setNotifCount('requests', requests.length);
 
       if (!requests.length) {
@@ -14554,6 +14699,8 @@
     setTimeout(run, 3000);
     setInterval(run, INBOX_POLL_MS);
     startNotificationPolling();
+    startSocial();           // SOCIAL: online status pings (1.41.0)
+    startModUpdateChecks();  // SOCIAL: mod update notifications (1.41.0)
     startShopNewItemWatcher();
   }
 
@@ -22641,6 +22788,11 @@ ${hasCode
       friendsListCache = (result.success && result.friends) ? result.friends : [];
       friendsListLoaded = true;
       renderFriendsList(friendsSearchInput ? friendsSearchInput.value.trim() : '');
+      // ONLINE STATUS: look everyone up, then draw the list again with statuses (online friends first).
+      socialLookup(friendsListCache.map(f => f.username)).then(() => {
+        const input = document.getElementById('friends-search-input');
+        renderFriendsList(input ? input.value.trim() : '');
+      });
     } catch (e) {
       friendsListLoaded = false;
       friendsListEl.innerHTML = '<div class="empty-state">Couldn\'t reach the database.</div>';
@@ -22651,7 +22803,10 @@ ${hasCode
     const friendsListEl = document.getElementById('friends-list');
     if (!friendsListEl || !friendsListLoaded) return;
     const q = (filterText || '').toLowerCase();
-    const filtered = friendsListCache.filter(f => f.username.toLowerCase().includes(q));
+    const filtered = friendsListCache.filter(f => f.username.toLowerCase().includes(q))
+      .map((f, i) => ({ f, i }))
+      .sort((a, b) => socialRank(a.f.username) - socialRank(b.f.username) || a.i - b.i) // ONLINE STATUS: online first
+      .map(x => x.f);
 
     if (!filtered.length) {
       friendsListEl.innerHTML = `<div class="empty-state">${friendsListCache.length ? 'No friends match that search.' : "You haven't added any friends yet."}</div>`;
@@ -22661,10 +22816,14 @@ ${hasCode
     friendsListEl.innerHTML = filtered.map(f => `
       <div class="friends-row" data-username="${f.username}">
         <div class="leaderboard-avatar"><img src="${f.profileIcon || 'images/ui/profile.png'}" alt=""></div>
-        <span class="leaderboard-name" style="color:${authColor(f.auth)}">${f.username}${authBadge(f.auth)}</span>
+        <div class="friend-name-col">
+          <span class="leaderboard-name" style="color:${authColor(f.auth)}">${f.username}${authBadge(f.auth)}</span>
+          <span class="friend-status" data-status-for="${escapeChatHtml(f.username.toLowerCase())}"></span>
+        </div>
         <button class="friend-action-btn accept friend-gift-btn" type="button" title="Send a gift">Gift</button>
       </div>
     `).join('');
+    socialFillStatuses(friendsListEl); // ONLINE STATUS
 
     friendsListEl.querySelectorAll('.friends-row').forEach(row => {
       row.addEventListener('click', () => {
@@ -22675,6 +22834,382 @@ ${hasCode
         openGiftDialog(row.dataset.username);
       });
     });
+  }
+
+  /* ======================================================
+     SOCIAL (1.41.0): online status, privacy switches, site notifications
+     ------------------------------------------------------
+     ONLINE STATUS
+       Picked in Edit Profile: Online (automatic), Busy, Appear offline, Custom.
+       While the game is open it tells the "social" function "I am here" every
+       SOCIAL_PING_MS. Other players see you as Offline when you are not on the
+       site, whatever you picked. Shown on profiles and on the friends list.
+     PRIVACY SWITCHES (Advanced Settings, saved on the account)
+       Disable messages         nobody can start a chat with you or message you
+                                one on one, and your Messages tab is turned off
+       Disable friend requests  your profile shows "Not taking friend requests"
+                                and any request that still arrives is declined
+     SITE NOTIFICATIONS (Advanced Settings, saved on this device)
+       The Notifications switch asks the browser for permission. If the player
+       says no, the browser will not ask again, so the switch is locked.
+       When it is on there are three choices: Messages, Friend requests, Mod updates.
+       A notification only pops up while the game is in the background.
+     The server side is supabase/functions/social/index.ts, a separate function
+     from "api". Until it is deployed, statuses are hidden and the two privacy
+     switches cannot be saved. Notifications work without it.
+     ====================================================== */
+  const SOCIAL_API_URL = SHEET_API_URL.replace(/\/api\/?$/, '/social');
+  const SOCIAL_PING_MS = 60 * 1000;   // how often an open game says "I am here"
+  const SOCIAL_CACHE_MS = 30 * 1000;  // how long a looked-up status is reused before asking again
+  const SOCIAL_STATUS_WORDS = { online: 'Online', busy: 'Busy', offline: 'Offline' };
+
+  let socialMe = { status: 'online', customText: '', noMessages: false, noRequests: false }; // my own settings
+  let socialReady = false;   // true once the social function has answered
+  const socialCache = {};    // lowercase username -> { state, text, noMessages, noRequests, at }
+
+  // One request to the social function. Same text/plain trick as sheetRequest().
+  async function socialRequest(payload){
+    if (offlineMode || !currentUsername) throw new Error('offline');
+    const res = await fetch(SOCIAL_API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify(Object.assign({ username: currentUsername }, payload))
+    });
+    // 404 = the "social" function has not been deployed to Supabase yet.
+    if (res.status === 404) return { error: 'nofunction' };
+    return await res.json();
+  }
+
+  // "I am on the site." The answer also carries my own settings.
+  async function socialPing(){
+    if (!currentUsername || offlineMode) return;
+    try {
+      const reply = await socialRequest({ action: 'ping' });
+      if (reply && reply.success && reply.me) {
+        const first = !socialReady;
+        socialReady = true;
+        socialMe = reply.me;
+        if (first) applySocialSelf();
+      }
+    } catch (e) {
+      // No connection right now: the next ping tries again.
+    }
+  }
+
+  // Starts the pings. Called once from startInboxPolling().
+  function startSocial(){
+    socialPing();
+    setInterval(socialPing, SOCIAL_PING_MS);
+    // Closing the tab: go offline right away instead of waiting for the pings to stop.
+    window.addEventListener('pagehide', () => {
+      if (!currentUsername || !socialReady || !navigator.sendBeacon) return;
+      try { navigator.sendBeacon(SOCIAL_API_URL, JSON.stringify({ action: 'bye', username: currentUsername })); } catch (e) {}
+    });
+  }
+
+  // What we know about another player right now, or null.
+  function socialInfo(username){
+    return socialCache[String(username || '').toLowerCase()] || null;
+  }
+
+  // Asks the social function about a list of players and remembers the answers.
+  // Players asked about in the last SOCIAL_CACHE_MS are not asked about again.
+  async function socialLookup(usernames){
+    const now = Date.now();
+    const wanted = Array.from(new Set((usernames || []).map(u => String(u || '').toLowerCase()).filter(Boolean)))
+      .filter(u => !socialCache[u] || now - socialCache[u].at > SOCIAL_CACHE_MS);
+    if (!wanted.length || !currentUsername || offlineMode) return;
+    try {
+      const reply = await socialRequest({ action: 'get', usernames: wanted });
+      if (!reply || !reply.success) return;
+      wanted.forEach(u => {
+        const info = (reply.people && reply.people[u]) || { state: 'offline', text: '', noMessages: false, noRequests: false };
+        socialCache[u] = Object.assign({ at: now }, info);
+      });
+    } catch (e) {
+      // Statuses just stay empty.
+    }
+  }
+
+  // The dot and words for a status. info = { state, text }.
+  function socialStatusHtml(info, selfView){
+    const state = ['online', 'busy', 'custom'].includes(info.state) ? info.state : 'offline';
+    let words = state === 'custom' ? escapeChatHtml(info.text) : SOCIAL_STATUS_WORDS[state];
+    if (selfView && socialMe.status === 'offline') words = 'Appearing offline';
+    return '<span class="status-dot status-' + state + '"></span><span class="status-label">' + words + '</span>';
+  }
+
+  // Fills every element inside `root` that has data-status-for="username" with that player's status.
+  function socialFillStatuses(root){
+    if (!root) return;
+    const list = root.matches && root.matches('[data-status-for]') ? [root] : Array.from(root.querySelectorAll('[data-status-for]'));
+    list.forEach(el => {
+      const info = socialInfo(el.dataset.statusFor);
+      el.innerHTML = info ? socialStatusHtml(info) : '';
+    });
+  }
+
+  // How my own status looks (I am on the site, or I could not be reading this).
+  function socialSelfInfo(){
+    const state = socialMe.status === 'custom' && !socialMe.customText ? 'online' : socialMe.status;
+    return { state, text: socialMe.customText };
+  }
+
+  // Online friends first, then busy and custom, then offline. Used to sort the friends list.
+  function socialRank(username){
+    const info = socialInfo(username);
+    if (!info) return 3;
+    return info.state === 'online' ? 0 : (info.state === 'offline' ? 3 : 1);
+  }
+
+  // Runs after my settings were loaded or changed.
+  function applySocialSelf(){
+    applyMessagesOffState();
+    if (socialMe.noMessages) setNotifCount('messages', 0);
+    if (socialMe.noRequests) { setNotifCount('requests', 0); loadFriendRequests(); refreshNotificationCounts(); } // the check declines waiting requests
+  }
+
+  // "Disable messages" is on: the Messages tab says so and its buttons are turned off.
+  function applyMessagesOffState(){
+    const pane = document.getElementById('stats-pane-messages');
+    if (!pane) return;
+    const off = !!socialMe.noMessages;
+    const textEl = pane.querySelector('.shop-info p');
+    const newBtn = document.getElementById('new-chat-btn');
+    const listEl = document.getElementById('chats-list');
+    if (textEl) textEl.textContent = off ? 'Messages are off. Turn them back on in Edit Profile > Advanced Settings.' : 'Chat with your friends.';
+    if (newBtn) newBtn.disabled = off;
+    if (listEl) listEl.style.display = off ? 'none' : '';
+  }
+
+  // "Disable friend requests" is on: every request that still arrived is declined, and none are shown.
+  function socialFilterRequests(requests){
+    if (!socialMe.noRequests) return requests;
+    (requests || []).forEach(r => { apiDeclineFriendRequest(r.username).catch(() => {}); });
+    return [];
+  }
+
+  // Sends the status and the two privacy switches from the Edit Profile menu to the social function.
+  async function saveSocialFromEditProfile(){
+    const wanted = {
+      status: editStatusSelect.value,
+      customText: editStatusCustomInput.value.trim(),
+      noMessages: editNoMessagesBtn.dataset.on === 'true',
+      noRequests: editNoRequestsBtn.dataset.on === 'true'
+    };
+    const changed = ['status', 'customText', 'noMessages', 'noRequests'].some(k => wanted[k] !== socialMe[k]);
+    if (!changed && socialReady) return;
+    try {
+      const reply = await socialRequest(Object.assign({ action: 'set' }, wanted));
+      if (reply && reply.success && reply.me) {
+        socialReady = true;
+        socialMe = reply.me;
+        applySocialSelf();
+        if (activeTab === 'stats') loadFriendsList();
+        return;
+      }
+      if (changed) showBanner(reply && reply.error === 'nofunction'
+        ? 'Status and the Disable switches are not turned on yet. The "social" function has to be deployed to Supabase first (see README.md).'
+        : "Your status and switches couldn't be saved. Try again.");
+    } catch (e) {
+      if (changed) showBanner("Your status and switches couldn't be saved. Try again.");
+    }
+  }
+
+  /* ----- site notifications ----- */
+  const SITE_NOTIF_KEY = 'fgd_site_notifs';           // this device's notification choices
+  const MOD_UPDATE_SEEN_KEY = 'fgd_mod_updates_seen'; // mod id -> the newest version we already told the player about
+  const MOD_UPDATE_CHECK_MS = 30 * 60 * 1000;         // how often the Workshop is checked for new versions of your mods
+
+  // { on, messages, requests, mods }. The three choices start on, the main switch starts off.
+  function getSiteNotifPrefs(){
+    const prefs = { on: false, messages: true, requests: true, mods: true };
+    try {
+      const saved = JSON.parse(localStorage.getItem(SITE_NOTIF_KEY) || '{}');
+      Object.keys(prefs).forEach(k => { if (typeof saved[k] === 'boolean') prefs[k] = saved[k]; });
+    } catch (e) {}
+    return prefs;
+  }
+  function saveSiteNotifPrefs(prefs){
+    try { localStorage.setItem(SITE_NOTIF_KEY, JSON.stringify(prefs)); } catch (e) {}
+  }
+
+  // What the browser says: 'granted', 'denied', 'default' (not asked yet) or 'unsupported'.
+  function siteNotifPermission(){
+    return ('Notification' in window) ? Notification.permission : 'unsupported';
+  }
+
+  // True when notifications are on, the browser allows them, and (if given) that kind is on too.
+  function siteNotifActive(kind){
+    const prefs = getSiteNotifPrefs();
+    return prefs.on && siteNotifPermission() === 'granted' && (!kind || prefs[kind]);
+  }
+
+  // Pops up a browser notification. kind = 'messages', 'requests' or 'mods'.
+  // Nothing pops up while the player is looking at the game (the badges already show it), unless force is true.
+  // Returns true if a notification was shown.
+  function sendSiteNotification(kind, title, body, force){
+    if (!siteNotifActive(kind)) return false;
+    if (!force && !document.hidden && document.hasFocus()) return false;
+    try {
+      const note = new Notification(title, { body, icon: 'images/ui/appearchar.png', tag: 'clicker-' + (kind || 'info') });
+      note.onclick = () => { window.focus(); note.close(); };
+      return true;
+    } catch (e) {
+      return false; // some phones only allow notifications from installed apps
+    }
+  }
+
+  // New friend requests since the last check get one notification.
+  let notifSeenRequests = null; // lowercase names from the last check, null = first check (nothing to compare to)
+  function notifyNewRequests(requests){
+    const names = (requests || []).map(r => String(r.username || ''));
+    if (notifSeenRequests !== null) {
+      const fresh = names.filter(n => !notifSeenRequests.includes(n.toLowerCase()));
+      if (fresh.length) {
+        sendSiteNotification('requests', 'New friend request',
+          fresh.length === 1 ? fresh[0] + ' wants to be your friend.' : fresh.length + ' players want to be your friends.');
+      }
+    }
+    notifSeenRequests = names.map(n => n.toLowerCase());
+  }
+
+  // More unread messages than last check = one notification with the newest message.
+  let notifSeenUnread = null; // unread count from the last check, null = first check
+  function notifyNewMessages(chats){
+    if (socialMe.noMessages) return;
+    const total = countUnreadMessages(chats);
+    if (notifSeenUnread !== null && total > notifSeenUnread) {
+      const newest = (chats || []).filter(c => Number(c.unreadCount) > 0 && c.lastMessage)
+        .sort((a, b) => String(b.lastMessage.createdAt || '').localeCompare(String(a.lastMessage.createdAt || '')))[0];
+      if (newest) {
+        sendSiteNotification('messages', newest.name ? 'New message in ' + newest.name : 'New message',
+          newest.lastMessage.sender + ': ' + String(newest.lastMessage.text || '').slice(0, 120));
+      } else {
+        sendSiteNotification('messages', 'New message', 'You have ' + total + ' unread message' + (total === 1 ? '' : 's') + '.');
+      }
+    }
+    notifSeenUnread = total;
+  }
+
+  // Checks the Workshop for new versions of the mods you downloaded. Each new version is announced once.
+  async function checkModUpdates(){
+    if (!currentUsername || offlineMode || !siteNotifActive('mods') || !(game.installedMods || []).length) return;
+    try {
+      const result = await sheetRequest({ action: 'getWorkshop', username: currentUsername });
+      const items = (result && result.items) || [];
+      let seen = {};
+      try { seen = JSON.parse(localStorage.getItem(MOD_UPDATE_SEEN_KEY) || '{}') || {}; } catch (e) {}
+      const fresh = items.filter(item => {
+        const installed = findInstalledMod(item.id);
+        if (!installed || (installed.version || '') === (item.version || '')) return false;
+        return seen[item.id] !== (item.version || '');
+      });
+      if (!fresh.length) return;
+      fresh.forEach(item => { seen[item.id] = item.version || ''; });
+      try { localStorage.setItem(MOD_UPDATE_SEEN_KEY, JSON.stringify(seen)); } catch (e) {}
+      const body = fresh.length === 1
+        ? fresh[0].name + ' has a new version' + (fresh[0].version ? ' (v' + fresh[0].version + ')' : '') + '. Open the Workshop to update it.'
+        : fresh.length + ' of your mods have new versions. Open the Workshop to update them.';
+      // In the background it is a notification. While you are playing it is a normal banner.
+      if (!sendSiteNotification('mods', 'Mod update', body)) showBanner(body);
+    } catch (e) {
+      // The Workshop could not be reached: the next check tries again.
+    }
+  }
+
+  function startModUpdateChecks(){
+    setTimeout(checkModUpdates, 20000);
+    setInterval(checkModUpdates, MOD_UPDATE_CHECK_MS);
+  }
+
+  /* ----- the switches in Edit Profile ----- */
+  const editStatusSelect = document.getElementById('edit-status-select');
+  const editStatusCustomInput = document.getElementById('edit-status-custom-input');
+  const editNotifBtn = document.getElementById('edit-notif-btn');
+  const editNotifHint = document.getElementById('edit-notif-hint');
+  const editNotifOptions = document.getElementById('edit-notif-options');
+  const editNoMessagesBtn = document.getElementById('edit-no-messages-btn');
+  const editNoRequestsBtn = document.getElementById('edit-no-requests-btn');
+  const editNotifKindBtns = {
+    messages: document.getElementById('edit-notif-messages-btn'),
+    requests: document.getElementById('edit-notif-requests-btn'),
+    mods: document.getElementById('edit-notif-mods-btn')
+  };
+
+  // Sets one On/Off switch button.
+  function setEditToggle(btn, on){
+    btn.dataset.on = on ? 'true' : 'false';
+    btn.textContent = on ? 'On' : 'Off';
+  }
+
+  // Draws the Notifications switch, its hint, and the three choices under it.
+  function renderSiteNotifUi(){
+    const prefs = getSiteNotifPrefs();
+    const permission = siteNotifPermission();
+    const locked = permission === 'denied' || permission === 'unsupported';
+    const on = prefs.on && permission === 'granted';
+    setEditToggle(editNotifBtn, on);
+    editNotifBtn.disabled = locked; // the player said no (or the browser can't): the switch can't move
+    editNotifHint.textContent = permission === 'denied'
+      ? 'You said no to notifications from this site, so this switch is locked. To unlock it, allow notifications for this site in your browser settings.'
+      : (permission === 'unsupported' ? "This browser can't show notifications." : '');
+    editNotifOptions.classList.toggle('open', on);
+    Object.keys(editNotifKindBtns).forEach(kind => setEditToggle(editNotifKindBtns[kind], prefs[kind]));
+  }
+
+  editNotifBtn.addEventListener('click', async () => {
+    const prefs = getSiteNotifPrefs();
+    const permission = siteNotifPermission();
+    if (permission === 'denied' || permission === 'unsupported') return; // locked
+    if (prefs.on && permission === 'granted') {
+      prefs.on = false; // switching off never needs to ask
+    } else {
+      // Switching on: the browser asks "do you want this site to send you notifications?"
+      let answer = permission;
+      if (answer !== 'granted') {
+        try { answer = await Notification.requestPermission(); } catch (e) { answer = 'default'; }
+      }
+      prefs.on = answer === 'granted';
+    }
+    saveSiteNotifPrefs(prefs);
+    renderSiteNotifUi();
+    if (prefs.on) {
+      sendSiteNotification('', 'Notifications are on!', 'The Clicker Game! will tell you about the things you picked.', true);
+      refreshNotificationCounts();
+    }
+  });
+
+  Object.keys(editNotifKindBtns).forEach(kind => {
+    editNotifKindBtns[kind].addEventListener('click', () => {
+      const prefs = getSiteNotifPrefs();
+      prefs[kind] = !prefs[kind];
+      saveSiteNotifPrefs(prefs);
+      renderSiteNotifUi();
+    });
+  });
+
+  [editNoMessagesBtn, editNoRequestsBtn].forEach(btn => {
+    btn.addEventListener('click', () => setEditToggle(btn, btn.dataset.on !== 'true'));
+  });
+
+  // The custom status box only shows when Custom is picked.
+  function updateEditStatusCustom(){
+    editStatusCustomInput.style.display = editStatusSelect.value === 'custom' ? '' : 'none';
+  }
+  editStatusSelect.addEventListener('change', () => {
+    updateEditStatusCustom();
+    if (editStatusSelect.value === 'custom') editStatusCustomInput.focus();
+  });
+
+  // Fills the status picker and the switches when Edit Profile opens.
+  function openEditSocial(){
+    editStatusSelect.value = ['online', 'busy', 'offline', 'custom'].includes(socialMe.status) ? socialMe.status : 'online';
+    editStatusCustomInput.value = socialMe.customText || '';
+    updateEditStatusCustom();
+    setEditToggle(editNoMessagesBtn, socialMe.noMessages);
+    setEditToggle(editNoRequestsBtn, socialMe.noRequests);
+    renderSiteNotifUi();
   }
 
   /* ---------- FRIEND ACTIONS (API) ---------- */
@@ -22860,6 +23395,9 @@ ${hasCode
     publicProfileBirthday.textContent = '';
     publicProfileClicks.textContent = '';
     publicProfileDescription.textContent = '';
+    const publicProfileStatus = document.getElementById('public-profile-status'); // ONLINE STATUS
+    publicProfileStatus.innerHTML = '';
+    delete publicProfileStatus.dataset.statusFor;
     document.getElementById('public-profile-featured').classList.remove('visible');
     const publicProfileMods = document.getElementById('public-profile-mods');
     publicProfileMods.classList.remove('visible');
@@ -22899,6 +23437,15 @@ ${hasCode
       const viewerAuth = String(currentAuth || 'none').trim().toLowerCase();
       const targetAuth = String(account.auth || 'none').trim().toLowerCase();
       const isSelf = String(account.username || '').toLowerCase() === String(currentUsername || '').toLowerCase();
+      // ONLINE STATUS: my own profile shows my pick, anyone else's is looked up.
+      if (isSelf) {
+        publicProfileStatus.innerHTML = socialReady ? socialStatusHtml(socialSelfInfo(), true) : '';
+      } else if (currentUsername) {
+        publicProfileStatus.dataset.statusFor = String(account.username || '').toLowerCase();
+        socialLookup([account.username]).then(() => {
+          if (currentViewedProfile === account) socialFillStatuses(publicProfileStatus);
+        });
+      }
       renderPublicProfileFeatured(account, isSelf);
       renderPublicProfileMods(account, isSelf);
       const canModerate = STAFF_AUTHS.indexOf(viewerAuth) !== -1 && PROTECTED_AUTHS.indexOf(targetAuth) === -1 && !isSelf;
@@ -22986,6 +23533,13 @@ ${hasCode
     try {
       const result = await sheetRequest({ action: 'getFriendStatus', username: currentUsername, targetUsername: account.username });
       const status = result.success ? result.status : 'none';
+      // SOCIAL: a player who disabled friend requests can't be sent one.
+      await socialLookup([account.username]);
+      const info = socialInfo(account.username);
+      if (status === 'none' && info && info.noRequests) {
+        publicProfileFriendRow.innerHTML = '<button class="friend-action-btn" disabled>Not taking friend requests</button>';
+        return;
+      }
       renderFriendActionRow(status, account.username);
     } catch (e) {
       publicProfileFriendRow.innerHTML = '';
@@ -24602,6 +25156,7 @@ ${hasCode
     editUsernameInput.value = currentUsername || '';
     editDescriptionInput.value = currentDescription || '';
     setEditHideBirthday(!!currentHideBirthday);
+    openEditSocial(); // SOCIAL: status picker, notification and privacy switches
     editYoutubeInput.value = currentYoutube || '';
     editTiktokInput.value = currentTiktok || '';
     editTwitchInput.value = currentTwitch || '';
@@ -24720,6 +25275,7 @@ ${hasCode
       setSession(currentUsername, result.account.favColor || getLastTheme(), currentProfileIcon, currentAuth, currentFont);
       applyAccountTheme(result.account.favColor);
       saveGame();
+      saveSocialFromEditProfile(); // SOCIAL: status and the two Disable switches go to the social function
 
       closeEditProfile();
       renderStats();

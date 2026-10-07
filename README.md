@@ -136,8 +136,8 @@ Rules:
 Near the top of `index.html`:
 
 ```html
-<!-- Game version: 1.40.0 | Deployment: 211 | Update both on every release, see README.md -->
-<meta name="game-version" content="1.40.0">
+<!-- Game version: 1.41.0 | Deployment: 211 | Update both on every release, see README.md -->
+<meta name="game-version" content="1.41.0">
 ```
 
 Bump both the version comment and the `game-version` meta tag on every release. The deployment number is an internal counter for tracking Apps Script/Sheet deployments - increment it whenever the backend Web App is redeployed, even if the game version string doesn't change.
@@ -212,6 +212,26 @@ Rules for changing CGC:
 - **Block coding** (1.33.0) - the Code panel in the mod editor has a `Text | Blocks` switch. Blocks is a second view of the same code, not a second language: `draft.code` is still the only thing tested, saved and published. `cgcbFromCode()` reads the text line by line into a tree of blocks, `cgcbToCode()` writes the tree back as text after every change, and a line with no block of its own becomes a `code` block so nothing is lost. Before Blocks opens, `cgcbSameMeaning()` parses both versions with `CGC.parse()` and compares them, and the editor stays in Text mode if they differ or if a `when` / `if` / `repeat` is missing its `end`. Opening Blocks never rewrites the text, only changing a block does. The choice is saved in the draft as `codeMode`. Add a block type in four places: `CGCB_CATS`, `CGCB_PALETTE`, a pattern in `cgcbFromCode()`, and a case in both `cgcbToCode()` and `cgcbBlockHtml()`. When CGC gets a new statement, add its block too (it works as a `code` block until then).
 - Every code box in `CGC_GUIDE` is real CGC. After changing the language or a guide page, paste its code boxes into the editor and run them.
 - `MOD_EDITOR_SIZE_LIMIT` (250K) caps a mod's files, payload and code together.
+
+## Social: online status, privacy switches, notifications (1.41.0)
+
+**Online status.** Edit Profile has a Status picker: Online (automatic), Busy, Appear offline, Custom (up to 40 characters). It shows as a colored dot and a few words on public profiles and on the friends list (online friends are listed first). Anyone who is not on the site shows as Offline, whatever they picked.
+
+**Privacy switches** (Edit Profile > Advanced Settings, saved on the account when Save Changes is pressed):
+
+- **Disable messages:** friends can't pick you for a new chat or message you one on one, and your own Messages tab is turned off.
+- **Disable friend requests:** your profile shows "Not taking friend requests", and any request that still arrives is declined by your game.
+
+**Notifications** (Edit Profile > Advanced Settings, saved on the device, no Save needed): the switch asks the browser for permission. If the player says no, the browser never asks again, so the switch is locked (the hint under it says how to unlock it in the browser settings). When it is on, three more switches show: Messages, Friend requests, Mod updates. A notification only pops up while the game is in the background, because the badges already cover it while you are playing. Mod updates are checked every `MOD_UPDATE_CHECK_MS` (30 minutes) and each new version is announced once.
+
+**Turn it on (once):** Supabase dashboard > Edge Functions > Deploy a new function > Via editor, name it exactly `social`, paste `supabase/functions/social/index.ts`, turn OFF "Verify JWT" (same as `api`), Deploy. The function makes its own `social` table. Until it is deployed, statuses are hidden and the two privacy switches can't be saved. Notifications work without it.
+
+How it is built:
+
+- Server: `supabase/functions/social/index.ts`, a separate function from `api`. Actions: `ping` (I am on the site, sent every `SOCIAL_PING_MS`), `bye` (tab closed), `set` (status and switches), `get` (how a list of players shows to others). One row per player in the `social` table, keyed by `player_id` so a name change keeps everything.
+- Game: the `SOCIAL` section of `index.html`. `socialLookup()` fills `socialCache`, and any element with `data-status-for="username"` is filled by `socialFillStatuses()`.
+- The privacy switches are enforced by the game, not by `api` (which this update does not touch): the sender's game checks the switch before sending, and the receiver's game hides or declines. A player running a changed copy of the game could still send a message, but the receiver would not see it in a turned off Messages tab. To make it airtight, `sendMessage`, `createChat` and `sendFriendRequest` in `api` would have to read the `social` table too.
+- Notification choices live in `localStorage` (`fgd_site_notifs`). `sendSiteNotification(kind, title, body)` is the one place that pops one up.
 
 ## Rooms and servers (1.34.0)
 
