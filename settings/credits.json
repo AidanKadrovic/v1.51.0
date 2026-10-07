@@ -1,3 +1,17 @@
 [
-  { "name": "FallGameDev", "position": "Owner", "username": "FallGameDev" }
+  { "name": "Aidan Kadrovic", "position": "Owner", "username": "FallGameDev" },
+  { "name": "Omar Kadrovic", "position": "Co-Owner and Subscription Manager", "username": "Omizio" },
+  { "name": "Calvin Walker", "position": "Head Admin", "username": "Jfor" },
+  { "name": "Mighty Gorilla (hidden name)", "position": "Admin", "username": "miggy" },
+  { "name": "Andrew Sen", "position": "Admin", "username": "Ragequitshadow" },
+  { "name": "Claude AI", "position": "Code" },
+  { "name": "Robert (Toby) Fox", "position": "Background Music" },
+  { "name": "Charlie Green (CG5)", "position": "Music" },
+  { "name": "Dion Timmer", "position": "Music" },
+  { "name": "MrKoolTrix", "position": "Music" },
+  { "name": "Kane Parsons (Pixels)", "position": "Background" },
+  { "name": "Google", "position": "Fonts" },
+  { "name": "GitHub", "position": "Hosting" },
 ]
+
+
