@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<!-- Game version: 1.39.0 | Deployment: 211 | Update both on every release, see README.md -->
-<meta name="game-version" content="1.39.0">
+<!-- Game version: 1.40.0 | Deployment: 211 | Update both on every release, see README.md -->
+<meta name="game-version" content="1.40.0">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>The Clicker Game!</title>
 <link rel="icon" type="image/x-icon" href="images/ui/maksy.ico" id="favicon-link">
@@ -613,6 +613,36 @@
     opacity:1;
     transform:translateX(-50%) translateY(0) scale(1);
   }
+
+  /* ---------- NOW PLAYING BANNER (1.40.0) ----------
+     The same banner as above, with the song's picture on the left. */
+  .offline-banner.song-banner{
+    padding:7px 14px 7px 8px;
+    text-align:left;
+  }
+  .song-banner-thumb{
+    flex-shrink:0;
+    width:36px;
+    height:36px;
+    border-radius:10px;
+    border:2px solid var(--ink);
+    object-fit:cover;
+    background:hsl(var(--song-hue, 260) 70% 55%);
+    color:#ffffff;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:17px;
+    line-height:1;
+  }
+  .song-banner-text{
+    min-width:0;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+    max-width:60vw;
+  }
+  .song-banner-artist{ opacity:.75; }
 
   /* ---------- NOTIFICATION CLOSE BUTTON ---------- */
   .notif-close{
@@ -10768,17 +10798,18 @@
   }, 1000);
 
   /* ---------- MUSIC PLAYER ---------- */
+  // artist and thumb (a small picture) are optional. They show in the Now Playing banner.
   const SONGS = [
-    { label: "Tidal Wave (Shiawase)", file: "audio/music/shiawave__tidalwave_.mp3" },
-    { label: "Lo-Fi Beats", file: "audio/music/lofi.mp3" },
-    { label: "FIVE FIVE!", file: "audio/music/55.mp3" },
-    { label: "Lyin' 2 Me", file: "audio/music/l2m.mp3" },
-    { label: "Good to Be Alive", file: "audio/music/gtba.mp3" },
-    { label: "Show Yourself", file: "audio/music/sy.mp3" },
-    { label: "Masquerade Party", file: "audio/music/mp.mp3" },
-    { label: "Keep Me Going (BIRDBRAIN)", file: "audio/music/birdbrain.mp3" },
-    { label: "Isnt That What Foes Are For", file: "audio/music/kys.mp3" },
-    { label: "your verity", file: "extras/verity.mp3" }
+    { label: "Tidal Wave (Shiawase)", file: "audio/music/shiawave__tidalwave_.mp3", artist: "Dion Timmer", thumb: "images/songs/shiawase.jpg" },
+    { label: "Lo-Fi Beats", file: "audio/music/lofi.mp3", artist: "Dope Cat" },
+    { label: "FIVE FIVE!", file: "audio/music/55.mp3", artist: "MrKoolTrix", thumb: "images/songs/fivefive.jpg" },
+    { label: "Lyin' 2 Me", file: "audio/music/l2m.mp3", artist: "CG5", thumb: "images/songs/l2m.jpg" },
+    { label: "Good to Be Alive", file: "audio/music/gtba.mp3", artist: "CG5", thumb: "images/songs/gtba.jpg" },
+    { label: "Show Yourself", file: "audio/music/sy.mp3", artist: "CG5", thumb: "images/songs/sy.jpg" },
+    { label: "Masquerade Party", file: "audio/music/mp.mp3", artist: "CG5", thumb: "images/songs/mp.jpg" },
+    { label: "Keep Me Going (BIRDBRAIN)", file: "audio/music/birdbrain.mp3", artist: "slayr", thumb: "images/songs/birdbrain.jpg" },
+    { label: "Isnt That What Foes Are For", file: "audio/music/kys.mp3", artist: "Antony Kos" },
+    { label: "your verity", file: "extras/verity.mp3", artist: "CG5 x Horror Skunx", thumb: "images/songs/verity.jpg" }
   ];
 
   const musicPlayerEl = document.getElementById('music-player');
@@ -10810,6 +10841,24 @@
   // True while the color song is the one that should be playing (not the tutorial or login song).
   let colorBgSongActive = false;
 
+  // NOW PLAYING (1.40.0): the name, artist and picture of every background song, by file.
+  // Songs in the Music Player keep theirs in settings/music.json instead.
+  const BG_SONG_INFO = {};
+  [
+    ['red',    'Hammer of Justice',         'hammerofjustice'],
+    ['orange', 'Flower Castle',             'flowercastle'],
+    ['yellow', 'Running Sky',               'runningsky'],
+    ['green',  'CORE',                      ''],
+    ['blue',   'The place where it rained', 'rained'],
+    ['cyan',   'Welcome to the Green Room', 'greenroom'],
+    ['purple', 'Another Medium',            'anothermedium'],
+    ['pink',   'Cutie Mew Mew Magic',       'mewmew'],
+    ['black',  'KING OF ROLYPOLY',          'rolypoly'],
+    ['teal',   "A CYBER'S WORLD?",          'cybersworld']
+  ].forEach(([color, name, thumb]) => {
+    BG_SONG_INFO[COLOR_SONG_FOLDER + COLOR_BG_SONGS[color]] = { name, artist: 'Toby Fox', thumb: thumb ? 'images/songs/' + thumb + '.jpg' : '' };
+  });
+
   // The song file for a favorite color. Unknown colors get the og song.
   function colorBgSongFor(color){
     const file = Object.prototype.hasOwnProperty.call(COLOR_BG_SONGS, color) ? COLOR_BG_SONGS[color] : '';
@@ -10817,6 +10866,102 @@
   }
   const TUTORIAL_BG_SONG = 'audio/music/yourhired.mp3';
   const AUTH_BG_SONG = 'audio/music/go ahead, start crying.mp3';
+  BG_SONG_INFO[TUTORIAL_BG_SONG] = { name: "You're hired!", artist: 'Ssebvy', thumb: 'images/songs/yourhired.jpg' };
+  BG_SONG_INFO[AUTH_BG_SONG] = { name: 'Cave Wave', artist: 'Stunshine', thumb: 'images/songs/cavewave.jpg' };
+
+  /* ---------- NOW PLAYING BANNER (1.40.0) ----------
+     When a song starts, a banner shows its picture, its name and who made it:
+       [picture] Song name • Artist
+     Where the three parts come from:
+       background songs      BG_SONG_INFO above
+       Music Player songs    "artist" and "thumb" in settings/music.json
+       songs from a mod      the mod's icon, the song's name, and the mod's maker
+       songs you uploaded    just the name
+     A song with no picture gets a colored tile with a music note. */
+
+  // Looks up { name, artist, thumb, seed } for the file an <audio> is playing. null = unknown song.
+  function songInfoFor(src){
+    if (!src) return null;
+    if (BG_SONG_INFO[src]) return BG_SONG_INFO[src];
+    const song = SONGS.find(s => s.file === src);
+    if (!song) return null;
+    if (song.modId) {
+      // A mod's song: the picture is the mod's icon. Mods installed before 1.40.0 did not
+      // save their icon, so the Workshop list is checked too (if it has been opened).
+      const mod = (game.installedMods || []).find(m => m && m.id === song.modId) || {};
+      const listed = (typeof workshopItemsCache !== 'undefined' ? workshopItemsCache : []).find(i => i && i.id === song.modId) || {};
+      return { name: song.label, artist: mod.author || mod.name || listed.name || 'Mod', thumb: mod.iconUrl || listed.iconUrl || '', seed: mod.name || song.label };
+    }
+    return { name: song.label, artist: song.artist || '', thumb: song.thumb || '', seed: song.label };
+  }
+
+  let songBannerClose = null;  // closes the Now Playing banner that is showing (only one at a time)
+  let lastAnnouncedSong = '';  // the file of the last song a banner was shown for
+
+  // Shows the Now Playing banner for a song file. The same song is never announced twice in a row.
+  function announceSong(src){
+    if (!src || src === lastAnnouncedSong || game.sfxMuted) return;
+    const info = songInfoFor(src);
+    if (!info) return;
+    lastAnnouncedSong = src;
+    if (songBannerClose) songBannerClose(); // a new song replaces the old banner
+
+    const banner = document.createElement('div');
+    banner.className = 'offline-banner song-banner';
+
+    // The picture. If there is none (or it fails to load) a colored music note tile is used.
+    const noteTile = () => {
+      const tile = document.createElement('div');
+      tile.className = 'song-banner-thumb';
+      tile.style.setProperty('--song-hue', modCoverHue(info.seed || info.name));
+      tile.textContent = '\u{1F3B5}';
+      return tile;
+    };
+    let thumb;
+    if (info.thumb) {
+      thumb = document.createElement('img');
+      thumb.className = 'song-banner-thumb';
+      thumb.alt = '';
+      thumb.src = info.thumb;
+      thumb.addEventListener('error', () => thumb.replaceWith(noteTile()));
+    } else {
+      thumb = noteTile();
+    }
+    banner.appendChild(thumb);
+
+    // "Song name • Artist" (textContent keeps any odd characters in a mod's song name harmless)
+    const text = document.createElement('span');
+    text.className = 'song-banner-text';
+    const nameEl = document.createElement('span');
+    nameEl.textContent = info.name;
+    text.appendChild(nameEl);
+    if (info.artist) {
+      const artistEl = document.createElement('span');
+      artistEl.className = 'song-banner-artist';
+      artistEl.textContent = ' \u2022 ' + info.artist;
+      text.appendChild(artistEl);
+    }
+    banner.appendChild(text);
+
+    document.body.appendChild(banner);
+    activeBanners.push(banner);
+    repositionBanners();
+    const close = addNotificationClose(banner, () => {
+      activeBanners = activeBanners.filter(b => b !== banner);
+      repositionBanners();
+      if (songBannerClose === close) songBannerClose = null;
+    });
+    songBannerClose = close;
+  }
+
+  // The song you can hear right now: the Music Player's if it is playing, else the background song.
+  function announceCurrentSong(){
+    if (songAudio && !songAudio.paused) { announceSong(songAudio.getAttribute('src')); return; }
+    if (defaultBgAudio && !defaultBgAudio.paused && defaultBgAudio.volume > 0) announceSong(defaultBgAudio.getAttribute('src'));
+  }
+  // "playing" fires when sound really starts (not when a blocked autoplay is only asked for).
+  if (defaultBgAudio) defaultBgAudio.addEventListener('playing', announceCurrentSong);
+  if (songAudio) songAudio.addEventListener('playing', announceCurrentSong);
 
   function updateDefaultBgVolume(){
     if (!defaultBgAudio) return;
@@ -10930,7 +11075,7 @@
   });
 
   songAudio.addEventListener('play', () => { playBtn.innerHTML = '&#10074;&#10074;'; updateDefaultBgVolume(); });
-  songAudio.addEventListener('pause', () => { playBtn.innerHTML = '&#9658;'; updateDefaultBgVolume(); });
+  songAudio.addEventListener('pause', () => { playBtn.innerHTML = '&#9658;'; updateDefaultBgVolume(); announceCurrentSong(); }); // NOW PLAYING: the background song is back
 
   function updateLoopBtn(){
     loopBtn.classList.toggle('active', songAudio.loop);
@@ -11258,7 +11403,7 @@
       });
       (mod.customFiles.music || []).forEach(f => {
         const src = f && (f.base64 || f.url);
-        if (src && !SONGS.some(s => s.file === src)) addSongOption({ label: f.name, file: src });
+        if (src && !SONGS.some(s => s.file === src)) addSongOption({ label: f.name, file: src, modId: mod.id }); // modId: for the Now Playing banner
       });
       (mod.customFiles.cursors || []).forEach(f => {
         const src = f && (f.base64 || f.url);
@@ -11582,7 +11727,13 @@
   function cleanSettingsFiles(list){
     return (Array.isArray(list) ? list : [])
       .filter(e => e && typeof e.label === 'string' && typeof e.file === 'string' && e.label.trim() && e.file.trim())
-      .map(e => ({ label: e.label.trim(), file: fixAssetPath(e.file.trim()) })); // fixAssetPath: old settings files still work
+      .map(e => {
+        const out = { label: e.label.trim(), file: fixAssetPath(e.file.trim()) }; // fixAssetPath: old settings files still work
+        // NOW PLAYING (1.40.0): music.json can also say who made a song and give it a picture.
+        if (typeof e.artist === 'string' && e.artist.trim()) out.artist = e.artist.trim().slice(0, 80);
+        if (typeof e.thumb === 'string' && e.thumb.trim()) out.thumb = e.thumb.trim();
+        return out;
+      });
   }
 
   function rebuildPickerSelect(select, placeholderText, entries, valueOf){
@@ -15142,6 +15293,15 @@
     }
   }
 
+  // What the game remembers about a downloaded mod.
+  // iconUrl and author (1.40.0) are for the Now Playing banner. An anonymous maker stays anonymous.
+  function installedModEntry(item){
+    return {
+      id: item.id, name: item.name, version: item.version || '', customFiles: item.customFiles || {},
+      iconUrl: item.iconUrl || '', author: item.authorAnonymous ? '' : (item.author || '')
+    };
+  }
+
   async function updateMod(item, btn){
     const installed = findInstalledMod(item.id);
     if (!installed) return downloadMod(item, btn);
@@ -15157,7 +15317,7 @@
 
     if (btn) { btn.disabled = true; btn.textContent = 'Updating...'; }
     game.installedMods = (game.installedMods || []).filter(m => m && m.id !== item.id);
-    game.installedMods.push({ id: item.id, name: item.name, version: item.version || '', customFiles: item.customFiles || {} });
+    game.installedMods.push(installedModEntry(item));
     saveGame();
     syncToSheet();
     cgcStartMod(findInstalledMod(item.id)); // CGC: restart its code with the new version
@@ -15195,7 +15355,7 @@
         }
         if (!game.installedMods) game.installedMods = [];
         if (!game.installedMods.some(m => m && m.id === item.id)) {
-          game.installedMods.push({ id: item.id, name: item.name, version: item.version || '', customFiles: item.customFiles || {} });
+          game.installedMods.push(installedModEntry(item));
           saveGame();
           syncToSheet();
           cgcStartMod(findInstalledMod(item.id)); // CGC
@@ -25425,6 +25585,7 @@ ${hasCode
     startSpecialDayInGame(); // SPECIAL DAYS: decorations, birthday Prestige gift, reminders
     startGameplayExtras();   // GAMEPLAY EXTRAS: moneys per second, Lucky Star, Daily Reward
     roomTryRejoin();         // ROOMS: go back into the room you were in before a page reload
+    startRoomRentChecks();   // ROOMS: pay the monthly bill of your servers (1.40.0)
   }
 
   /* ---------- ROOMS + SERVERS (1.34.0) ----------
@@ -25458,6 +25619,8 @@ ${hasCode
      shared in a room, add its save key to ROOM_SHARED_KEYS. */
   const ROOMS_API_URL = SHEET_API_URL.replace(/\/api\/?$/, '/rooms');
   const ROOM_SERVER_COST = 1000;  // Gems to open a server (same number as SERVER_COST in the function)
+  const ROOM_RENT_COST = 250;     // Gems a server costs every month (same number as RENT_COST in the function)
+  const ROOM_RENT_CHECK_MS = 10 * 60 * 1000; // how often the game checks on the bills of your servers
   const ROOM_MAX_FEE = 10000;     // biggest entrance fee (same as MAX_FEE in the function)
   const ROOM_SYNC_MS = 2000;      // how often a player trades changes with the room
   const ROOM_REJOIN_KEY = 'fgd_room_'; // sessionStorage: + lowercase username = the room to go back into after a reload
@@ -25536,6 +25699,7 @@ ${hasCode
       toomany: 'You already own the most servers one player can have.',
       notfound: 'No room has that code.',
       closed: 'That room is closed.',
+      unpaid: "That server is offline. Its monthly bill has not been paid yet.",
       banned: 'You are banned from there.',
       full: 'It is full right now. Try again in a bit.',
       needpass: 'This one needs a password.',
@@ -25677,6 +25841,76 @@ ${hasCode
     try { sessionStorage.removeItem(ROOM_REJOIN_KEY + String(currentUsername).toLowerCase()); } catch (e) {}
   }
 
+  /* ----- the monthly bill (1.40.0) -----
+     A server costs ROOM_RENT_COST Gems every month. The Gems are taken by themselves.
+     roomRentCheck() runs when the game starts and every ROOM_RENT_CHECK_MS:
+       1. it asks the rooms function how the bills of your servers are doing
+       2. if a bill is due and you have the Gems, it pays (the function takes the Gems
+          from the account, and the same Gems come off this screen)
+       3. if you do not have the Gems, you get a warning: the server stays open for a
+          week, then it is offline and nobody can open it until the bill is paid
+     If you are not playing, the rooms function pays from your Gems by itself the next
+     time anyone visits the server. */
+  let roomRentBusy = false;
+  const roomRentTold = {}; // server id -> the last warning shown this session ("late" or "offline")
+
+  // "3 days", "1 day", "5 hours": how long until a time in milliseconds.
+  function roomTimeLeft(untilMs){
+    const ms = Math.max(0, Number(untilMs) - Date.now());
+    const days = Math.round(ms / 86400000); // rounded, so a fresh week reads "7 days" and not "6 days"
+    if (ms >= 86400000) return days + (days === 1 ? ' day' : ' days');
+    const hours = Math.max(1, Math.ceil(ms / 3600000));
+    return hours + (hours === 1 ? ' hour' : ' hours');
+  }
+
+  // Checks the bills of every server you host and pays the ones that are due.
+  // loud = true shows a banner even when there is nothing new to say (used by the Pay button).
+  async function roomRentCheck(loud){
+    if (roomRentBusy || !currentUsername || offlineMode) return;
+    roomRentBusy = true;
+    try {
+      let reply = await roomRequest({ action: 'rent' });
+      if (!reply || !reply.success) return; // also lands here if the rooms function is an older version
+      const cost = Number(reply.rentCost) || ROOM_RENT_COST;
+      const due = (reply.servers || []).filter(sv => sv.status !== 'paid');
+      const canPay = Math.min(due.length, Math.floor((game.gems || 0) / cost));
+      if (canPay > 0) {
+        // Make sure the API knows our newest Gem count before it takes the Gems.
+        saveGame();
+        await syncToSheet();
+        const paid = await roomRequest({ action: 'rent', pay: true, max: canPay });
+        if (paid && paid.success) {
+          reply = paid;
+          if (paid.charged > 0) {
+            roomSpendGems(paid.charged);
+            showBanner('Paid ' + Number(paid.charged).toLocaleString() + ' Gems for the monthly bill of ' + (paid.paid || []).join(' and ') + '.');
+          }
+        }
+      }
+      (reply.servers || []).forEach(sv => {
+        if (sv.status === 'paid') { delete roomRentTold[sv.id]; return; }
+        if (roomRentTold[sv.id] === sv.status && !loud) return; // already warned about this one
+        roomRentTold[sv.id] = sv.status;
+        if (sv.status === 'late') {
+          showBanner('Hey, you need to save more Gems! ' + sv.name + ' could not pay its ' + cost.toLocaleString() + ' Gem monthly bill. You have ' + roomTimeLeft(sv.offlineAt) + ' before your server goes offline.');
+        } else {
+          showBanner(sv.name + ' is offline. Nobody can open it until you pay the ' + cost.toLocaleString() + ' Gem bill. Get the Gems and it pays by itself.');
+        }
+      });
+      if (activeTab === 'stats' && roomBrowserOpen && !roomSession && document.getElementById('room-browser')) loadRoomBrowser();
+    } catch (e) {
+      // No connection right now: the next check tries again.
+    } finally {
+      roomRentBusy = false;
+    }
+  }
+
+  // Starts the bill checks. Called once from startGame().
+  function startRoomRentChecks(){
+    setTimeout(roomRentCheck, 6000); // a moment after loading, so it does not pile onto the other banners
+    setInterval(roomRentCheck, ROOM_RENT_CHECK_MS);
+  }
+
   /* ----- staying in sync ----- */
 
   // Works out what changed on this screen since the last answer from the API.
@@ -25720,13 +25954,16 @@ ${hasCode
         s.pending = null;
         s.fails = 0;
         roomApplyReply(reply, save.sentLocal);
-      } else if (reply && (reply.error === 'kicked' || reply.error === 'banned' || reply.error === 'closed')) {
+      } else if (reply && (reply.error === 'kicked' || reply.error === 'banned' || reply.error === 'closed' || reply.error === 'unpaid')) {
         const words = {
           kicked: 'You were kicked from ' + s.info.name + '.',
           banned: 'You were banned from ' + s.info.name + '.',
-          closed: s.info.name + ' was closed.'
+          closed: s.info.name + ' was closed.',
+          unpaid: s.info.name + ' went offline. Its monthly bill was not paid.' // MONTHLY BILL (1.40.0)
         };
+        const wasHost = s.role === 'host';
         roomExit(words[reply.error]);
+        if (reply.error === 'unpaid' && wasHost) roomRentCheck(); // the host's game tries to pay right away
       } else {
         s.fails += 1; // busy or a server hiccup: the same save goes out again next time
       }
@@ -25911,6 +26148,9 @@ ${hasCode
           <span class="room-tag" id="room-online-tag"></span>
           ${s.info.hasPassword ? '<span class="room-tag">Password</span>' : ''}
           ${s.info.fee > 0 ? '<span class="room-tag">Fee: ' + Number(s.info.fee).toLocaleString() + ' Gems</span>' : ''}
+          ${isHost && s.info.rent && s.info.rent.due ? '<span class="room-tag">' + (s.info.rent.status === 'late'
+            ? 'Bill is late! Offline in ' + roomTimeLeft(s.info.rent.offlineAt)
+            : 'Next bill: ' + ROOM_RENT_COST.toLocaleString() + ' Gems in ' + roomTimeLeft(s.info.rent.due)) + '</span>' : ''}
         </div>
         <div class="room-code">
           <span>${kind} code</span><b>${escapeChatHtml(s.id)}</b>
@@ -26199,7 +26439,7 @@ ${hasCode
       <div class="shop-card">
         <div class="shop-info">
           <h3>Create a Room</h3>
-          <p>Start a shared game from a clean slate. Rooms are free, servers cost ${ROOM_SERVER_COST.toLocaleString()} Gems.</p>
+          <p>Start a shared game from a clean slate. Rooms are free, servers cost ${ROOM_SERVER_COST.toLocaleString()} Gems plus ${ROOM_RENT_COST.toLocaleString()} Gems a month.</p>
         </div>
         <button class="buy-btn" id="room-create-btn">Create</button>
       </div>
@@ -26287,6 +26527,12 @@ ${hasCode
       const bits = [escapeChatHtml(sv.category), sv.online + ' online', 'by ' + escapeChatHtml(sv.host)];
       if (sv.hasPassword) bits.push('password');
       if (sv.fee > 0) bits.push(sv.joined ? 'fee paid' : Number(sv.fee).toLocaleString() + ' Gems to enter');
+      // MONTHLY BILL (1.40.0): everyone sees an offline server. Only the host sees the dates.
+      const offline = sv.rent === 'offline';
+      if (offline) bits.push('<b>offline, bill not paid</b>');
+      else if (sv.mine && sv.rent === 'late') bits.push('<b>bill is late, offline in ' + roomTimeLeft(sv.rentOfflineAt) + '</b>');
+      else if (sv.mine && sv.rentDue) bits.push('next bill in ' + roomTimeLeft(sv.rentDue));
+      const btnLabel = offline ? (sv.mine ? 'Pay ' + ROOM_RENT_COST.toLocaleString() + ' Gems' : 'Offline') : (sv.joined ? 'Rejoin' : 'Join');
       return `
         <div class="shop-card" data-server-id="${escapeChatHtml(sv.id)}">
           <div class="room-server-icon">${escapeChatHtml(sv.icon)}</div>
@@ -26294,12 +26540,20 @@ ${hasCode
             <h3>${escapeChatHtml(sv.name)}${sv.mine ? ' <span class="owned">(yours)</span>' : ''}</h3>
             <p>${bits.join(' · ')}</p>
           </div>
-          <button class="buy-btn">${sv.joined ? 'Rejoin' : 'Join'}</button>
+          <button class="buy-btn"${offline && !sv.mine ? ' disabled' : ''}>${btnLabel}</button>
         </div>`;
     }).join('');
     listEl.querySelectorAll('[data-server-id]').forEach(card => {
       const sv = roomBrowserServers.find(x => x.id === card.dataset.serverId);
       card.querySelector('.buy-btn').addEventListener('click', async e => {
+        // MONTHLY BILL: an offline server can't be opened. Its host can pay the bill from here.
+        if (sv.rent === 'offline') {
+          if (!sv.mine) return;
+          e.currentTarget.disabled = true;
+          await roomRentCheck(true);
+          loadRoomBrowser();
+          return;
+        }
         // Members walk straight back in. So does anyone when there is no password and no fee.
         if (sv.joined || (!sv.hasPassword && !(sv.fee > 0))) {
           const btn = e.currentTarget;
@@ -26419,7 +26673,7 @@ ${hasCode
           </button>
           <button class="room-kind-btn" data-kind="server" type="button">
             <span class="room-kind-emoji">\u{1F310}</span>Server
-            <small>${ROOM_SERVER_COST.toLocaleString()} Gems. Public, always up, with admins.</small>
+            <small>${ROOM_SERVER_COST.toLocaleString()} Gems, then ${ROOM_RENT_COST.toLocaleString()} a month. Public, always up, with admins.</small>
           </button>
         </div>
         <label for="room-new-name">Name</label>
@@ -26459,7 +26713,7 @@ ${hasCode
       feeWrap.style.display = kind === 'server' ? '' : 'none';
       goBtn.textContent = kind === 'server' ? 'Create Server (' + ROOM_SERVER_COST.toLocaleString() + ' Gems)' : 'Create Room';
       costEl.innerHTML = kind === 'server'
-        ? 'Costs <b>' + ROOM_SERVER_COST.toLocaleString() + ' Gems</b>. You have ' + (game.gems || 0).toLocaleString() + ' Gems.'
+        ? 'Costs <b>' + ROOM_SERVER_COST.toLocaleString() + ' Gems</b> to open, then <b>' + ROOM_RENT_COST.toLocaleString() + ' Gems every month</b> (taken by itself). You have ' + (game.gems || 0).toLocaleString() + ' Gems.'
         : 'Free. You get a room code to share with friends.';
     }
     confirmBox.querySelectorAll('.room-kind-btn').forEach(b => {

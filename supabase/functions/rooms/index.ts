@@ -1,5 +1,5 @@
 // =====================================================================
-// The Clicker Game! ROOMS + SERVERS (multiplayer)               1.34.0
+// The Clicker Game! ROOMS + SERVERS (multiplayer)               1.40.0
 // =====================================================================
 // A SEPARATE Supabase Edge Function from "api", so the main backend is
 // never touched. The game calls it at the api link with /api swapped
@@ -15,6 +15,18 @@
 //     server  costs SERVER_COST Gems to open, always up, public, shown in
 //             the server browser. Can have an entrance fee, admins and
 //             extra owners.
+//
+// THE MONTHLY BILL (1.40.0)
+//   A server costs RENT_COST Gems every RENT_PERIOD_MS (30 days). The Gems
+//   come out of the host's account by themselves. If the host does not
+//   have enough, the bill is "late": the server stays open for
+//   RENT_GRACE_MS (a week) and the host's game shows a warning. After
+//   that week the server is "offline": nobody can open it until the bill
+//   is paid. Nothing is deleted, it just waits.
+//   Everything about the bill lives in the room's meta column:
+//     meta.rentDue    when the next bill is due (a time in milliseconds)
+//     meta.rentTried  the last time someone tried to pay it
+//   No new table columns and no new secrets are needed.
 //
 // HOW PLAYERS STAY IN SYNC
 //   Every couple of seconds each player sends what changed on their
@@ -71,6 +83,12 @@ const db = createClient(
 
 // ---- settings (keep the first four in sync with the ROOM_ constants in index.html) ----
 const SERVER_COST = 1000;               // Gems to open a server
+const RENT_COST = 250;                  // Gems a server costs every month (ROOM_RENT_COST in index.html)
+const RENT_PERIOD_MS = 30 * 24 * 60 * 60 * 1000; // one "month" between bills
+const RENT_GRACE_MS = 7 * 24 * 60 * 60 * 1000;   // a late server stays open this long, then goes offline
+const RENT_HEAD_START_MS = 60 * 60 * 1000;       // the host's own game gets this long to pay before anyone else's visit tries
+const RENT_RETRY_MS = 60 * 60 * 1000;            // time between two tries that were started by someone who is not the host
+const RENT_OWNER_RETRY_MS = 15 * 1000;           // time between two tries by the host (stops two tabs from paying twice)
 const MAX_FEE = 10000;                  // biggest entrance fee, in Gems
 const MAX_NAME_CHARS = 30;
 const MAX_MESSAGE_CHARS = 200;
@@ -232,8 +250,15 @@ const store = {
   },
   async listServers() {
     const { data, error } = await db.from("rooms")
-      .select("id,name,icon,category,fee,password_hash,host,host_lower,members,created_at")
+      .select("id,kind,name,icon,category,fee,password_hash,host,host_lower,members,meta,created_at")
       .eq("kind", "server").order("updated_at", { ascending: false }).limit(100);
+    if (error) return { error: error.code === "PGRST205" || error.code === "42P01" ? "notable" : "server" };
+    return { rows: data || [] };
+  },
+  // Every server one player hosts (for the monthly bill).
+  async listServersOf(hostLower: string) {
+    const { data, error } = await db.from("rooms").select("id,kind,name,icon,host,host_lower,meta")
+      .eq("kind", "server").eq("host_lower", hostLower);
     if (error) return { error: error.code === "PGRST205" || error.code === "42P01" ? "notable" : "server" };
     return { rows: data || [] };
   },
@@ -311,6 +336,96 @@ function tidy(room: any) {
   return room;
 }
 
+// ---------------------------------------------------------------------
+// THE MONTHLY BILL (1.40.0)
+// ---------------------------------------------------------------------
+
+// Where a server's bill stands right now:
+//   "none"     not a server (rooms are free)
+//   "paid"     nothing to pay yet
+//   "late"     the bill is due and not paid. The server is still open for a week.
+//   "offline"  the week is over. Nobody can open the server until the bill is paid.
+function rentStatus(room: any, now: number) {
+  if (room.kind !== "server") return "none";
+  const due = Number((room.meta && room.meta.rentDue) || 0);
+  if (!due || now < due) return "paid";
+  return now < due + RENT_GRACE_MS ? "late" : "offline";
+}
+
+// A server from before 1.40.0 has no bill date yet. Its first bill is a month
+// after the first time it is touched. Returns true if the room was changed.
+function startRent(room: any, now: number) {
+  if (room.kind !== "server" || Number(room.meta.rentDue || 0)) return false;
+  room.meta.rentDue = now + RENT_PERIOD_MS;
+  return true;
+}
+
+// The bill details the game shows (the due date, and when the server would go offline).
+function rentInfo(room: any, now: number) {
+  const due = Number((room.meta && room.meta.rentDue) || 0);
+  return { status: rentStatus(room, now), cost: RENT_COST, due, offlineAt: due ? due + RENT_GRACE_MS : 0 };
+}
+
+// True when a visit by someone who is NOT the host should try to pay the bill.
+// The host's own game gets a head start, because it also takes the Gems off the
+// host's screen. This is the backup for a host who is not playing right now.
+function rentBackupReady(room: any, now: number) {
+  if (rentStatus(room, now) === "paid" || room.kind !== "server") return false;
+  return now >= Number(room.meta.rentDue || 0) + RENT_HEAD_START_MS && now - Number(room.meta.rentTried || 0) >= RENT_RETRY_MS;
+}
+
+// Tries to pay one server's bill out of the host's Gems. Returns how many Gems it took (0 = not paid).
+//   byOwner = true   the host's own game is asking (it takes the Gems off the host's screen too)
+//   byOwner = false  someone else touched the server while the host was away
+// It works in three steps so a busy server can never be charged twice:
+//   1. "claim" the try by saving meta.rentTried (only one request can win that save)
+//   2. take the Gems from the host's account
+//   3. move the due date forward
+async function settleRent(roomId: string, byOwner: boolean) {
+  let hostName = "";
+  const claim = await mutate(roomId, (room) => {
+    const now = Date.now();
+    const started = startRent(room, now);
+    const mine = () => (started ? { write: true, reply: { claimed: false } } : { reply: { claimed: false } });
+    if (rentStatus(room, now) !== "late" && rentStatus(room, now) !== "offline") return mine();
+    if (!byOwner && !rentBackupReady(room, now)) return mine();
+    if (byOwner && now - Number(room.meta.rentTried || 0) < RENT_OWNER_RETRY_MS) return mine();
+    room.meta.rentTried = now;
+    hostName = room.host;
+    return { write: true, reply: { claimed: true } };
+  });
+  if (!claim || !claim.claimed) return 0;
+
+  const account = await store.getAccount(hostName);
+  if (!account) return 0;
+  const gems = Number(account.gems);
+  const readable = account.gems != null && isFinite(gems);
+  // Gems that can't be read here are checked by the host's own game, so only the host's game may go on.
+  if (!readable && !byOwner) return 0;
+  if (readable) {
+    if (gems < RENT_COST) return 0; // not enough: the bill stays late
+    await store.setGems(account.player_id, gems - RENT_COST);
+  }
+
+  const done = await mutate(roomId, (room) => {
+    const now = Date.now();
+    const wasOffline = rentStatus(room, now) === "offline";
+    // A server that was offline starts a fresh month today. Otherwise the next bill is a month after the old date.
+    let due = wasOffline ? now + RENT_PERIOD_MS : Number(room.meta.rentDue || 0) + RENT_PERIOD_MS;
+    if (due <= now) due = now + RENT_PERIOD_MS; // missed months are not billed again
+    room.meta.rentDue = due;
+    room.meta.rentTried = 0;
+    pushMessage(room, "", "The monthly bill (" + RENT_COST + " Gems) was paid." + (wasOffline ? " The server is back online!" : ""));
+    return { write: true, reply: { ok: true } };
+  });
+  if (!done || !done.ok) {
+    // The date could not be saved (very rare), so give the Gems back.
+    if (readable) await store.setGems(account.player_id, gems);
+    return 0;
+  }
+  return RENT_COST;
+}
+
 // What one player gets to see of a room. sinceMsg = the last chat line they already have.
 function view(room: any, userLower: string, sinceMsg: number) {
   const now = Date.now();
@@ -340,6 +455,7 @@ function view(room: any, userLower: string, sinceMsg: number) {
       hasPassword: !!room.password_hash,
       host: room.host,
       createdAt: room.created_at,
+      rent: room.kind === "server" ? rentInfo(room, now) : null, // the monthly bill (1.40.0)
     },
     members,
     messages: room.messages.filter((m: any) => Number(m.id) > sinceMsg),
@@ -429,7 +545,10 @@ async function create(p: any) {
       state: cleanState(p.state),
       members: { [userLower]: { username, role: "owner", seen: now, taps: 0, seq: 0, icon: cleanIcon(p.avatar) } },
       messages: [],
-      meta: { banned: [], paid: [userLower], bank: 0, msgSeq: 0 },
+      // rentDue: a new server's first monthly bill is a month from now.
+      meta: kind === "server"
+        ? { banned: [], paid: [userLower], bank: 0, msgSeq: 0, rentDue: now + RENT_PERIOD_MS, rentTried: 0 }
+        : { banned: [], paid: [userLower], bank: 0, msgSeq: 0 },
       version: 0,
     });
     pushMessage(room, "", username + " opened the " + kind + ".");
@@ -454,10 +573,15 @@ async function join(p: any) {
   const roomId = cleanText(p.roomId, 12).toUpperCase();
   if (!roomId) return { error: "notfound" };
   let charged = 0;
+  let rentBackup = false; // true = try to pay the monthly bill after this
 
   const reply = await mutate(roomId, async (room) => {
     const now = Date.now();
     if (room.meta.banned.includes(userLower)) return { reply: { error: "banned" } };
+    // MONTHLY BILL: nobody gets into a server that is offline, not even the host.
+    startRent(room, now);
+    rentBackup = rentBackupReady(room, now);
+    if (rentStatus(room, now) === "offline") return { reply: { error: "unpaid", rent: rentInfo(room, now) } };
     // A room whose host is long gone is closed instead of joined.
     if (room.kind === "room" && now - Number(room.host_seen || 0) > HOST_TIMEOUT_MS && room.host_lower !== userLower) {
       return { remove: true, reply: { error: "closed" } };
@@ -500,6 +624,12 @@ async function join(p: any) {
     return { write: true, reply: (saved: any) => view(saved, userLower, 0) };
   });
   if (reply && reply.success) reply.charged = charged;
+  // MONTHLY BILL: the host is away, so this visit tries to pay from the host's Gems.
+  // If that brings an offline server back, the player is let in right away.
+  if (rentBackup && !charged) {
+    const paid = await settleRent(roomId, false);
+    if (paid && reply && reply.error === "unpaid" && !p.rentRetried) return await join({ ...p, rentRetried: true });
+  }
   return reply;
 }
 
@@ -513,18 +643,23 @@ async function sync(p: any) {
   const sets = p.sets && typeof p.sets === "object" ? p.sets : {};
   const taps = Math.max(0, Math.min(100000, Math.floor(Number(p.taps) || 0)));
   let payout = 0;
+  let rentBackup = false; // true = try to pay the monthly bill after this
 
   const reply = await mutate(roomId, (room) => {
     const now = Date.now();
     if (room.meta.banned.includes(userLower)) return { reply: { error: "banned" } };
     const me = room.members[userLower];
     if (!me) return { reply: { error: "kicked" } };
+    // MONTHLY BILL: an offline server sends everyone out until the bill is paid.
+    const rentStarted = startRent(room, now);
+    rentBackup = rentBackupReady(room, now);
+    if (rentStatus(room, now) === "offline") return { reply: { error: "unpaid", rent: rentInfo(room, now) } };
     // A normal room ends when its host has been gone too long.
     if (room.kind === "room" && room.host_lower !== userLower && now - Number(room.host_seen || 0) > HOST_TIMEOUT_MS) {
       return { remove: true, reply: { error: "closed" } };
     }
 
-    let write = false;
+    let write = rentStarted; // an old server just got its first bill date: save it
     // seq stops one save from being added twice when the game had to send it again.
     const fresh = seq > Number(me.seq || 0);
     if (fresh) {
@@ -569,6 +704,7 @@ async function sync(p: any) {
     return { write: true, reply: (saved: any) => view(saved, userLower, sinceMsg) };
   });
   if (reply && reply.success && payout > 0) reply.payout = payout;
+  if (rentBackup) await settleRent(roomId, false); // MONTHLY BILL: the host is away, pay from their Gems if they have enough
   return reply;
 }
 
@@ -681,9 +817,21 @@ async function browse(p: any) {
   const got = await store.listServers();
   if (got.error) return { error: got.error };
   const now = Date.now();
+  // MONTHLY BILL: pay for a few servers whose host is away (a handful per visit keeps the list fast).
+  const paidNow: Record<string, boolean> = {};
+  let tries = 0;
+  for (const row of (got.rows || [])) {
+    if (tries >= 3) break;
+    const meta = row.meta && typeof row.meta === "object" ? row.meta : {};
+    if (!rentBackupReady({ kind: "server", meta }, now)) continue;
+    tries++;
+    if (await settleRent(row.id, false)) paidNow[row.id] = true;
+  }
   const servers = (got.rows || []).map((row: any) => {
     const members = row.members && typeof row.members === "object" ? row.members : {};
     const keys = Object.keys(members);
+    const meta = row.meta && typeof row.meta === "object" ? row.meta : {};
+    const rent = rentInfo({ kind: "server", meta }, now);
     return {
       id: row.id,
       name: row.name,
@@ -697,14 +845,58 @@ async function browse(p: any) {
       mine: row.host_lower === userLower,
       joined: !!members[userLower],
       createdAt: row.created_at,
+      // "paid", "late" or "offline". Only the host gets the dates.
+      rent: paidNow[row.id] ? "paid" : rent.status,
+      rentDue: row.host_lower === userLower && !paidNow[row.id] ? rent.due : 0,
+      rentOfflineAt: row.host_lower === userLower && !paidNow[row.id] ? rent.offlineAt : 0,
     };
   });
-  // Busiest servers first.
-  servers.sort((a: any, b: any) => b.online - a.online || b.members - a.members);
-  return { success: true, servers, serverCost: SERVER_COST, categories: CATEGORIES };
+  // Busiest servers first. Offline servers go to the bottom.
+  servers.sort((a: any, b: any) =>
+    Number(a.rent === "offline") - Number(b.rent === "offline") || b.online - a.online || b.members - a.members);
+  return { success: true, servers, serverCost: SERVER_COST, rentCost: RENT_COST, categories: CATEGORIES };
 }
 
-const ACTIONS: Record<string, (p: any) => Promise<any>> = { create, join, sync, chat, leave, moderate, remove, browse };
+// ---- rent: the host's game checks on the monthly bill of every server they host ----
+// The game calls this when it starts and every few minutes.
+//   pay: false  only look. Nothing is charged.
+//   pay: true   pay every bill that is due, up to "max" bills (the game works out how many it can afford).
+// The answer lists each server with its status, and "charged" = the Gems taken, so the game
+// can take the same Gems off the host's screen.
+async function rent(p: any) {
+  const account = await store.getAccount(p.username);
+  if (!account) return { error: "invalid" };
+  const userLower = lower(account.username || p.username);
+  const got = await store.listServersOf(userLower);
+  if (got.error) return { error: got.error };
+
+  let budget = p.pay ? Math.max(0, Math.min(MAX_SERVERS_PER_PLAYER, Math.floor(Number(p.max ?? MAX_SERVERS_PER_PLAYER)) || 0)) : 0;
+  let charged = 0;
+  const paid: string[] = [];
+  const servers: any[] = [];
+  for (const first of (got.rows || [])) {
+    let room = tidy(first);
+    const now = Date.now();
+    const needsStart = !Number(room.meta.rentDue || 0);
+    const due = rentStatus(room, now) !== "paid";
+    if (needsStart) {
+      // An old server: give it its first bill date (a month from now). Nothing is charged.
+      await mutate(room.id, (r) => (startRent(r, Date.now()) ? { write: true, reply: { ok: true } } : { reply: { ok: true } }));
+    } else if (due && budget > 0) {
+      const took = await settleRent(room.id, true);
+      if (took) { charged += took; budget--; paid.push(room.name); }
+    }
+    if (needsStart || due) {
+      const again = await store.getRoom(room.id);
+      if (again.row) room = tidy(again.row);
+    }
+    const info = rentInfo(room, Date.now());
+    servers.push({ id: room.id, name: room.name, icon: room.icon, status: info.status, due: info.due, offlineAt: info.offlineAt });
+  }
+  return { success: true, servers, charged, paid, rentCost: RENT_COST, graceMs: RENT_GRACE_MS };
+}
+
+const ACTIONS: Record<string, (p: any) => Promise<any>> = { create, join, sync, chat, leave, moderate, remove, browse, rent };
 
 // ---- the one entry point ----
 Deno.serve(async (req) => {

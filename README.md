@@ -67,6 +67,7 @@ Since 1.23.1 every file lives in a folder. Only `index.html` and `README.md` sit
 | `images/badges/` | Account badges: `admin.png`, `dev.png`, `mod.png`, `owner.png`, `director.png`, `fam.png`, `cc.png`, `ver.png`. |
 | `images/cursors/` | Built-in cursors for the Cursor Picker. |
 | `images/misc/` | Spare pictures the game does not use yet. |
+| `images/songs/` | Small song pictures (96 by 96) for the Now Playing banner. |
 | `backgrounds/` | Favorite color pictures (`bg_<color>.png`) and the Background Switcher pictures. |
 | `profiles/` | Starter profile pictures. Accounts save these paths, so do not rename this folder. |
 | `extras/` | Songs players can add to mods. Mods save `extras/<file>`, so do not rename this folder. |
@@ -93,7 +94,7 @@ Built-in lists live in the `settings/` folder, so they can be changed without ed
 | `settings/themes.json` | Color themes. Each theme has a dark and a light set of colors. |
 | `settings/credits.json` | The names and positions shown in Settings > Credits. |
 
-**music.json, cursors.json, backgrounds.json:** a list of `{ "label": "Name shown in the picker", "file": "file name" }`. Write the full path from the main folder, like `audio/music/lofi.mp3`, `images/cursors/duck.png`, `backgrounds/zen.jpeg` or `extras/name.mp3`. For cursors and backgrounds, `"default"` means the normal cursor or plain color background.
+**music.json, cursors.json, backgrounds.json:** a list of `{ "label": "Name shown in the picker", "file": "file name" }`. Songs can also have `"artist"` and `"thumb"` (a small picture, like `images/songs/sy.jpg`) for the Now Playing banner. Write the full path from the main folder, like `audio/music/lofi.mp3`, `images/cursors/duck.png`, `backgrounds/zen.jpeg` or `extras/name.mp3`. For cursors and backgrounds, `"default"` means the normal cursor or plain color background.
 
 **fonts.json:** a list of `{ "label", "value", "family", "fallback", "file", "google" }`.
 - `value`: short id, letters, numbers, `-` and `_` only. Never change it for an existing font, players' saved choice uses it.
@@ -126,6 +127,7 @@ Rules:
 - Valid JSON only: double quotes, commas between entries, no comma after the last one, no comments.
 - Players keep their picked song when songs are added or reordered (it is matched by file name).
 - **Color songs (1.39.0):** the background song follows the account's favorite color, like the `bg_<color>.png` pictures do. `COLOR_BG_SONGS` in `index.html` maps each color to a file in `audio/music/colors/`: red = Hammer of Justice, orange = Flower Castle, yellow = Running Sky, green = the og song, blue = The place where it rained, cyan = Welcome to the Green Room, purple = Another Medium, pink = Cutie Mew Mew Magic, black = KING OF ROLYPOLY, teal = A CYBER'S WORLD? (all by Toby Fox except the og song). `playColorBgSong()` starts the right one and `applyAccountTheme()` swaps it when the color changes. A color with no entry plays the og song. The tutorial and login songs are not changed.
+- **Now Playing banner (1.40.0):** when a song starts, a banner shows `[picture] Song name • Artist` (`announceSong()`). Music Player songs take `"artist"` and `"thumb"` from `settings/music.json` (both optional). Background songs (color songs, tutorial, login) use `BG_SONG_INFO` in `index.html`. A song from a mod shows the mod's icon and the mod's maker (saved when the mod is downloaded, `installedModEntry()`). An uploaded song shows just its name. No picture means a colored music note tile. The small pictures are in `images/songs/` (96 by 96). Nothing shows while sound is muted.
 - **Theme picker groups (1.39.0):** the theme picker in Preferences has two groups: `Themes` (everything in `settings/themes.json`) and `Downloaded mods` (themes inside installed mods). A mod with one theme is listed by the mod's name, a mod with several is listed as `Mod name: Theme name`. A mod with no theme has nothing to show, so it is not listed.
 - Keep the lists inside `index.html` roughly in sync as a backup.
 
@@ -134,8 +136,8 @@ Rules:
 Near the top of `index.html`:
 
 ```html
-<!-- Game version: 1.39.0 | Deployment: 211 | Update both on every release, see README.md -->
-<meta name="game-version" content="1.39.0">
+<!-- Game version: 1.40.0 | Deployment: 211 | Update both on every release, see README.md -->
+<meta name="game-version" content="1.40.0">
 ```
 
 Bump both the version comment and the `game-version` meta tag on every release. The deployment number is an internal counter for tracking Apps Script/Sheet deployments - increment it whenever the backend Web App is redeployed, even if the game version string doesn't change.
@@ -217,7 +219,7 @@ A room or server is one shared save that many players play together. It starts f
 
 | | Room | Server |
 |---|---|---|
-| Cost | Free | `ROOM_SERVER_COST` (1,000) Gems |
+| Cost | Free | `ROOM_SERVER_COST` (1,000) Gems to open, then `ROOM_RENT_COST` (250) Gems every month |
 | Who can join | Anyone with the room code | Anyone, it is listed in Browse Servers |
 | How long it lasts | Until the host leaves (then everyone is kicked out and the save is gone) | Always up until the host deletes it |
 | Entrance fee | No | Optional, in Gems, paid once per player, collected by the host |
@@ -236,5 +238,14 @@ How it is built:
 - Every `ROOM_SYNC_MS` (2 seconds) `roomTick()` sends what changed on this screen (numbers as "how much it changed", on/off values as the new value) and gets the room's save back. Each player's auto clickers, DVDs, crewmates and noobs run on their own screen and all pay into the shared save, so more players means more income.
 - Inside a room the Stats tab shows **Room Stats** (name, icon, global clicks, messages box, players) and **Player Stats** (the normal stats page with its own subtabs).
 - Reset Data, Moneys to Gems, and gifts are turned off inside a room, because the Moneys there belong to everyone.
-- `SERVER_COST`, `MAX_FEE` and the category list exist in both files. Change them in both.
+- `SERVER_COST`, `RENT_COST`, `MAX_FEE` and the category list exist in both files. Change them in both.
+
+**The monthly bill (1.40.0):**
+
+- A server costs `RENT_COST` (250) Gems every `RENT_PERIOD_MS` (30 days). The Gems are taken from the host by themselves. Servers made before 1.40.0 get their first bill a month after the new function first sees them.
+- Not enough Gems means the bill is **late**: the server stays open for `RENT_GRACE_MS` (a week) and the host gets a banner ("Hey, you need to save more Gems!"). After the week it is **offline**: `join` and `sync` answer `unpaid`, so nobody can open it (not even the host) until the bill is paid. Nothing is deleted. Paying an offline server starts a fresh month from that day.
+- It all lives in the room's `meta` column: `rentDue` (when the next bill is due) and `rentTried` (the last try). No new columns.
+- Game: `roomRentCheck()` runs when the game starts and every `ROOM_RENT_CHECK_MS` (10 minutes). It calls the new `rent` action to look, syncs the save, then calls `rent` again with `pay: true` and takes the same Gems off the screen (`roomSpendGems`). The server list shows the bill for your own servers, and an offline server of yours gets a `Pay 250 Gems` button.
+- Server: `settleRent()` pays one bill in three steps (claim the try, take the Gems, move the date) so a busy server is never charged twice. If the host is not playing, the first `join`, `sync` or `browse` more than an hour after the due date pays from the host's Gems (`rentBackupReady()`).
+- **The `rooms` function has to be deployed again** for this (paste the new `supabase/functions/rooms/index.ts` over the old one). Until then the game works like before and no bills are sent.
 
