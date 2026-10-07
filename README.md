@@ -136,8 +136,8 @@ Rules:
 Near the top of `index.html`:
 
 ```html
-<!-- Game version: 1.41.0 | Deployment: 211 | Update both on every release, see README.md -->
-<meta name="game-version" content="1.41.0">
+<!-- Game version: 1.42.0 | Deployment: 211 | Update both on every release, see README.md -->
+<meta name="game-version" content="1.42.0">
 ```
 
 Bump both the version comment and the `game-version` meta tag on every release. The deployment number is an internal counter for tracking Apps Script/Sheet deployments - increment it whenever the backend Web App is redeployed, even if the game version string doesn't change.
@@ -212,6 +212,28 @@ Rules for changing CGC:
 - **Block coding** (1.33.0) - the Code panel in the mod editor has a `Text | Blocks` switch. Blocks is a second view of the same code, not a second language: `draft.code` is still the only thing tested, saved and published. `cgcbFromCode()` reads the text line by line into a tree of blocks, `cgcbToCode()` writes the tree back as text after every change, and a line with no block of its own becomes a `code` block so nothing is lost. Before Blocks opens, `cgcbSameMeaning()` parses both versions with `CGC.parse()` and compares them, and the editor stays in Text mode if they differ or if a `when` / `if` / `repeat` is missing its `end`. Opening Blocks never rewrites the text, only changing a block does. The choice is saved in the draft as `codeMode`. Add a block type in four places: `CGCB_CATS`, `CGCB_PALETTE`, a pattern in `cgcbFromCode()`, and a case in both `cgcbToCode()` and `cgcbBlockHtml()`. When CGC gets a new statement, add its block too (it works as a `code` block until then).
 - Every code box in `CGC_GUIDE` is real CGC. After changing the language or a guide page, paste its code boxes into the editor and run them.
 - `MOD_EDITOR_SIZE_LIMIT` (250K) caps a mod's files, payload and code together.
+
+## Market: sale split, mod packs, boosts (1.42.0)
+
+**Sale split.** When someone buys a paid mod or a mod pack, the maker gets 60% (`AUTHOR_SHARE`) and every staff account (`owner`, `mod`, `dir`/`director`, `dev`) shares the other 40% equally. Everyone is paid as a gift "from Workshop" (the same `gifts` table friends' gifts use), so the Gems arrive with a banner even if they were offline. Paying an account's Gems directly would not stick, because an open game saves its own Gem count every second.
+
+- **The staff pot:** 40% of a 10 Gem mod is 4 Gems, which can't be split evenly between 6 staff. The staff part goes into a pot (`market_state` table). Whenever the pot holds at least 1 Gem for everyone, everyone gets the same whole amount and the leftover waits for the next sale. No Gem is lost.
+- Free mods, and your own mods, cost nothing and split nothing.
+
+**Mod packs.** A maker pays `PACK_COST` (500) Gems to bundle 2 to 20 of their own mods. A pack costs `PACK_DISCOUNT` (90%) of its mods added up. Mods the buyer already has are left out of the price. Buying a pack installs every mod in it. The pack's page lists each mod with its own Get button, for buying just one at the normal price. The maker can edit a pack for free or delete it (staff can delete too). A maker who keeps their mods anonymous shows as Anonymous on their packs.
+
+**Mod boosts.** A maker pays to list one of their mods first in the Workshop, with a Boosted tag, for 1, 3, 7 or 30 days (`BOOST_PLANS`: 500, 1,200, 2,500, 9,000 Gems). Boosting again adds the days on. Boost Gems are not paid to anyone.
+
+**Server boosts.** Any player can boost any server from Browse Servers or from Room Stats, with the same menu and prices. A boosted server is listed first. This lives in the `rooms` function (`boost` action, `meta.boostUntil`).
+
+**Turn it on (once):** Supabase dashboard > Edge Functions > Deploy a new function > Via editor, name it exactly `market`, paste `supabase/functions/market/index.ts`, turn OFF "Verify JWT" (same as `api`), Deploy. It makes its own tables (`mod_packs`, `market_boosts`, `market_state`). For server boosts, paste the new `supabase/functions/rooms/index.ts` over the old `rooms` function. Until `market` is deployed, mods are bought the old way (all Gems to the maker) and packs and boosts are hidden.
+
+How it is built:
+
+- Server: `supabase/functions/market/index.ts`, a separate function from `api`. Actions: `get`, `buyMod`, `createPack`, `updatePack`, `deletePack`, `buyPack`, `boostMod`. It uses the `adjust_balance` and `bump_downloads` database helpers that `api` already has. `payOut()` is the one place that shares out a sale.
+- Game: the `MARKET` section of `index.html`. `downloadMod()` sends paid mods to `buyMod`. `renderPackStripHtml()` draws the pack row, `renderWorkshopPack()` the pack page, `openPackEditor()` the make/edit menu, and `openBoostDialog()` the boost menu (shared by mods and servers).
+- `PACK_COST`, `PACK_DISCOUNT` and `BOOST_PLANS` exist in `index.html`, `market` and (boost prices) `rooms`. Change them everywhere.
+- The old `downloadWorkshopItem` action in `api` still exists and still pays the maker 100%. The game no longer uses it for paid mods once `market` is on. To close that door completely, change those two lines in `api` to call the same split.
 
 ## Social: online status, privacy switches, notifications (1.41.0)
 

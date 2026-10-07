@@ -1,5 +1,5 @@
 // =====================================================================
-// The Clicker Game! ROOMS + SERVERS (multiplayer)               1.40.0
+// The Clicker Game! ROOMS + SERVERS (multiplayer)               1.42.0
 // =====================================================================
 // A SEPARATE Supabase Edge Function from "api", so the main backend is
 // never touched. The game calls it at the api link with /api swapped
@@ -27,6 +27,12 @@
 //     meta.rentDue    when the next bill is due (a time in milliseconds)
 //     meta.rentTried  the last time someone tried to pay it
 //   No new table columns and no new secrets are needed.
+//
+// SERVER BOOSTS (1.42.0)
+//   Any player can pay Gems to boost a server for a number of days
+//   (BOOST_PLANS, longer costs more). A boosted server is listed first in
+//   Browse Servers with a Boosted tag. Boosting again adds the days on.
+//   It is kept in meta.boostUntil (a time in milliseconds).
 //
 // HOW PLAYERS STAY IN SYNC
 //   Every couple of seconds each player sends what changed on their
@@ -89,6 +95,9 @@ const RENT_GRACE_MS = 7 * 24 * 60 * 60 * 1000;   // a late server stays open thi
 const RENT_HEAD_START_MS = 60 * 60 * 1000;       // the host's own game gets this long to pay before anyone else's visit tries
 const RENT_RETRY_MS = 60 * 60 * 1000;            // time between two tries that were started by someone who is not the host
 const RENT_OWNER_RETRY_MS = 15 * 1000;           // time between two tries by the host (stops two tabs from paying twice)
+// SERVER BOOSTS: days -> Gems. Same prices as mod boosts (BOOST_PLANS in the "market" function and in index.html).
+const BOOST_PLANS: Record<string, number> = { "1": 500, "3": 1200, "7": 2500, "30": 9000 };
+const DAY_MS = 24 * 60 * 60 * 1000;
 const MAX_FEE = 10000;                  // biggest entrance fee, in Gems
 const MAX_NAME_CHARS = 30;
 const MAX_MESSAGE_CHARS = 200;
@@ -426,6 +435,12 @@ async function settleRent(roomId: string, byOwner: boolean) {
   return RENT_COST;
 }
 
+// SERVER BOOSTS (1.42.0): when a server's boost ends, or 0 if it is not boosted right now.
+function boostUntil(meta: any, now: number) {
+  const until = Number((meta && meta.boostUntil) || 0);
+  return until > now ? until : 0;
+}
+
 // What one player gets to see of a room. sinceMsg = the last chat line they already have.
 function view(room: any, userLower: string, sinceMsg: number) {
   const now = Date.now();
@@ -456,6 +471,7 @@ function view(room: any, userLower: string, sinceMsg: number) {
       host: room.host,
       createdAt: room.created_at,
       rent: room.kind === "server" ? rentInfo(room, now) : null, // the monthly bill (1.40.0)
+      boostUntil: boostUntil(room.meta, now), // 0 = not boosted (1.42.0)
     },
     members,
     messages: room.messages.filter((m: any) => Number(m.id) > sinceMsg),
@@ -849,12 +865,50 @@ async function browse(p: any) {
       rent: paidNow[row.id] ? "paid" : rent.status,
       rentDue: row.host_lower === userLower && !paidNow[row.id] ? rent.due : 0,
       rentOfflineAt: row.host_lower === userLower && !paidNow[row.id] ? rent.offlineAt : 0,
+      boostUntil: boostUntil(meta, now), // 0 = not boosted
     };
   });
-  // Busiest servers first. Offline servers go to the bottom.
+  // Offline servers go to the bottom. Boosted servers go to the top. Then the busiest first.
   servers.sort((a: any, b: any) =>
-    Number(a.rent === "offline") - Number(b.rent === "offline") || b.online - a.online || b.members - a.members);
-  return { success: true, servers, serverCost: SERVER_COST, rentCost: RENT_COST, categories: CATEGORIES };
+    Number(a.rent === "offline") - Number(b.rent === "offline") ||
+    Number(b.boostUntil > 0) - Number(a.boostUntil > 0) || b.online - a.online || b.members - a.members);
+  return { success: true, servers, serverCost: SERVER_COST, rentCost: RENT_COST, boostPlans: BOOST_PLANS, categories: CATEGORIES };
+}
+
+// ---- boost: pay Gems to list a server first in Browse Servers ----
+// Any player can boost any server (you do not have to be in it). plan = days: "1", "3", "7" or "30".
+async function boost(p: any) {
+  const account = await store.getAccount(p.username);
+  if (!account) return { error: "invalid" };
+  const username = String(account.username || p.username);
+  const roomId = cleanText(p.roomId, 12).toUpperCase();
+  const plan = String(p.plan ?? "");
+  const price = Object.prototype.hasOwnProperty.call(BOOST_PLANS, plan) ? BOOST_PLANS[plan] : 0;
+  if (!price) return { error: "badplan" };
+  let charged = 0;
+
+  const reply = await mutate(roomId, async (room) => {
+    const now = Date.now();
+    if (room.kind !== "server") return { reply: { error: "forbidden" } }; // rooms are private, there is no list to be first in
+    if (rentStatus(room, now) === "offline") return { reply: { error: "unpaid" } };
+    // mutate() can run this twice if two players save at once: only take the Gems the first time.
+    if (!charged) {
+      const charge = await chargeGems(account, price);
+      if (charge) return { reply: { error: charge } };
+      charged = price;
+    }
+    const until = Math.max(now, Number(room.meta.boostUntil || 0)) + Number(plan) * DAY_MS;
+    room.meta.boostUntil = until;
+    pushMessage(room, "", username + " boosted the server for " + plan + (plan === "1" ? " day!" : " days!"));
+    return { write: true, reply: { success: true, boostUntil: until } };
+  });
+  if (reply && reply.success) reply.charged = charged;
+  // The Gems were taken but the boost could not be saved (the server was deleted or too busy): give them back.
+  else if (charged) {
+    const fresh = await store.getAccount(p.username);
+    if (fresh && fresh.gems != null && isFinite(Number(fresh.gems))) await store.setGems(fresh.player_id, Number(fresh.gems) + charged);
+  }
+  return reply;
 }
 
 // ---- rent: the host's game checks on the monthly bill of every server they host ----
@@ -896,7 +950,7 @@ async function rent(p: any) {
   return { success: true, servers, charged, paid, rentCost: RENT_COST, graceMs: RENT_GRACE_MS };
 }
 
-const ACTIONS: Record<string, (p: any) => Promise<any>> = { create, join, sync, chat, leave, moderate, remove, browse, rent };
+const ACTIONS: Record<string, (p: any) => Promise<any>> = { create, join, sync, chat, leave, moderate, remove, browse, rent, boost };
 
 // ---- the one entry point ----
 Deno.serve(async (req) => {
