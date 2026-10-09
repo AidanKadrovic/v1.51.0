@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<!-- Game version: 1.50.0 | Deployment: 212 | Update both on every release, see README.md -->
-<meta name="game-version" content="1.50.0">
+<!-- Game version: 1.51.0 | Deployment: 213 | Update both on every release, see README.md -->
+<meta name="game-version" content="1.51.0">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>The Clicker Game!</title>
 <link rel="icon" type="image/x-icon" href="images/ui/maksy.ico" id="favicon-link">
@@ -3708,6 +3708,50 @@
   }
   .mod-report-btns .friend-action-btn{
     font-size:10.5px;
+  }
+
+  /* ---------- SUPPORT A CREATOR (1.51.0) ----------
+     The Support button on a Content Creator's public profile. */
+  .public-profile-support-row{
+    display:none;
+    flex-direction:column;
+    align-items:center;
+    gap:6px;
+    margin-top:10px;
+  }
+  .public-profile-support-row.visible{ display:flex; }
+  .support-creator-btn{
+    font-family:'Fredoka One', cursive;
+    font-size:14px;
+    padding:10px 22px;
+    border-radius:12px;
+    border:2px solid var(--ink);
+    cursor:pointer;
+    background:#ff4d5e;            /* creator red, same idea as the red creator name */
+    color:#fff;
+    box-shadow:var(--pop-sm);
+    transition:transform .12s ease, box-shadow .12s ease;
+  }
+  .support-creator-btn:hover{
+    transform:translate(-1px,-1px);
+    box-shadow:4px 4px 0 var(--ink);
+  }
+  .support-creator-btn:disabled{
+    opacity:0.6;
+    cursor:default;
+    transform:none;
+  }
+  /* Already supporting this creator: a quiet button, pressing it stops. */
+  .support-creator-btn.supporting{
+    background:var(--card);
+    color:#ff4d5e;
+  }
+  .support-creator-note{
+    margin:0;
+    font-size:11.5px;
+    color:var(--muted);
+    text-align:center;
+    max-width:260px;
   }
 
   /* ---------- FRIENDS: GIFT BUTTON ---------- */
@@ -9489,6 +9533,7 @@
         <span id="public-profile-clicks"></span>
       </div>
       <div class="public-profile-social-row" id="public-profile-social-row"></div>
+      <div class="public-profile-support-row" id="public-profile-support-row"></div>
       <div class="public-profile-friend-row" id="public-profile-friend-row"></div>
     </div>
   </div>
@@ -10397,6 +10442,7 @@
     playSound('audio/sfx/money.mp3');
     game.clicks -= cost;
     game.noobLevel = noobLevel() + n;
+    supportTrackPurchase('noobLevel', n); // SUPPORT
     updateCounter();
     saveGame();
     syncToSheet();
@@ -10419,6 +10465,7 @@
     playSound('audio/sfx/money.mp3');
     game.clicks -= NOOB_COST;
     game.noobOwned += 1;
+    supportTrackPurchase('noob', 1); // SUPPORT
     updateCounter();
     saveGame();
     syncToSheet();
@@ -10481,6 +10528,7 @@
     game.clicks -= cost;
     game.clickBoostOwned += 1;
     game.clickPower += 1;
+    supportTrackPurchase('clickBoost', 1); // SUPPORT: counts toward the creator's free one
     updateCounter();
     saveGame();
     syncToSheet();
@@ -10495,6 +10543,7 @@
     game.clicks -= cost;
     game.clickBoostOwned += n;
     game.clickPower += n;
+    supportTrackPurchase('clickBoost', n); // SUPPORT
     updateCounter();
     saveGame();
     syncToSheet();
@@ -10561,6 +10610,7 @@
     playSound('audio/sfx/money.mp3');
     game.clicks -= cost;
     game.autoClickerOwned += 1;
+    supportTrackPurchase('autoClicker', 1); // SUPPORT
     updateCounter();
     saveGame();
     syncToSheet();
@@ -10641,6 +10691,7 @@
     game.clicks -= dvdCost();
     if (game.dvdOwned === 0) game.dvdBehind = true;
     game.dvdOwned += 1;
+    supportTrackPurchase('dvd', 1); // SUPPORT
     updateCounter();
     saveGame();
     syncToSheet();
@@ -10698,6 +10749,7 @@
     playSound('audio/sfx/money.mp3');
     game.clicks -= amogusTaskBulkCost(n);
     game.amogusExtraTasks = amogusExtraTasks() + n;
+    supportTrackPurchase('amogusTask', n); // SUPPORT
     updateCounter();
     saveGame();
     syncToSheet();
@@ -10724,6 +10776,7 @@
     game.clicks -= AMOGUS_COST;
     game.amogusOwned += 1;
     game.amogusAlive += 1;
+    supportTrackPurchase('amogus', 1); // SUPPORT
     updateCounter();
     saveGame();
     syncToSheet();
@@ -10736,6 +10789,7 @@
     playSound('audio/sfx/money.mp3');
     game.prestige -= 1;
     game.boosts = (game.boosts || 0) + 1;
+    supportTrackPurchase('boost', 1); // SUPPORT
     saveGame();
     syncToSheet();
     renderShop();
@@ -10751,6 +10805,7 @@
     playSound('audio/sfx/money.mp3');
     game.prestige -= cost;
     game.headStartOwned += 1;
+    supportTrackPurchase('headStart', 1); // SUPPORT
     saveGame();
     syncToSheet();
     renderShop();
@@ -10762,6 +10817,7 @@
     playSound('audio/sfx/money.mp3');
     game.prestige -= cost;
     game.prestigeMultOwned += 1;
+    supportTrackPurchase('prestigeMult', 1); // SUPPORT
     saveGame();
     syncToSheet();
     renderShop();
@@ -11685,8 +11741,15 @@
 
   // Name font: a Limited Shop font wins over the account's staff font.
   // Uses !important so the Font Manager UI font doesn't cover it up.
-  function applyProfileNameFont(el, accountFont, shopFontId){
+  // SUPPORT (1.51.0): pass the username too. A player who supports a creator
+  // gets that creator's name font instead of their own (see supportFontFor).
+  function applyProfileNameFont(el, accountFont, shopFontId, username){
     if (!el) return;
+    const borrowed = username ? supportFontFor(username) : null;
+    if (borrowed) {
+      accountFont = borrowed.font;
+      shopFontId = borrowed.profileFont;
+    }
     el.style.removeProperty('font-family');
     const shopFont = validShopFont(shopFontId);
     if (shopFont) {
@@ -14639,11 +14702,14 @@
       row.addEventListener('click', () => openPublicProfile(row.dataset.username));
     });
 
-    entries.forEach(entry => {
+    const applyFonts = () => entries.forEach(entry => {
       const nameEl = list.querySelector(`.leaderboard-name[data-username="${CSS.escape(entry.username)}"]`);
       const shopFont = entry.username === currentUsername ? game.equippedFont : entry.profileFont;
-      applyProfileNameFont(nameEl, entry.font, shopFont);
+      applyProfileNameFont(nameEl, entry.font, shopFont, entry.username);
     });
+    applyFonts();
+    // SUPPORT: find out who supports a creator, then set the fonts again.
+    supportLookup(entries.map(e => e.username)).then(found => { if (found) applyFonts(); });
   }
 
   async function renderLeaderboard(){
@@ -14759,7 +14825,7 @@
       friendsSearchInput.addEventListener('input', () => renderFriendsList(friendsSearchInput.value.trim()));
     }
 
-    applyProfileNameFont(document.getElementById('stats-name-click'), currentFont, game.equippedFont);
+    applyProfileNameFont(document.getElementById('stats-name-click'), currentFont, game.equippedFont, currentUsername);
     applyProfileFrame(document.getElementById('stats-avatar-click'), game.equippedFrame);
 
     loadFriendRequests();
@@ -15784,12 +15850,14 @@
     const run = () => {
       if (document.hidden || !currentUsername) return;
       claimIncomingGifts();
+      supportPoll(); // SUPPORT: creators pick up items, supporters retry unsent ones
       checkModReportsCount().catch(() => {});
     };
     setTimeout(run, 3000);
     setInterval(run, INBOX_POLL_MS);
     startNotificationPolling();
     startSocial();           // SOCIAL: online status pings (1.41.0)
+    supportStart();          // SUPPORT: who I support (1.51.0)
     startModUpdateChecks();  // SOCIAL: mod update notifications (1.41.0)
     startShopNewItemWatcher();
   }
@@ -25532,6 +25600,7 @@ ${hasCode
   const publicProfileRestoreRow = document.getElementById('public-profile-restore-row');
   const publicProfileFriendRow = document.getElementById('public-profile-friend-row');
   const publicProfileSocialRow = document.getElementById('public-profile-social-row');
+  const publicProfileSupportRow = document.getElementById('public-profile-support-row'); // SUPPORT
   const modBtnModerate = document.getElementById('mod-btn-moderate');
   const modBtnWarn = document.getElementById('mod-btn-warn');
   const modBtnBan = document.getElementById('mod-btn-ban');
@@ -25632,6 +25701,8 @@ ${hasCode
     publicProfileRestoreRow.style.display = 'none';
     publicProfileFriendRow.style.display = 'none';
     publicProfileFriendRow.innerHTML = '';
+    publicProfileSupportRow.classList.remove('visible'); // SUPPORT
+    publicProfileSupportRow.innerHTML = '';
     publicProfileSocialRow.classList.remove('visible');
     publicProfileSocialRow.innerHTML = '';
     publicProfileOverlay.classList.add('visible');
@@ -25677,7 +25748,14 @@ ${hasCode
       publicProfileModActions.style.display = canModerate ? 'flex' : 'none';
       publicProfileRestoreRow.style.display = (viewerAuth === 'owner' && !isSelf) ? 'flex' : 'none';
 
-      applyProfileNameFont(publicProfileName, account.font, isSelf ? game.equippedFont : account.profileFont);
+      // SUPPORT: a supporter's name shows in their creator's font. The lookup
+      // can take a moment, so the font is set now and again when it answers.
+      const applyNameFont = () => applyProfileNameFont(publicProfileName, account.font, isSelf ? game.equippedFont : account.profileFont, account.username);
+      applyNameFont();
+      supportLookup([account.username]).then(found => {
+        if (found && currentViewedProfile === account) applyNameFont();
+      });
+      updatePublicProfileSupportRow(account, isSelf);
       applyProfileFrame(document.querySelector('#public-profile-overlay .public-profile-avatar'), isSelf ? game.equippedFrame : account.profileFrame);
 
       const monthName = account.birthday && MONTHS[(account.birthday.month || 1) - 1];
@@ -25743,6 +25821,389 @@ ${hasCode
           finish('Copy failed');
         }
       });
+    });
+  }
+
+  /* ======================================================
+     SUPPORT A CREATOR (1.51.0)
+     A player with the "cc" (Content Creator) auth gets a red name (see
+     authColor) and a Support button on their public profile.
+     Supporting a creator does two things:
+       1. Your name shows in that creator's name font (profile, Stats tab,
+          leaderboard). See supportFontFor(), used by applyProfileNameFont().
+       2. Every SUPPORT_BUY_EVERY (5) of a Shop item you buy sends 1 of that
+          item to the creator. Mods are not Shop items, so they never count.
+     You support one creator at a time. Pressing Support on another creator
+     switches, pressing the button again stops.
+
+     Runs on the "support" edge function (supabase/functions/support/index.ts),
+     which is separate from "api". Until it is deployed the button says so.
+     ====================================================== */
+  const SUPPORT_API_URL = SHEET_API_URL.replace(/\/api\/?$/, '/support');
+  const SUPPORT_CREATOR_AUTH = 'cc';   // the auth that gets a Support button
+  const SUPPORT_BUY_EVERY = 5;         // buy this many of one item, the creator gets 1
+  const SUPPORT_MAX_SEND = 1000;       // most of one item sent in one request (same as MAX_AMOUNT in the function)
+  const SUPPORT_CACHE_MS = 60 * 1000;  // how long "who does this player support" is reused before asking again
+  const SUPPORT_SAVE_PREFIX = 'fgd_support_';
+
+  // Shop items that count, and what happens when a creator receives some.
+  // To add an item: add it here, add its key to ITEMS in the support function,
+  // and call supportTrackPurchase('key', amount) in its buy function.
+  const SUPPORT_ITEMS = {
+    clickBoost:   { label: 'Click Boost',         give: n => { game.clickBoostOwned += n; game.clickPower += n; } },
+    autoClicker:  { label: 'Auto Clicker',        give: n => { game.autoClickerOwned += n; } },
+    dvd:          { label: 'DVD Logo',            give: n => { if (game.dvdOwned === 0) game.dvdBehind = true; game.dvdOwned += n; updateDvdVisibility(); } },
+    noob:         { label: 'Noob',                give: n => { game.noobOwned += n; for (let i = 0; i < n; i++) spawnNoob(); } },
+    noobLevel:    { label: 'Noob Level',          give: n => { game.noobLevel = noobLevel() + n; } },
+    amogus:       { label: 'Amogus',              give: n => { game.amogusOwned += n; game.amogusAlive += n; for (let i = 0; i < n; i++) spawnCrewmate(); } },
+    amogusTask:   { label: 'Amogus Task',         give: n => { game.amogusExtraTasks = Math.min(AMOGUS_MAX_EXTRA_TASKS, amogusExtraTasks() + n); rebuildTaskMarkers(); } },
+    boost:        { label: 'Boost',               give: n => { game.boosts = (game.boosts || 0) + n; } },
+    headStart:    { label: 'Head Start',          give: n => { game.headStartOwned += n; } },
+    prestigeMult: { label: 'Prestige Multiplier', give: n => { game.prestigeMultOwned += n; } }
+  };
+
+  // My own support state, kept on this device (one save per account):
+  //   creator      username of the creator I support ('' for nobody)
+  //   font         that creator's staff font file, profileFont = their Limited Shop font id
+  //   progress     { item: how many bought since the last one was sent } (always under 5)
+  //   owed         { item: how many still have to be sent } (kept until the function says it got them)
+  //   supporters   how many players support me (only counted for creators)
+  let supportState = supportBlankState('');
+  let supportReady = false;        // true once the support function has answered
+  const supportOf = {};            // lowercase username -> { creator, at } ("who does this player support")
+  const supportCreatorFonts = {};  // lowercase creator name -> { font, profileFont }
+
+  function supportBlankState(user){
+    return { user: user, creator: '', font: '', profileFont: '', progress: {}, owed: {}, supporters: 0 };
+  }
+  function supportKey(name){ return String(name || '').trim().toLowerCase(); }
+
+  // Loads the state for whoever is logged in right now (a different account
+  // on the same device gets its own).
+  function supportEnsureUser(){
+    const user = supportKey(currentUsername);
+    if (supportState.user === user) return;
+    supportState = supportBlankState(user);
+    supportReady = false;
+    if (!user) return;
+    try {
+      const saved = JSON.parse(localStorage.getItem(SUPPORT_SAVE_PREFIX + user) || 'null');
+      if (saved && typeof saved === 'object') {
+        supportState.creator = String(saved.creator || '');
+        supportState.font = String(saved.font || '');
+        supportState.profileFont = String(saved.profileFont || '');
+        if (saved.progress && typeof saved.progress === 'object') supportState.progress = saved.progress;
+        if (saved.owed && typeof saved.owed === 'object') supportState.owed = saved.owed;
+      }
+    } catch (e) {}
+    // The saved fonts let my name show in the creator's font before the function answers.
+    if (supportState.creator) {
+      supportCreatorFonts[supportKey(supportState.creator)] = { font: supportState.font, profileFont: supportState.profileFont };
+    }
+  }
+  function supportSaveLocal(){
+    if (!supportState.user) return;
+    try { localStorage.setItem(SUPPORT_SAVE_PREFIX + supportState.user, JSON.stringify(supportState)); } catch (e) {}
+  }
+
+  // One request to the support function. Same text/plain trick as sheetRequest().
+  async function supportRequest(payload){
+    if (offlineMode || !currentUsername) throw new Error('offline');
+    const res = await fetch(SUPPORT_API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify(Object.assign({ username: currentUsername }, payload))
+    });
+    // 404 = the "support" function has not been deployed to Supabase yet.
+    if (res.status === 404) return { error: 'nofunction' };
+    return await res.json();
+  }
+
+  // True when this account font or Limited Shop font would really change a name.
+  function supportHasFont(fonts){
+    if (!fonts) return false;
+    const file = String(fonts.font || '').toLowerCase();
+    return !!validShopFont(fonts.profileFont) || (!!file && file !== 'default');
+  }
+
+  // The fonts a player's name borrows from the creator they support, or null
+  // (supports nobody, not looked up yet, or the creator has no special font).
+  function supportFontFor(username){
+    const key = supportKey(username);
+    if (!key) return null;
+    supportEnsureUser();
+    const creator = key === supportState.user ? supportState.creator : (supportOf[key] ? supportOf[key].creator : '');
+    if (!creator) return null;
+    const fonts = supportCreatorFonts[supportKey(creator)];
+    return supportHasFont(fonts) ? fonts : null;
+  }
+
+  // Gets a creator's two name fonts from the main API (once per creator).
+  async function supportLoadCreatorFonts(creator, refresh){
+    const key = supportKey(creator);
+    if (!key || (supportCreatorFonts[key] && !refresh)) return;
+    try {
+      const result = await sheetRequest({ action: 'getAccount', username: creator, viewer: currentUsername || '' });
+      if (result && result.success && result.account) {
+        supportCreatorFonts[key] = { font: String(result.account.font || ''), profileFont: String(result.account.profileFont || '') };
+      }
+    } catch (e) {}
+  }
+
+  // Finds out who each of these players supports, and loads those creators' fonts.
+  // Resolves true when at least one of them supports a creator (so the caller
+  // knows the name fonts have to be set again).
+  async function supportLookup(usernames){
+    if (!currentUsername || offlineMode) return false;
+    supportEnsureUser();
+    const now = Date.now();
+    const names = Array.from(new Set((usernames || []).map(supportKey).filter(Boolean)));
+    const wanted = names.filter(n => n !== supportState.user && !(supportOf[n] && now - supportOf[n].at < SUPPORT_CACHE_MS));
+    if (wanted.length) {
+      try {
+        const reply = await supportRequest({ action: 'get', usernames: wanted.slice(0, 100) });
+        if (reply && reply.success) {
+          supportApplyMine(reply);
+          wanted.forEach(n => { supportOf[n] = { creator: String((reply.people && reply.people[n]) || ''), at: now }; });
+        }
+      } catch (e) {
+        // No connection: names simply keep their own fonts.
+      }
+    }
+    const creators = names
+      .map(n => n === supportState.user ? supportState.creator : (supportOf[n] ? supportOf[n].creator : ''))
+      .filter(Boolean);
+    await Promise.all(Array.from(new Set(creators)).map(c => supportLoadCreatorFonts(c)));
+    return creators.length > 0;
+  }
+
+  // Every answer from the function's "get" carries who I support and how many support me.
+  function supportApplyMine(reply){
+    const before = supportState.creator;
+    supportReady = true;
+    supportState.creator = String(reply.mine || '');
+    supportState.supporters = Math.max(0, Math.floor(Number(reply.supporters) || 0));
+    if (supportKey(before) !== supportKey(supportState.creator)) {
+      // Changed on another device: progress toward the old creator starts over.
+      supportState.progress = {};
+      supportState.owed = {};
+      supportState.font = '';
+      supportState.profileFont = '';
+    }
+    supportSaveLocal();
+  }
+
+  // Sets my own name font again wherever it is on screen right now.
+  function supportRefreshMyName(){
+    const el = document.getElementById('stats-name-click');
+    if (el) applyProfileNameFont(el, currentFont, game.equippedFont, currentUsername);
+  }
+
+  // Asks the function who I support, then loads that creator's fonts fresh
+  // (the creator may have picked a new font since last time).
+  async function supportRefreshMine(){
+    if (!currentUsername || offlineMode) return;
+    supportEnsureUser();
+    try {
+      const reply = await supportRequest({ action: 'get', usernames: [] });
+      if (!reply || !reply.success) return;
+      supportApplyMine(reply);
+      if (supportState.creator) {
+        await supportLoadCreatorFonts(supportState.creator, true);
+        const fonts = supportCreatorFonts[supportKey(supportState.creator)] || { font: '', profileFont: '' };
+        supportState.font = fonts.font;
+        supportState.profileFont = fonts.profileFont;
+        supportSaveLocal();
+      }
+      supportRefreshMyName();
+    } catch (e) {}
+  }
+
+  // Called once from startInboxPolling().
+  function supportStart(){
+    supportEnsureUser();
+    supportRefreshMyName();
+    supportRefreshMine();
+  }
+
+  // Called every INBOX_POLL_MS from startInboxPolling().
+  function supportPoll(){
+    supportEnsureUser();
+    supportFlushOwed();
+    supportClaimGifts();
+  }
+
+  // Start supporting a creator, or stop (creator: '').
+  // Resolves '' when it worked, or a message for the player.
+  async function supportSet(creator){
+    supportEnsureUser();
+    let reply;
+    try {
+      reply = await supportRequest({ action: 'set', creator: creator || '' });
+    } catch (e) {
+      return "Couldn't reach the server.";
+    }
+    if (!reply || !reply.success) {
+      const messages = {
+        nofunction: 'Support is not set up yet.',
+        notable: 'Support is not set up yet.',
+        notcreator: 'That player is not a Content Creator.',
+        self: "You can't support yourself.",
+        nouser: 'That player was not found.',
+        invalid: 'Log in to support a creator.'
+      };
+      return messages[reply && reply.error] || 'Something went wrong.';
+    }
+    supportReady = true;
+    // A new creator starts from zero: nothing bought for the old one carries over.
+    supportState.creator = String(reply.mine || '');
+    supportState.progress = {};
+    supportState.owed = {};
+    supportState.font = '';
+    supportState.profileFont = '';
+    if (supportState.creator) {
+      await supportLoadCreatorFonts(supportState.creator, true);
+      const fonts = supportCreatorFonts[supportKey(supportState.creator)] || { font: '', profileFont: '' };
+      supportState.font = fonts.font;
+      supportState.profileFont = fonts.profileFont;
+    }
+    supportSaveLocal();
+    supportRefreshMyName();
+    return '';
+  }
+
+  // Called by the Shop buy functions. Counts the purchase, and every 5th one
+  // of the same item puts 1 on the list to send to the creator.
+  function supportTrackPurchase(item, amount){
+    if (!SUPPORT_ITEMS[item] || !currentUsername) return;
+    if (roomSession) return; // ROOMS: a room's shared save is not my own shopping
+    supportEnsureUser();
+    if (!supportState.creator) return;
+    const n = Math.max(0, Math.floor(Number(amount) || 0));
+    if (!n) return;
+    const bought = (Number(supportState.progress[item]) || 0) + n;
+    const toSend = Math.floor(bought / SUPPORT_BUY_EVERY);
+    supportState.progress[item] = bought % SUPPORT_BUY_EVERY;
+    if (toSend > 0) supportState.owed[item] = (Number(supportState.owed[item]) || 0) + toSend;
+    supportSaveLocal();
+    if (toSend > 0) supportFlushOwed();
+  }
+
+  // Sends everything on the "owed" list. Anything that could not be sent stays
+  // on the list and is tried again by supportPoll().
+  let supportFlushBusy = false;
+  async function supportFlushOwed(){
+    if (supportFlushBusy || !currentUsername || offlineMode || !supportState.creator) return;
+    const gifts = Object.keys(supportState.owed)
+      .filter(item => SUPPORT_ITEMS[item] && Number(supportState.owed[item]) > 0)
+      .map(item => ({ item: item, amount: Math.min(SUPPORT_MAX_SEND, Math.floor(Number(supportState.owed[item]))) }));
+    if (!gifts.length) return;
+    supportFlushBusy = true;
+    try {
+      const reply = await supportRequest({ action: 'give', gifts: gifts });
+      if (reply && reply.success) {
+        // Take off only what was sent: more may have been bought while waiting.
+        gifts.forEach(g => {
+          const left = (Number(supportState.owed[g.item]) || 0) - g.amount;
+          if (left > 0) supportState.owed[g.item] = left; else delete supportState.owed[g.item];
+        });
+        supportSaveLocal();
+        const what = gifts.map(g => `${g.amount.toLocaleString()} ${SUPPORT_ITEMS[g.item].label}`).join(', ');
+        showBanner(`You sent ${what} to ${reply.creator || supportState.creator}!`);
+      } else if (reply && reply.error === 'nosupport') {
+        // The creator is gone or is no longer a creator: stop counting.
+        supportState.creator = '';
+        supportState.progress = {};
+        supportState.owed = {};
+        supportSaveLocal();
+        supportRefreshMyName();
+      }
+    } catch (e) {
+      // No connection: kept for the next try.
+    } finally {
+      supportFlushBusy = false;
+    }
+  }
+
+  // A creator's game picks up the items their supporters sent.
+  let supportClaimBusy = false;
+  async function supportClaimGifts(){
+    if (supportClaimBusy || !currentUsername || offlineMode) return;
+    if (String(currentAuth || '').trim().toLowerCase() !== SUPPORT_CREATOR_AUTH) return;
+    if (roomSession) return; // ROOMS: items wait until you are back on your own save
+    supportClaimBusy = true;
+    try {
+      const reply = await supportRequest({ action: 'claim' });
+      const gifts = (reply && reply.success && Array.isArray(reply.gifts)) ? reply.gifts : [];
+      // Add up the same item from the same supporter so it is one banner, not ten.
+      const totals = {};
+      gifts.forEach(g => {
+        const amount = Math.max(0, Math.floor(Number(g.amount) || 0));
+        if (!SUPPORT_ITEMS[g.item] || !amount) return;
+        const id = g.from + '\n' + g.item;
+        if (!totals[id]) totals[id] = { from: g.from, item: g.item, amount: 0 };
+        totals[id].amount += amount;
+      });
+      const list = Object.keys(totals).map(id => totals[id]);
+      if (!list.length) return;
+      list.forEach(t => SUPPORT_ITEMS[t.item].give(t.amount));
+      list.slice(0, 4).forEach(t => {
+        showBanner(`Your supporter ${t.from || 'someone'} sent you ${t.amount.toLocaleString()} ${SUPPORT_ITEMS[t.item].label}!`);
+      });
+      if (list.length > 4) showBanner(`...and ${list.length - 4} more supporter gifts!`);
+      updateCounter();
+      saveGame();
+      syncToSheet();
+      if (activeTab === 'shop') renderShop(); else refreshShopAffordability();
+    } catch (e) {
+    } finally {
+      supportClaimBusy = false;
+    }
+  }
+
+  // The Support button under a creator's public profile.
+  function updatePublicProfileSupportRow(account, isSelf){
+    const row = publicProfileSupportRow;
+    const isCreator = String(account.auth || '').trim().toLowerCase() === SUPPORT_CREATOR_AUTH;
+    if (!isCreator || !currentUsername) {
+      row.classList.remove('visible');
+      row.innerHTML = '';
+      return;
+    }
+    supportEnsureUser();
+    row.classList.add('visible');
+
+    // My own creator profile: no button, just how many players support me.
+    if (isSelf) {
+      const count = supportState.supporters;
+      row.innerHTML = `<p class="support-creator-note">${count.toLocaleString()} ${count === 1 ? 'player supports' : 'players support'} you. Every ${SUPPORT_BUY_EVERY} of a Shop item they buy sends you 1.</p>`;
+      return;
+    }
+
+    const supporting = supportKey(supportState.creator) === supportKey(account.username);
+    const other = !supporting && supportState.creator ? supportState.creator : '';
+    row.innerHTML = `
+      <button class="support-creator-btn${supporting ? ' supporting' : ''}" id="support-creator-btn" type="button">${supporting ? 'Supporting (tap to stop)' : 'Support'}</button>
+      <p class="support-creator-note" id="support-creator-note"></p>`;
+    // textContent (not innerHTML) because a username goes in here.
+    document.getElementById('support-creator-note').textContent = supporting
+      ? `Your name uses ${account.username}'s font, and every ${SUPPORT_BUY_EVERY} of a Shop item you buy sends them 1.`
+      : (other
+        ? `You support ${other} right now. Supporting ${account.username} switches.`
+        : `Get ${account.username}'s name font. Every ${SUPPORT_BUY_EVERY} of a Shop item you buy sends them 1 for free.`);
+
+    const btn = document.getElementById('support-creator-btn');
+    btn.addEventListener('click', async () => {
+      btn.disabled = true;
+      btn.textContent = supporting ? 'Stopping...' : 'Supporting...';
+      const problem = await supportSet(supporting ? '' : account.username);
+      if (problem) showBanner(problem);
+      else {
+        playSound('audio/sfx/click.mp3');
+        showBanner(supporting ? `You stopped supporting ${account.username}.` : `You now support ${account.username}!`);
+      }
+      // The profile may have been closed or changed while waiting.
+      if (currentViewedProfile === account) updatePublicProfileSupportRow(account, isSelf);
     });
   }
 

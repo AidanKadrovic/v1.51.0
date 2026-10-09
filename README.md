@@ -137,8 +137,8 @@ Rules:
 Near the top of `index.html`:
 
 ```html
-<!-- Game version: 1.50.0 | Deployment: 212 | Update both on every release, see README.md -->
-<meta name="game-version" content="1.50.0">
+<!-- Game version: 1.51.0 | Deployment: 213 | Update both on every release, see README.md -->
+<meta name="game-version" content="1.51.0">
 ```
 
 Bump both the version comment and the `game-version` meta tag on every release. The deployment number is an internal counter for tracking Apps Script/Sheet deployments - increment it whenever the backend Web App is redeployed, even if the game version string doesn't change.
@@ -310,6 +310,24 @@ How it is built:
 - Game: the `SOCIAL` section of `index.html`. `socialLookup()` fills `socialCache`, and any element with `data-status-for="username"` is filled by `socialFillStatuses()`.
 - The privacy switches are enforced by the game, not by `api` (which this update does not touch): the sender's game checks the switch before sending, and the receiver's game hides or declines. A player running a changed copy of the game could still send a message, but the receiver would not see it in a turned off Messages tab. To make it airtight, `sendMessage`, `createChat` and `sendFriendRequest` in `api` would have to read the `social` table too.
 - Notification choices live in `localStorage` (`fgd_site_notifs`). `sendSiteNotification(kind, title, body)` is the one place that pops one up.
+
+## Support a Creator (1.51.0)
+
+A player with the `cc` (Content Creator) auth has a red name (`authColor`) and gets a **Support** button on their public profile. Pressing it makes you their supporter:
+
+- **Name font:** your name shows in that creator's name font on your profile, the Stats tab and the leaderboard. A creator with no special font changes nothing.
+- **Buy 5, they get 1:** every 5 of a Shop item you buy sends 1 of that item to the creator, for free. Items that count: Click Boost, Auto Clicker, DVD Logo, Noob, Noob Level, Amogus, Amogus Task, Boost, Head Start, Prestige Multiplier. Mods never count. Purchases inside a room or server do not count (that is the room's save, not yours).
+
+You support one creator at a time. Pressing Support on another creator switches (and the count toward 5 starts over), pressing the button again stops. A creator's own profile shows how many players support them.
+
+**Turn it on (once):** Supabase dashboard > Edge Functions > Deploy a new function > Via editor, name it exactly `support`, paste `supabase/functions/support/index.ts`, turn OFF "Verify JWT" (same as `api`), Deploy. The function makes its own `supports` and `support_gifts` tables. Until it is deployed the Support button answers "Support is not set up yet."
+
+How it is built:
+
+- Server: `supabase/functions/support/index.ts`, a separate function from `api`. Actions: `get` (who I support, how many support me, who a list of players supports), `set` (start, switch or stop), `give` (send items to my creator), `claim` (a creator picks up waiting items, which deletes them so they are only ever claimed once). Rows are keyed by `player_id` so a name change keeps supporters.
+- Game: the `SUPPORT A CREATOR` section of `index.html`. `SUPPORT_ITEMS` lists the items and what receiving one does. Each buy function calls `supportTrackPurchase('item', amount)`. The count toward 5 and anything not sent yet live in `localStorage` (`fgd_support_<username>`), and `supportPoll()` (every `INBOX_POLL_MS`) retries unsent items and claims a creator's waiting ones.
+- Fonts: `applyProfileNameFont(el, accountFont, shopFontId, username)` asks `supportFontFor(username)`. `supportLookup()` fills the cache, and the creator's fonts come from the normal `getAccount` in `api` (which this update does not touch).
+- To add an item: add it to `SUPPORT_ITEMS`, add its key to `ITEMS` in the function, and call `supportTrackPurchase` in its buy function.
 
 ## Rooms and servers (1.34.0)
 
